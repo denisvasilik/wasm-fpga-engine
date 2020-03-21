@@ -123,12 +123,8 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
         EngineStateReturn <= EngineStateDispatch0;
         EngineState <= EngineStateReadRam0;
       elsif(EngineState = EngineStateDispatch0) then
-        -- Ensure validity of instructions
-        if (Instruction(15 downto 8) = x"FF") then
-          EngineState <= EngineStateError0;
-        else
-          EngineState <= Instruction & x"00";
-        end if;
+        -- FIX ME: Assume valid instruction, for now.
+        EngineState <= Instruction & x"00";
       --
       -- UNREACHABLE
       --

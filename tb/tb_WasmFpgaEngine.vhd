@@ -24,8 +24,14 @@ architecture behavioural of tb_WasmFpgaEngine is
     signal WasmFpgaEngine_FileIO : T_WasmFpgaEngine_FileIO;
     signal FileIO_WasmFpgaEngine : T_FileIO_WasmFpgaEngine;
 
-    signal WbRam_FileIO : T_WbRam_FileIO;
-    signal FileIO_WbRam : T_FileIO_WbRam;
+    signal ModuleMemory_FileIO : T_ModuleMemory_FileIO;
+    signal FileIO_ModuleMemory : T_FileIO_ModuleMemory;
+
+    signal StoreMemory_FileIO : T_StoreMemory_FileIO;
+    signal FileIO_StoreMemory : T_FileIO_StoreMemory;
+
+    signal WasmFpgaBus_WasmFpgaStore : T_WasmFpgaBus_WasmFpgaStore;
+    signal WasmFpgaStore_WasmFpgaBus : T_WasmFpgaStore_WasmFpgaBus;
 
     signal Module_Adr : std_logic_vector(23 downto 0);
     signal Module_Sel : std_logic_vector(3 downto 0);
@@ -72,14 +78,14 @@ architecture behavioural of tb_WasmFpgaEngine is
     signal StoreMemory_Ack : std_logic;
     signal StoreMemory_Cyc : std_logic_vector(0 downto 0);
 
-    signal WbRam_Adr : std_logic_vector(23 downto 0);
-    signal WbRam_Sel : std_logic_vector(3 downto 0);
-    signal WbRam_We : std_logic;
-    signal WbRam_Stb : std_logic;
-    signal WbRam_DatOut : std_logic_vector(31 downto 0);
-    signal WbRam_DatIn: std_logic_vector(31 downto 0);
-    signal WbRam_Ack : std_logic;
-    signal WbRam_Cyc : std_logic_vector(0 downto 0);
+    signal ModuleMemory_Adr : std_logic_vector(23 downto 0);
+    signal ModuleMemory_Sel : std_logic_vector(3 downto 0);
+    signal ModuleMemory_We : std_logic;
+    signal ModuleMemory_Stb : std_logic;
+    signal ModuleMemory_DatOut : std_logic_vector(31 downto 0);
+    signal ModuleMemory_DatIn: std_logic_vector(31 downto 0);
+    signal ModuleMemory_Ack : std_logic;
+    signal ModuleMemory_Cyc : std_logic_vector(0 downto 0);
 
     component tb_FileIO is
         generic (
@@ -91,8 +97,10 @@ architecture behavioural of tb_WasmFpgaEngine is
             Rst : in std_logic;
             WasmFpgaEngine_FileIO : in T_WasmFpgaEngine_FileIO;
             FileIO_WasmFpgaEngine : out T_FileIO_WasmFpgaEngine;
-            WbRam_FileIO : in T_WbRam_FileIO;
-            FileIO_WbRam : out T_FileIO_WbRam
+            ModuleMemory_FileIO : in T_ModuleMemory_FileIO;
+            FileIO_ModuleMemory : out T_FileIO_ModuleMemory;
+            StoreMemory_FileIO : in T_StoreMemory_FileIO;
+            FileIO_StoreMemory : out T_FileIO_StoreMemory
         );
     end component;
 
@@ -240,22 +248,39 @@ begin
             Rst => Rst,
             WasmFpgaEngine_FileIO => WasmFpgaEngine_FileIO,
             FileIO_WasmFpgaEngine => FileIO_WasmFpgaEngine,
-            WbRam_FileIO => WbRam_FileIO,
-            FileIO_WbRam => FileIO_WbRam
+            ModuleMemory_FileIO => ModuleMemory_FileIO,
+            FileIO_ModuleMemory => FileIO_ModuleMemory,
+            StoreMemory_FileIO => StoreMemory_FileIO,
+            FileIO_StoreMemory => FileIO_StoreMemory
         );
 
-    WbRam_Adr <= FileIO_WbRam.Adr when FileIO_WbRam.Cyc = "1" else Module_Adr;
-    WbRam_Sel <= FileIO_WbRam.Sel when FileIO_WbRam.Cyc = "1" else Module_Sel;
-    WbRam_We <= FileIO_WbRam.We when FileIO_WbRam.Cyc = "1" else '0';
-    WbRam_Stb <= FileIO_WbRam.Stb when FileIO_WbRam.Cyc = "1" else Module_Stb;
-    WbRam_DatIn <= FileIO_WbRam.DatIn when FileIO_WbRam.Cyc = "1" else Module_DatIn;
-    WbRam_Cyc <= FileIO_WbRam.Cyc when FileIO_WbRam.Cyc = "1" else Module_Cyc;
+    -- File IO and WebAssembly engine can write to module memory
+    ModuleMemory_Adr <= FileIO_ModuleMemory.Adr when FileIO_ModuleMemory.Cyc = "1" else Module_Adr;
+    ModuleMemory_Sel <= FileIO_ModuleMemory.Sel when FileIO_ModuleMemory.Cyc = "1" else Module_Sel;
+    ModuleMemory_We <= FileIO_ModuleMemory.We when FileIO_ModuleMemory.Cyc = "1" else '0';
+    ModuleMemory_Stb <= FileIO_ModuleMemory.Stb when FileIO_ModuleMemory.Cyc = "1" else Module_Stb;
+    ModuleMemory_DatIn <= FileIO_ModuleMemory.DatIn when FileIO_ModuleMemory.Cyc = "1" else Module_DatIn;
+    ModuleMemory_Cyc <= FileIO_ModuleMemory.Cyc when FileIO_ModuleMemory.Cyc = "1" else Module_Cyc;
 
-    WbRam_FileIO.Ack <= WbRam_Ack;
-    WbRam_FileIO.DatOut <= WbRam_DatOut;
+    ModuleMemory_FileIO.Ack <= ModuleMemory_Ack;
+    ModuleMemory_FileIO.DatOut <= ModuleMemory_DatOut;
 
-    Module_DatOut <= WbRam_DatOut;
-    Module_Ack <= WbRam_Ack;
+    Module_DatOut <= ModuleMemory_DatOut;
+    Module_Ack <= ModuleMemory_Ack;
+
+    -- File IO and WebAssembly engine can write to store memory
+    StoreMemory_Adr <= FileIO_StoreMemory.Adr when FileIO_StoreMemory.Cyc = "1" else Store_Adr;
+    StoreMemory_Sel <= FileIO_StoreMemory.Sel when FileIO_StoreMemory.Cyc = "1" else Store_Sel;
+    StoreMemory_We <= FileIO_StoreMemory.We when FileIO_StoreMemory.Cyc = "1" else '0';
+    StoreMemory_Stb <= FileIO_StoreMemory.Stb when FileIO_StoreMemory.Cyc = "1" else Store_Stb;
+    StoreMemory_DatIn <= FileIO_StoreMemory.DatIn when FileIO_StoreMemory.Cyc = "1" else Store_DatIn;
+    StoreMemory_Cyc <= FileIO_StoreMemory.Cyc when FileIO_StoreMemory.Cyc = "1" else Store_Cyc;
+
+    StoreMemory_FileIO.Ack <= StoreMemory_Ack;
+    StoreMemory_FileIO.DatOut <= StoreMemory_DatOut;
+
+    Store_DatOut <= StoreMemory_DatOut;
+    Store_Ack <= StoreMemory_Ack;
 
     WasmFpgaEngine_i : WasmFpgaEngine
         port map (
@@ -308,14 +333,14 @@ begin
             StackArea_DatIn => Stack_DatOut,
             StackArea_Ack => Stack_Ack,
             StackArea_Cyc => Stack_Cyc(0),
-            StoreArea_Adr => Store_Adr,
-            StoreArea_Sel => Store_Sel,
-            StoreArea_We => Store_We,
-            StoreArea_Stb => Store_Stb,
-            StoreArea_DatOut => Store_DatIn,
-            StoreArea_DatIn => Store_DatOut,
-            StoreArea_Ack => Store_Ack,
-            StoreArea_Cyc => Store_Cyc(0)
+            StoreArea_Adr => WasmFpgaBus_WasmFpgaStore.Adr,
+            StoreArea_Sel => WasmFpgaBus_WasmFpgaStore.Sel,
+            StoreArea_We => WasmFpgaBus_WasmFpgaStore.We,
+            StoreArea_Stb => WasmFpgaBus_WasmFpgaStore.Stb,
+            StoreArea_DatOut => WasmFpgaBus_WasmFpgaStore.DatIn,
+            StoreArea_DatIn => WasmFpgaStore_WasmFpgaBus.DatOut,
+            StoreArea_Ack => WasmFpgaStore_WasmFpgaBus.Ack,
+            StoreArea_Cyc => WasmFpgaBus_WasmFpgaStore.Cyc(0)
        );
 
     WasmFpgaStack_i : WasmFpgaStack
@@ -336,36 +361,36 @@ begin
       port map (
         Clk => Clk100M,
         nRst => nRst,
-        Adr => Store_Adr,
-        Sel => Store_Sel,
-        DatIn => Store_DatIn,
-        We => Store_We,
-        Stb => Store_Stb,
-        Cyc => Store_Cyc,
-        DatOut => Store_DatOut,
-        Ack => Store_Ack,
-        Memory_Adr => StoreMemory_Adr,
-        Memory_Sel => StoreMemory_Sel,
-        Memory_We => StoreMemory_We,
-        Memory_Stb => StoreMemory_Stb,
-        Memory_DatOut => StoreMemory_DatIn,
-        Memory_DatIn => StoreMemory_DatOut,
-        Memory_Ack => StoreMemory_Ack,
-        Memory_Cyc => StoreMemory_Cyc
+        Adr => WasmFpgaBus_WasmFpgaStore.Adr,
+        Sel => WasmFpgaBus_WasmFpgaStore.Sel,
+        DatIn => WasmFpgaBus_WasmFpgaStore.DatIn,
+        We => WasmFpgaBus_WasmFpgaStore.We,
+        Stb => WasmFpgaBus_WasmFpgaStore.Stb,
+        Cyc => WasmFpgaBus_WasmFpgaStore.Cyc,
+        DatOut => WasmFpgaStore_WasmFpgaBus.DatOut,
+        Ack => WasmFpgaStore_WasmFpgaBus.Ack,
+        Memory_Adr => Store_Adr,
+        Memory_Sel => Store_Sel,
+        Memory_We => Store_We,
+        Memory_Stb => Store_Stb,
+        Memory_DatOut => Store_DatIn,
+        Memory_DatIn => Store_DatOut,
+        Memory_Ack => Store_Ack,
+        Memory_Cyc => Store_Cyc
       );
 
     ModuleMemory_i : WbRam
         port map ( 
             Clk => Clk100M,
             nRst => nRst,
-            Adr => WbRam_Adr,
-            Sel => WbRam_Sel,
-            DatIn => WbRam_DatIn,
-            We => WbRam_We,
-            Stb => WbRam_Stb,
-            Cyc => WbRam_Cyc,
-            DatOut => WbRam_DatOut,
-            Ack => WbRam_Ack
+            Adr => ModuleMemory_Adr,
+            Sel => ModuleMemory_Sel,
+            DatIn => ModuleMemory_DatIn,
+            We => ModuleMemory_We,
+            Stb => ModuleMemory_Stb,
+            Cyc => ModuleMemory_Cyc,
+            DatOut => ModuleMemory_DatOut,
+            Ack => ModuleMemory_Ack
         );
 
     StoreMemory_i : WbRam

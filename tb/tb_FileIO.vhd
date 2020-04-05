@@ -23,9 +23,11 @@ entity tb_FileIo is
     Rst : in std_logic;
     WasmFpgaEngine_FileIO : in T_WasmFpgaEngine_FileIO;
     FileIO_WasmFpgaEngine : out T_FileIO_WasmFpgaEngine;
-    WbRam_FileIO : in T_WbRam_FileIO;
-    FileIO_WbRam : out T_FileIO_WbRam
-  );
+    ModuleMemory_FileIO : in T_ModuleMemory_FileIO;
+    FileIO_ModuleMemory : out T_FileIO_ModuleMemory;
+    StoreMemory_FileIO : in T_StoreMemory_FileIO;
+    FileIO_StoreMemory : out T_FileIO_StoreMemory
+  ); 
 end tb_FileIo;
 
 architecture Behavioural of tb_FileIo is
@@ -229,12 +231,19 @@ begin
 
         wb_data_write <= (others => '0');
 
-        FileIO_WbRam.DatIn <= (others => '0');
-        FileIO_WbRam.Adr <= (others => '0');
-        FileIO_WbRam.Sel <= (others => '0');
-        FileIO_WbRam.Cyc <= (others => '0');
-        FileIO_WbRam.We <= '0';
-        FileIO_WbRam.Stb <= '0';
+        FileIO_ModuleMemory.DatIn <= (others => '0');
+        FileIO_ModuleMemory.Adr <= (others => '0');
+        FileIO_ModuleMemory.Sel <= (others => '0');
+        FileIO_ModuleMemory.Cyc <= (others => '0');
+        FileIO_ModuleMemory.We <= '0';
+        FileIO_ModuleMemory.Stb <= '0';
+
+        FileIO_StoreMemory.DatIn <= (others => '0');
+        FileIO_StoreMemory.Adr <= (others => '0');
+        FileIO_StoreMemory.Sel <= (others => '0');
+        FileIO_StoreMemory.Cyc <= (others => '0');
+        FileIO_StoreMemory.We <= '0';
+        FileIO_StoreMemory.Stb <= '0';
 
         -----------------------------------------------------------------------
         --           Stimulus file instruction definition
@@ -940,18 +949,32 @@ begin
 
             -- WRITE_RAM
             elsif (instruction(1 to len) = "WRITE_RAM" ) then
-                if (par1 = 32) then
-                    FileIO_WbRam.DatIn <= std_logic_vector(to_unsigned(par3, FileIO_WbRam.DatIn'LENGTH));
-                    FileIO_WbRam.Adr <= std_logic_vector(to_unsigned(par2, FileIO_WbRam.Adr'LENGTH));
-                    FileIO_WbRam.Sel <= x"F";
-                    FileIO_WbRam.Cyc <= "1";
-                    FileIO_WbRam.Stb <= '1';
-                    FileIO_WbRam.We <= '1';
-                    wait until rising_edge(WbRam_FileIO.Ack);
-                    FileIO_WbRam.Sel <= x"0";
-                    FileIO_WbRam.Cyc <= "0";
-                    FileIO_WbRam.Stb <= '0';
-                    FileIO_WbRam.We <= '0';
+                if (par1 = 0) then
+                    -- write to module ram
+                    FileIO_ModuleMemory.DatIn <= std_logic_vector(to_unsigned(par3, FileIO_ModuleMemory.DatIn'LENGTH));
+                    FileIO_ModuleMemory.Adr <= std_logic_vector(to_unsigned(par2, FileIO_ModuleMemory.Adr'LENGTH));
+                    FileIO_ModuleMemory.Sel <= x"F";
+                    FileIO_ModuleMemory.Cyc <= "1";
+                    FileIO_ModuleMemory.Stb <= '1';
+                    FileIO_ModuleMemory.We <= '1';
+                    wait until rising_edge(ModuleMemory_FileIO.Ack);
+                    FileIO_ModuleMemory.Sel <= x"0";
+                    FileIO_ModuleMemory.Cyc <= "0";
+                    FileIO_ModuleMemory.Stb <= '0';
+                    FileIO_ModuleMemory.We <= '0';
+                elsif(par1 = 1) then
+                    -- write to store memory
+                    FileIO_StoreMemory.DatIn <= std_logic_vector(to_unsigned(par3, FileIO_StoreMemory.DatIn'LENGTH));
+                    FileIO_StoreMemory.Adr <= std_logic_vector(to_unsigned(par2, FileIO_StoreMemory.Adr'LENGTH));
+                    FileIO_StoreMemory.Sel <= x"F";
+                    FileIO_StoreMemory.Cyc <= "1";
+                    FileIO_StoreMemory.Stb <= '1';
+                    FileIO_StoreMemory.We <= '1';
+                    wait until rising_edge(StoreMemory_FileIO.Ack);
+                    FileIO_StoreMemory.Sel <= x"0";
+                    FileIO_StoreMemory.Cyc <= "0";
+                    FileIO_StoreMemory.Stb <= '0';
+                    FileIO_StoreMemory.We <= '0';
                 else
                     assert (false)
                     report " Line " & (integer'image(file_line)) & ", " & instruction(1 to len) & ": wrong data width or unaligned address."

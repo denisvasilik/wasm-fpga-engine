@@ -84,7 +84,7 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   constant EngineStateOpcodeNop0 : std_logic_vector(15 downto 0) := WASM_OPCODE_NOP & x"00";
   constant EngineStateI32Const0 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CONST & x"00";
 
- begin
+begin
 
   Rst <= not nRst;
 

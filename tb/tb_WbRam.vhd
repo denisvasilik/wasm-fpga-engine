@@ -42,18 +42,21 @@ architecture WbRamArchitecture of WbRam is
   signal ReadData : std_logic_vector(31 downto 0);
   signal WriteData : std_logic_vector(31 downto 0);
   signal Address : std_logic_vector(9 downto 0);
-  signal WbState : unsigned(1 downto 0);
+  signal WbState : unsigned(7 downto 0);
 
   constant WbStateIdle0 : natural := 0;
   constant WbStateRead0 : natural := 1;
   constant WbStateRead1 : natural := 2;
-  constant WbStateWrite0 : natural := 3;
+  constant WbStateRead2 : natural := 3;
+  constant WbStateRead3 : natural := 4;
+  constant WbStateWrite0 : natural := 5;
+  constant WbStateWrite1 : natural := 6;
 
- begin
+begin
 
   Rst <= not nRst;
 
-  process (Clk, Rst) is
+  MemoryAccess : process (Clk, Rst) is
   begin
     if (Rst = '1') then
       Ack <= '0';
@@ -80,12 +83,20 @@ architecture WbRamArchitecture of WbRam is
       elsif(WbState = WbStateRead0) then
         WbState <= to_unsigned(WbStateRead1, WbState'LENGTH);
       elsif(WbState = WbStateRead1) then
+        WbState <= to_unsigned(WbStateRead2, WbState'LENGTH);
+      elsif(WbState = WbStateRead2) then
         DatOut <= ReadData;
         Ack <= '1';
+        WbState <= to_unsigned(WbStateRead3, WbState'LENGTH);
+      elsif(WbState = WbStateRead3) then
+        Ack <= '0';
         WbState <= to_unsigned(WbStateIdle0, WbState'LENGTH);
       elsif(WbState = WbStateWrite0) then
         WriteEnable <= "0";
         Ack <= '1';
+        WbState <= to_unsigned(WbStateWrite1, WbState'LENGTH);
+      elsif(WbState = WbStateWrite1) then
+        Ack <= '0';
         WbState <= to_unsigned(WbStateIdle0, WbState'LENGTH);
       end if;
     end if;

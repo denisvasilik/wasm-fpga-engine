@@ -98,6 +98,15 @@ set files [list \
  "[file normalize "${project_tb}/tb_std_logic_1164_additions.vhd"]"\
  "[file normalize "${project_tb}/tb_Types.vhd"]"\
  "[file normalize "${project_tb}/tb_WbRam.vhd"]"\
+ "[file normalize "${project_src}/../resources/wasm_fpga_store_header.vhd" ]"\
+ "[file normalize "${project_src}/../resources/wasm_fpga_store_wishbone.vhd" ]"\
+ "[file normalize "${project_src}/../resources/wasm_fpga_stack_header.vhd" ]"\
+ "[file normalize "${project_src}/../resources/wasm_fpga_stack_wishbone.vhd" ]"\
+ "[file normalize "${project_src}/../resources/wasm_fpga_bus_header.vhd" ]"\
+ "[file normalize "${project_src}/../resources/wasm_fpga_bus_wishbone.vhd" ]"\
+ "[file normalize "${project_origin}/wasm-fpga-store/src/WasmFpgaStore.vhd"]"\
+ "[file normalize "${project_origin}/wasm-fpga-stack/src/WasmFpgaStack.vhd"]"\
+ "[file normalize "${project_origin}/wasm-fpga-bus/src/WasmFpgaBus.vhd"]"\
 ]
 add_files -norecurse -fileset $obj $files
 

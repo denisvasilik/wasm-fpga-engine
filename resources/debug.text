@@ -3,73 +3,31 @@
 ; section "Type" (1)
 0000008: 01                                        ; section code
 0000009: 00                                        ; section size (guess)
-000000a: 02                                        ; num types
+000000a: 01                                        ; num types
 ; type 0
 000000b: 60                                        ; func
-000000c: 02                                        ; num params
-000000d: 7f                                        ; i32
-000000e: 7f                                        ; i32
-000000f: 01                                        ; num results
-0000010: 7f                                        ; i32
-; type 1
-0000011: 60                                        ; func
-0000012: 00                                        ; num params
-0000013: 00                                        ; num results
-0000009: 0a                                        ; FIXUP section size
+000000c: 00                                        ; num params
+000000d: 00                                        ; num results
+0000009: 04                                        ; FIXUP section size
 ; section "Function" (3)
-0000014: 03                                        ; section code
-0000015: 00                                        ; section size (guess)
-0000016: 03                                        ; num functions
-0000017: 00                                        ; function 0 signature index
-0000018: 01                                        ; function 1 signature index
-0000019: 00                                        ; function 2 signature index
-0000015: 04                                        ; FIXUP section size
-; section "Export" (7)
-000001a: 07                                        ; section code
-000001b: 00                                        ; section size (guess)
-000001c: 02                                        ; num exports
-000001d: 08                                        ; string length
-000001e: 6164 6454 776f 5f30                      addTwo_0  ; export name
-0000026: 00                                        ; export kind
-0000027: 00                                        ; export func index
-0000028: 08                                        ; string length
-0000029: 6164 6454 776f 5f31                      addTwo_1  ; export name
-0000031: 00                                        ; export kind
-0000032: 02                                        ; export func index
-000001b: 17                                        ; FIXUP section size
+000000e: 03                                        ; section code
+000000f: 00                                        ; section size (guess)
+0000010: 01                                        ; num functions
+0000011: 00                                        ; function 0 signature index
+000000f: 02                                        ; FIXUP section size
 ; section "Start" (8)
-0000033: 08                                        ; section code
-0000034: 00                                        ; section size (guess)
-0000035: 01                                        ; start func index
-0000034: 01                                        ; FIXUP section size
+0000012: 08                                        ; section code
+0000013: 00                                        ; section size (guess)
+0000014: 00                                        ; start func index
+0000013: 01                                        ; FIXUP section size
 ; section "Code" (10)
-0000036: 0a                                        ; section code
-0000037: 00                                        ; section size (guess)
-0000038: 03                                        ; num functions
+0000015: 0a                                        ; section code
+0000016: 00                                        ; section size (guess)
+0000017: 01                                        ; num functions
 ; function body 0
-0000039: 00                                        ; func body size (guess)
-000003a: 00                                        ; local decl count
-000003b: 20                                        ; local.get
-000003c: 00                                        ; local index
-000003d: 20                                        ; local.get
-000003e: 01                                        ; local index
-000003f: 6a                                        ; i32.add
-0000040: 0b                                        ; end
-0000039: 07                                        ; FIXUP func body size
-; function body 1
-0000041: 00                                        ; func body size (guess)
-0000042: 00                                        ; local decl count
-0000043: 01                                        ; nop
-0000044: 0b                                        ; end
-0000041: 03                                        ; FIXUP func body size
-; function body 2
-0000045: 00                                        ; func body size (guess)
-0000046: 00                                        ; local decl count
-0000047: 20                                        ; local.get
-0000048: 00                                        ; local index
-0000049: 20                                        ; local.get
-000004a: 01                                        ; local index
-000004b: 6a                                        ; i32.add
-000004c: 0b                                        ; end
-0000045: 07                                        ; FIXUP func body size
-0000037: 15                                        ; FIXUP section size
+0000018: 00                                        ; func body size (guess)
+0000019: 00                                        ; local decl count
+000001a: 01                                        ; nop
+000001b: 0b                                        ; end
+0000018: 03                                        ; FIXUP func body size
+0000016: 05                                        ; FIXUP section size

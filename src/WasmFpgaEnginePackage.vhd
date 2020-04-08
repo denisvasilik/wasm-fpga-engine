@@ -178,4 +178,19 @@ package WasmFpgaEnginePackage is
     constant WASM_OPCODE_F32_REINTERPRET_I32 : std_logic_vector(7 downto 0) := x"BE";
     constant WASM_OPCODE_F64_REINTERPRET_I64 : std_logic_vector(7 downto 0) := x"BF";
 
+    type T_WshBnUp is
+    record
+        DatOut : std_logic_vector(31 downto 0);
+        Ack : std_logic;
+    end record;
+
+    type T_WshBnDown is
+    record
+          Adr : std_logic_vector(23 downto 0);
+          Sel : std_logic_vector(3 downto 0);
+          DatIn : std_logic_vector(31 downto 0);
+          We : std_logic;
+          Stb : std_logic;
+          Cyc : std_logic_vector(0 downto 0);
+    end record;
 end;

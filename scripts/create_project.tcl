@@ -59,6 +59,7 @@ set obj [get_filesets sources_1]
 set files_vhd [list \
  [file normalize "${project_src}/WasmFpgaEngine.vhd" ]\
  [file normalize "${project_src}/WasmFpgaEnginePackage.vhd" ]\
+ [file normalize "${project_src}/WasmFpgaWishbone.vhd" ]\
  [file normalize "${project_src_gen}/vhd_gen/header/wasm_fpga_engine_header.vhd" ]\
  [file normalize "${project_src_gen}/vhd_gen/wishbone/wasm_fpga_engine_wishbone.vhd" ]\
  [file normalize "${project_package}/component.xml" ]\

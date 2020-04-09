@@ -72,6 +72,29 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
       );
   end component;
 
+  component WasmFpgaEngine_StackBlk is
+      port (
+          Clk : in std_logic;
+          Rst : in std_logic;
+          Adr : out std_logic_vector(23 downto 0);
+          Sel : out std_logic_vector(3 downto 0);
+          DatIn : out std_logic_vector(31 downto 0);
+          We : out std_logic;
+          Stb : out std_logic;
+          Cyc : out  std_logic_vector(0 downto 0);
+          StackBlk_DatOut : in std_logic_vector(31 downto 0);
+          StackBlk_Ack : in std_logic;
+          Run : in std_logic;
+          Busy : out std_logic;
+          Action : in std_logic;
+          ValueType : in std_logic_vector(2 downto 0);
+          HighValue_ToBeRead : out std_logic_vector(31 downto 0);
+          HighValue_Written : in std_logic_vector(31 downto 0);
+          LowValue_ToBeRead : out std_logic_vector(31 downto 0);
+          LowValue_Written : in std_logic_vector(31 downto 0)
+      );
+  end component;
+
   signal Rst : std_logic;
   signal Run : std_logic;
   signal Busy : std_logic;
@@ -414,17 +437,6 @@ begin
     end if;
   end process;
 
-  Stack : process (Clk, Rst) is
-  begin
-    if (Rst = '1') then
-
-    elsif rising_edge(Clk) then
-      -- Push value onto stack
-      -- Pop value from stack
-
-    end if;
-  end process;
-
   ModuleBlk_Bus.DatIn <= (others => '0');
   ModuleBlk_Bus.We <= '0';
 
@@ -508,5 +520,27 @@ begin
       Address_ToBeRead => Address,
       Address_Written => (others => '0')
     );
+
+  WasmFpgaEngine_StackBlk_i : WasmFpgaEngine_StackBlk
+      port map (
+          Clk => Clk,
+          Rst => Rst,
+          Adr => StackBlk_Bus.Adr,
+          Sel => StackBlk_Bus.Sel,
+          DatIn => StackBlk_Bus.DatIn,
+          We => StackBlk_Bus.We,
+          Stb => StackBlk_Bus.Stb,
+          Cyc => StackBlk_Bus.Cyc,
+          StackBlk_DatOut => Bus_StackBlk.DatOut,
+          StackBlk_Ack => Bus_StackBlk.Ack,
+          Run => '0',
+          Busy => open,
+          Action => '0',
+          ValueType => (others => '0'),
+          HighValue_ToBeRead => open,
+          HighValue_Written => (others => '0'),
+          LowValue_ToBeRead => open,
+          LowValue_Written => (others => '0')
+      );
 
 end;

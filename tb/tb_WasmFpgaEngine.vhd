@@ -198,6 +198,10 @@ architecture behavioural of tb_WasmFpgaEngine is
     end component;
 
     component WasmFpgaStore
+      generic (
+        PinMaxAddress : boolean := false;
+        MaxAddress : std_logic_vector(31 downto 0) := x"00000000"
+      );
       port (
         Clk : in std_logic;
         nRst : in std_logic;
@@ -358,6 +362,10 @@ begin
        );
 
     WasmFpgaStore_i : WasmFpgaStore
+      generic map (
+          PinMaxAddress => true,
+          MaxAddress => x"00000020"
+      )
       port map (
         Clk => Clk100M,
         nRst => nRst,

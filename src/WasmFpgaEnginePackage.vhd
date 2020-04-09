@@ -12,6 +12,7 @@ package WasmFpgaEnginePackage is
     constant WASM_OPCODE_LOOP : std_logic_vector(7 downto 0) := x"03";
     constant WASM_OPCODE_IF : std_logic_vector(7 downto 0) := x"04";
     constant WASM_OPCODE_ELSE : std_logic_vector(7 downto 0) := x"05";
+    constant WASM_OPCODE_END : std_logic_vector(7 downto 0) := x"0B";
     constant WASM_OPCODE_BR : std_logic_vector(7 downto 0) := x"0C";
     constant WASM_OPCODE_BR_IF : std_logic_vector(7 downto 0) := x"0D";
     constant WASM_OPCODE_BR_TABLE : std_logic_vector(7 downto 0) := x"0E";

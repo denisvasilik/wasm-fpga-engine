@@ -4,6 +4,7 @@ library ieee;
 
 library work;
   use work.WasmFpgaEnginePackage.all;
+  use work.WasmFpgaStackWshBn_Package.all;
 
 entity WasmFpgaEngine is
     port ( 
@@ -112,6 +113,7 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
 
   signal DecodedValue : std_logic_vector(31 downto 0);
   signal LocalDeclCount : std_logic_vector(31 downto 0);
+  signal LocalDeclCountIteration : unsigned(31 downto 0);
 
   signal ModuleInstanceUID : std_logic_vector(31 downto 0);
   signal SectionUID : std_logic_vector(31 downto 0);
@@ -129,6 +131,16 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
 
   signal StoreRun : std_logic;
   signal StoreBusy : std_logic;
+
+  signal StackRun : std_logic;
+  signal StackBusy : std_logic;
+
+  signal StackAction : std_logic;
+  signal StackValueType : std_logic_vector(2 downto 0);
+  signal StackHighValue_ToBeRead : std_logic_vector(31 downto 0);
+  signal StackHighValue_Written : std_logic_vector(31 downto 0);
+  signal StackLowValue_ToBeRead : std_logic_vector(31 downto 0);
+  signal StackLowValue_Written : std_logic_vector(31 downto 0);
 
   signal Bus_ModuleBlk : T_WshBnUp;
   signal ModuleBlk_Bus : T_WshBnDown;
@@ -188,13 +200,6 @@ begin
              StoreBlk_Bus.Cyc when StoreBlk_Bus.Cyc = "1" else
              "0";
 
-  StackBlk_Bus.Adr <= (others => '0');
-  StackBlk_Bus.DatIn <= (others => '0');
-  StackBlk_Bus.Sel <= (others => '0');
-  StackBlk_Bus.We <= '0';
-  StackBlk_Bus.Stb <= '0';
-  StackBlk_Bus.Cyc <= (others => '0');
-
   Bus_ModuleBlk.DatOut <= Bus_DatIn;
   Bus_ModuleBlk.Ack <= Bus_Ack;
 
@@ -221,6 +226,13 @@ begin
     constant EngineStateActivationFrame0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"10";
     constant EngineStateActivationFrame1 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"11";
     constant EngineStateActivationFrame2 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"12";
+    constant EngineStateActivationFrame3 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"13";
+    constant EngineStatePush0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"20";
+    constant EngineStatePush1 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"21";
+    constant EngineStatePush2 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"22";
+    constant EngineStatePop0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"23";
+    constant EngineStatePop1 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"24";
+    constant EngineStatePop2 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"25";
     constant EngineStateReadU32_0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"A0";
     constant EngineStateReadU32_1 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"A1";
     constant EngineStateReadU32_2 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"A2";
@@ -241,6 +253,11 @@ begin
       ModuleInstanceUID <= (others => '0');
       SectionUID <= SECTION_UID_START;
       Idx <= (others => '0');
+      StackRun <= '0';
+      StackAction <= '0';
+      StackValueType <= (others => '0');
+      StackHighValue_Written <= (others => '0');
+      StackLowValue_Written <= (others => '0');
       EngineStateReturn <= (others => '0');
       EngineState <= EngineStateIdle;
     elsif rising_edge(Clk) then
@@ -300,10 +317,7 @@ begin
             EngineState <= EngineStateReadU32_0;
         end if;
       --
-      -- Use body declaration count of start function to establish the first 
-      -- stack frame. 
-      --
-      -- () -> (local 0, ModuleInstanceUid)
+      -- Create initial activation frame
       --
       elsif(EngineState = EngineStateActivationFrame0) then
         -- Ignore function body size
@@ -311,9 +325,29 @@ begin
         EngineState <= EngineStateReadU32_0;
       elsif(EngineState = EngineStateActivationFrame1) then
         LocalDeclCount <= DecodedValue;
+        LocalDeclCountIteration <= (others => '0');
         EngineState <= EngineStateActivationFrame2;
       elsif(EngineState = EngineStateActivationFrame2) then
-        EngineState <= EngineStateExec0;
+        if (LocalDeclCountIteration = unsigned(LocalDeclCount)) then
+          EngineState <= EngineStateActivationFrame3;
+        else
+          -- Reserve stack space for local variable
+          --
+          -- FIX ME: Where to get type information for local decl count?
+          StackValueType <= WASMFPGASTACK_VAL_i32;
+          StackHighValue_Written <= (others => '0');
+          StackLowValue_Written <= (others => '0');
+          LocalDeclCountIteration <= LocalDeclCountIteration + 1;
+          EngineStateReturn <= EngineStateActivationFrame2;
+          EngineState <= EngineStatePush0;
+        end if;
+      elsif(EngineState = EngineStateActivationFrame3) then
+        -- Push ModuleInstanceUid
+        StackValueType <= WASMFPGASTACK_VAL_Activation;
+        StackHighValue_Written <= (others => '0');
+        StackLowValue_Written <= ModuleInstanceUID;
+        EngineStateReturn <= EngineStateExec0;
+        EngineState <= EngineStatePush0;
       --
       -- Start executing code of start function.
       --
@@ -370,11 +404,31 @@ begin
       --
       -- Push value onto stack
       --
-
+      elsif (EngineState = EngineStatePush0) then
+        StackRun <= '1';
+        StackAction <= WASMFPGASTACK_VAL_Push;
+        EngineState <= EngineStatePush1;
+      elsif (EngineState = EngineStatePush1) then
+        StackRun <= '0';
+        EngineState <= EngineStatePush2;
+      elsif (EngineState = EngineStatePush2) then
+        if (StackBusy = '0') then
+          EngineState <= EngineStateReturn;
+        end if;
       --
       -- Pop value from stack
       --
-
+      elsif (EngineState = EngineStatePop0) then
+        StackRun <= '1';
+        StackAction <= WASMFPGASTACK_VAL_Pop;
+        EngineState <= EngineStatePop1;
+      elsif (EngineState = EngineStatePop1) then
+        StackRun <= '0';
+        EngineState <= EngineStatePop2;
+      elsif (EngineState = EngineStatePop2) then
+        if (StackBusy = '0') then
+          EngineState <= EngineStateReturn;
+        end if;
       --
       -- Read address from store (ModuleInstanceUid, SectionUid, Idx) -> Address
       --
@@ -533,14 +587,14 @@ begin
           Cyc => StackBlk_Bus.Cyc,
           StackBlk_DatOut => Bus_StackBlk.DatOut,
           StackBlk_Ack => Bus_StackBlk.Ack,
-          Run => '0',
-          Busy => open,
-          Action => '0',
-          ValueType => (others => '0'),
-          HighValue_ToBeRead => open,
-          HighValue_Written => (others => '0'),
-          LowValue_ToBeRead => open,
-          LowValue_Written => (others => '0')
+          Run =>  StackRun,
+          Busy => StackBusy,
+          Action => StackAction,
+          ValueType => StackValueType,
+          HighValue_ToBeRead => StackHighValue_ToBeRead,
+          HighValue_Written => StackHighValue_Written,
+          LowValue_ToBeRead => StackLowValue_ToBeRead,
+          LowValue_Written => StackLowValue_Written
       );
 
 end;

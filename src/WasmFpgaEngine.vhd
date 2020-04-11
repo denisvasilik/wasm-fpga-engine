@@ -50,50 +50,69 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
      );
   end component EngineBlk_WasmFpgaEngine;
 
+  component WasmFpgaEngine_ModuleBlk is
+    port (
+      Clk : in std_logic;
+      Rst : in std_logic;
+      Adr : out std_logic_vector(23 downto 0);
+      Sel : out std_logic_vector(3 downto 0);
+      DatIn : out std_logic_vector(31 downto 0);
+      We : out std_logic;
+      Stb : out std_logic;
+      Cyc : out  std_logic_vector(0 downto 0);
+      ModuleBlk_DatOut : in std_logic_vector(31 downto 0);
+      ModuleBlk_Ack : in std_logic;
+      Run : in std_logic;
+      Busy : out std_logic;
+      Address : in std_logic_vector(23 downto 0);
+      Data : out std_logic_vector(31 downto 0)
+    );
+  end component;
+
   component WasmFpgaEngine_StoreBlk is
-      port (
-          Clk : in std_logic;
-          Rst : in std_logic;
-          Adr : out std_logic_vector(23 downto 0);
-          Sel : out std_logic_vector(3 downto 0);
-          DatIn : out std_logic_vector(31 downto 0);
-          We : out std_logic;
-          Stb : out std_logic;
-          Cyc : out  std_logic_vector(0 downto 0);
-          StoreBlk_DatOut : in std_logic_vector(31 downto 0);
-          StoreBlk_Ack : in std_logic;
-          Operation : in std_logic;
-          Run : in std_logic;
-          Busy : out std_logic;
-          ModuleInstanceUID : in std_logic_vector(31 downto 0);
-          SectionUID : in std_logic_vector(31 downto 0);
-          Idx : in std_logic_vector(31 downto 0);
-          Address_ToBeRead : out std_logic_vector(31 downto 0);
-          Address_Written : in std_logic_vector(31 downto 0)
-      );
+    port (
+      Clk : in std_logic;
+      Rst : in std_logic;
+      Adr : out std_logic_vector(23 downto 0);
+      Sel : out std_logic_vector(3 downto 0);
+      DatIn : out std_logic_vector(31 downto 0);
+      We : out std_logic;
+      Stb : out std_logic;
+      Cyc : out  std_logic_vector(0 downto 0);
+      StoreBlk_DatOut : in std_logic_vector(31 downto 0);
+      StoreBlk_Ack : in std_logic;
+      Operation : in std_logic;
+      Run : in std_logic;
+      Busy : out std_logic;
+      ModuleInstanceUID : in std_logic_vector(31 downto 0);
+      SectionUID : in std_logic_vector(31 downto 0);
+      Idx : in std_logic_vector(31 downto 0);
+      Address_ToBeRead : out std_logic_vector(31 downto 0);
+      Address_Written : in std_logic_vector(31 downto 0)
+    );
   end component;
 
   component WasmFpgaEngine_StackBlk is
-      port (
-          Clk : in std_logic;
-          Rst : in std_logic;
-          Adr : out std_logic_vector(23 downto 0);
-          Sel : out std_logic_vector(3 downto 0);
-          DatIn : out std_logic_vector(31 downto 0);
-          We : out std_logic;
-          Stb : out std_logic;
-          Cyc : out  std_logic_vector(0 downto 0);
-          StackBlk_DatOut : in std_logic_vector(31 downto 0);
-          StackBlk_Ack : in std_logic;
-          Run : in std_logic;
-          Busy : out std_logic;
-          Action : in std_logic;
-          ValueType : in std_logic_vector(2 downto 0);
-          HighValue_ToBeRead : out std_logic_vector(31 downto 0);
-          HighValue_Written : in std_logic_vector(31 downto 0);
-          LowValue_ToBeRead : out std_logic_vector(31 downto 0);
-          LowValue_Written : in std_logic_vector(31 downto 0)
-      );
+    port (
+      Clk : in std_logic;
+      Rst : in std_logic;
+      Adr : out std_logic_vector(23 downto 0);
+      Sel : out std_logic_vector(3 downto 0);
+      DatIn : out std_logic_vector(31 downto 0);
+      We : out std_logic;
+      Stb : out std_logic;
+      Cyc : out  std_logic_vector(0 downto 0);
+      StackBlk_DatOut : in std_logic_vector(31 downto 0);
+      StackBlk_Ack : in std_logic;
+      Run : in std_logic;
+      Busy : out std_logic;
+      Action : in std_logic;
+      ValueType : in std_logic_vector(2 downto 0);
+      HighValue_ToBeRead : out std_logic_vector(31 downto 0);
+      HighValue_Written : in std_logic_vector(31 downto 0);
+      LowValue_ToBeRead : out std_logic_vector(31 downto 0);
+      LowValue_Written : in std_logic_vector(31 downto 0)
+    );
   end component;
 
   signal Rst : std_logic;
@@ -104,11 +123,11 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   signal EngineBlk_DatOut : std_logic_vector(31 downto 0);
   signal EngineBlk_Unoccupied_Ack : std_logic;
 
-  signal ArbiterState : std_logic_vector(3 downto 0);
-  signal ArbiterRun : std_logic;
-  signal ArbiterBusy : std_logic;
-  signal ArbiterData : std_logic_vector(31 downto 0);
-  signal ArbiterAddress : std_logic_vector(23 downto 0);
+  signal ModuleRun : std_logic;
+  signal ModuleBusy : std_logic;
+  signal ModuleData : std_logic_vector(31 downto 0);
+  signal ModuleAddress : std_logic_vector(23 downto 0);
+
   signal ReadData : std_logic_vector(7 downto 0);
 
   signal DecodedValue : std_logic_vector(31 downto 0);
@@ -245,11 +264,11 @@ begin
     if (Rst = '1') then
       Trap <= '1';
       Busy <= '1';
-      ArbiterRun <= '0';
+      ModuleRun <= '0';
       StoreRun <= '0';
       DecodedValue <= (others => '0');
       ReadData <= (others => '0');
-      ArbiterAddress <= (others => '0');
+      ModuleAddress <= (others => '0');
       ModuleInstanceUID <= (others => '0');
       SectionUID <= SECTION_UID_START;
       Idx <= (others => '0');
@@ -288,7 +307,7 @@ begin
       elsif(EngineState = EngineStateStartFuncIdx2) then
         if(StoreBusy <= '0') then
             -- Start section size address
-            ArbiterAddress <= Address(23 downto 0);
+            ModuleAddress <= Address(23 downto 0);
             EngineStateReturnU32 <= EngineStateStartFuncIdx3;
             EngineState <= EngineStateReadU32_0;
         end if;
@@ -312,7 +331,7 @@ begin
       elsif(EngineState = EngineStateStartFuncIdx6) then
         if(StoreBusy <= '0') then
             -- Function address within code section
-            ArbiterAddress <= Address(23 downto 0);
+            ModuleAddress <= Address(23 downto 0);
             EngineStateReturnU32 <= EngineStateActivationFrame0;
             EngineState <= EngineStateReadU32_0;
         end if;
@@ -382,23 +401,23 @@ begin
       -- Read from RAM
       --
       elsif (EngineState = EngineStateReadRam0) then
-        ArbiterRun <= '1';
+        ModuleRun <= '1';
         EngineState <= EngineStateReadRam1;
       elsif (EngineState = EngineStateReadRam1) then
         EngineState <= EngineStateReadRam2;
       elsif (EngineState = EngineStateReadRam2) then
-        ArbiterRun <= '0';
-        if(ArbiterBusy = '0') then
-            if ArbiterAddress(1 downto 0) = "00" then
-                ReadData <= ArbiterData(7 downto 0);
-            elsif ArbiterAddress(1 downto 0) = "01" then
-                ReadData <= ArbiterData(15 downto 8);
-            elsif ArbiterAddress(1 downto 0) = "10" then
-                ReadData <= ArbiterData(23 downto 16);
+        ModuleRun <= '0';
+        if(ModuleBusy = '0') then
+            if ModuleAddress(1 downto 0) = "00" then
+                ReadData <= ModuleData(7 downto 0);
+            elsif ModuleAddress(1 downto 0) = "01" then
+                ReadData <= ModuleData(15 downto 8);
+            elsif ModuleAddress(1 downto 0) = "10" then
+                ReadData <= ModuleData(23 downto 16);
             else 
-                ReadData <= ArbiterData(31 downto 24);
+                ReadData <= ModuleData(31 downto 24);
             end if;
-            ArbiterAddress <= std_logic_vector(unsigned(ArbiterAddress) + 1);
+            ModuleAddress <= std_logic_vector(unsigned(ModuleAddress) + 1);
             EngineState <= EngineStateReturn;
         end if;
       --
@@ -491,51 +510,6 @@ begin
     end if;
   end process;
 
-  ModuleBlk_Bus.DatIn <= (others => '0');
-  ModuleBlk_Bus.We <= '0';
-
-  Arbiter : process (Clk, Rst) is
-    constant ArbiterStateIdle0 : std_logic_vector(3 downto 0) := x"0";
-    constant ArbiterStateRead0 : std_logic_vector(3 downto 0) := x"1";
-    constant ArbiterStateRead1 : std_logic_vector(3 downto 0) := x"2";
-  begin
-    if (Rst = '1') then
-      ModuleBlk_Bus.Cyc <= (others => '0');
-      ModuleBlk_Bus.Stb <= '0';
-      ModuleBlk_Bus.Adr <= (others => '0');
-      ModuleBlk_Bus.Sel <= (others => '0');
-      ArbiterBusy <= '0';
-      ArbiterData <= (others => '0');
-      ArbiterState <= (others => '0');
-    elsif rising_edge(Clk) then
-      if( ArbiterState = ArbiterStateIdle0 ) then
-        ArbiterBusy <= '0';
-        ModuleBlk_Bus.Cyc <= (others => '0');
-        ModuleBlk_Bus.Stb <= '0';
-        ModuleBlk_Bus.Adr <= (others => '0');
-        ModuleBlk_Bus.Sel <= (others => '0');
-        if(ArbiterRun = '1') then
-          ModuleBlk_Bus.Cyc <= "1";
-          ModuleBlk_Bus.Stb <= '1';
-          ModuleBlk_Bus.Adr <= "00" & ArbiterAddress(23 downto 2);
-          ModuleBlk_Bus.Sel <= (others => '1');
-          ArbiterBusy <= '1';
-          ArbiterState <= ArbiterStateRead0;
-        end if;
-      elsif( ArbiterState = ArbiterStateRead0 ) then
-        if ( Bus_ModuleBlk.Ack = '1' ) then
-          ArbiterData <= Bus_DatIn;
-          ArbiterState <= ArbiterStateRead1;
-        end if;
-      elsif( ArbiterState = ArbiterStateRead1 ) then
-        ModuleBlk_Bus.Cyc <= (others => '0');
-        ModuleBlk_Bus.Stb <= '0';
-        ArbiterBusy <= '0';
-        ArbiterState <= ArbiterStateIdle0;
-      end if;
-    end if;
-  end process;
-
   EngineBlk_WasmFpgaEngine_i : EngineBlk_WasmFpgaEngine
     port map (
       Clk => Clk,
@@ -552,6 +526,24 @@ begin
       Run => Run,
       Busy => Busy
     );
+
+    WasmFpgaEngine_ModuleBlk_i : WasmFpgaEngine_ModuleBlk
+      port map (
+        Clk => Clk,
+        Rst => Rst,
+        Adr => ModuleBlk_Bus.Adr,
+        Sel => ModuleBlk_Bus.Sel,
+        DatIn => ModuleBlk_Bus.DatIn,
+        We => ModuleBlk_Bus.We,
+        Stb => ModuleBlk_Bus.Stb,
+        Cyc => ModuleBlk_Bus.Cyc,
+        ModuleBlk_DatOut => Bus_ModuleBlk.DatOut,
+        ModuleBlk_Ack => Bus_ModuleBlk.Ack,
+        Run => ModuleRun,
+        Busy => ModuleBusy,
+        Address => ModuleAddress,
+        Data => ModuleData
+      );
 
   WasmFpgaEngine_StoreBlk_i : WasmFpgaEngine_StoreBlk
     port map (
@@ -576,25 +568,25 @@ begin
     );
 
   WasmFpgaEngine_StackBlk_i : WasmFpgaEngine_StackBlk
-      port map (
-          Clk => Clk,
-          Rst => Rst,
-          Adr => StackBlk_Bus.Adr,
-          Sel => StackBlk_Bus.Sel,
-          DatIn => StackBlk_Bus.DatIn,
-          We => StackBlk_Bus.We,
-          Stb => StackBlk_Bus.Stb,
-          Cyc => StackBlk_Bus.Cyc,
-          StackBlk_DatOut => Bus_StackBlk.DatOut,
-          StackBlk_Ack => Bus_StackBlk.Ack,
-          Run =>  StackRun,
-          Busy => StackBusy,
-          Action => StackAction,
-          ValueType => StackValueType,
-          HighValue_ToBeRead => StackHighValue_ToBeRead,
-          HighValue_Written => StackHighValue_Written,
-          LowValue_ToBeRead => StackLowValue_ToBeRead,
-          LowValue_Written => StackLowValue_Written
-      );
+    port map (
+      Clk => Clk,
+      Rst => Rst,
+      Adr => StackBlk_Bus.Adr,
+      Sel => StackBlk_Bus.Sel,
+      DatIn => StackBlk_Bus.DatIn,
+      We => StackBlk_Bus.We,
+      Stb => StackBlk_Bus.Stb,
+      Cyc => StackBlk_Bus.Cyc,
+      StackBlk_DatOut => Bus_StackBlk.DatOut,
+      StackBlk_Ack => Bus_StackBlk.Ack,
+      Run =>  StackRun,
+      Busy => StackBusy,
+      Action => StackAction,
+      ValueType => StackValueType,
+      HighValue_ToBeRead => StackHighValue_ToBeRead,
+      HighValue_Written => StackHighValue_Written,
+      LowValue_ToBeRead => StackLowValue_ToBeRead,
+      LowValue_Written => StackLowValue_Written
+    );
 
 end;

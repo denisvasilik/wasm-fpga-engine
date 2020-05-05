@@ -27,13 +27,14 @@ entity tb_FileIo is
     FileIO_ModuleMemory : out T_FileIO_ModuleMemory;
     StoreMemory_FileIO : in T_StoreMemory_FileIO;
     FileIO_StoreMemory : out T_FileIO_StoreMemory
-  ); 
+  );
 end tb_FileIo;
 
 architecture Behavioural of tb_FileIo is
 
     signal tb_Marker : std_logic_vector(15 downto 0) := (others => '0');
 
+    signal tempValue : std_logic_vector(31 downto 0);
     signal tempAddress : std_logic_vector(31 downto 0);
 
     signal RstNeg : std_logic;
@@ -50,7 +51,7 @@ architecture Behavioural of tb_FileIo is
 
 begin
 
-	RstNeg <= not Rst;
+    RstNeg <= not Rst;
 
     -- Read / Write CPU -----------------READ--------------------------READ-----------------------
     readwriteCpu : process
@@ -244,6 +245,9 @@ begin
         FileIO_StoreMemory.Cyc <= (others => '0');
         FileIO_StoreMemory.We <= '0';
         FileIO_StoreMemory.Stb <= '0';
+        
+        tempAddress <= (others => '0');
+        tempValue <= (others => '0');
 
         -----------------------------------------------------------------------
         --           Stimulus file instruction definition
@@ -898,7 +902,7 @@ begin
             --  par2  1  signal value
             elsif (instruction(1 to len) = "SET_SIG") then
                 if (par1 = 16) then
- 
+
                 else
                     assert (false)
                     report " Line " & (integer'image(file_line)) & ", " & instruction(1 to len) & ": Signal not defined"
@@ -949,10 +953,36 @@ begin
 
             -- WRITE_RAM
             elsif (instruction(1 to len) = "WRITE_RAM" ) then
+                tempAddress <= std_logic_vector(to_unsigned(par2, tempAddress'LENGTH));
+                wait for 0 ns;
+            
                 if (par1 = 0) then
-                    -- write to module ram
-                    FileIO_ModuleMemory.DatIn <= std_logic_vector(to_unsigned(par3, FileIO_ModuleMemory.DatIn'LENGTH));
-                    FileIO_ModuleMemory.Adr <= std_logic_vector(to_unsigned(par2, FileIO_ModuleMemory.Adr'LENGTH));
+                    -- Read from Module RAM
+                    FileIO_ModuleMemory.Adr <= "00" & tempAddress(23 downto 2);
+                    FileIO_ModuleMemory.Sel <= x"F";
+                    FileIO_ModuleMemory.Cyc <= "1";
+                    FileIO_ModuleMemory.Stb <= '1';
+                    FileIO_ModuleMemory.We <= '0';
+                    wait until rising_edge(ModuleMemory_FileIO.Ack);
+                    tempValue <= ModuleMemory_FileIO.DatOut;
+                    FileIO_ModuleMemory.Sel <= x"0";
+                    FileIO_ModuleMemory.Cyc <= "0";
+                    FileIO_ModuleMemory.Stb <= '0';
+                    FileIO_ModuleMemory.We <= '0';
+                    wait until Clk'event and Clk = '1';
+                    -- Modify value
+                    if (tempAddress(1 downto 0) = "00") then
+                        FileIO_ModuleMemory.DatIn <= tempValue(31 downto 8) & std_logic_vector(to_unsigned(par3, 8));
+                    elsif (tempAddress(1 downto 0) = "01") then
+                        FileIO_ModuleMemory.DatIn <= tempValue(31 downto 16) & std_logic_vector(to_unsigned(par3, 8)) & tempValue(7 downto 0);
+                    elsif (tempAddress(1 downto 0) = "10") then
+                        FileIO_ModuleMemory.DatIn <= tempValue(31 downto 24) & std_logic_vector(to_unsigned(par3, 8)) & tempValue(15 downto 0);
+                    else
+                        FileIO_ModuleMemory.DatIn <= std_logic_vector(to_unsigned(par3, 8)) & tempValue(23 downto 0);
+                    end if;
+                    wait until Clk'event and Clk = '1';
+                    -- Write to Module RAM
+                    FileIO_ModuleMemory.Adr <= "00" & tempAddress(23 downto 2);
                     FileIO_ModuleMemory.Sel <= x"F";
                     FileIO_ModuleMemory.Cyc <= "1";
                     FileIO_ModuleMemory.Stb <= '1';
@@ -1022,25 +1052,25 @@ begin
                 wait until Clk'event and Clk = '1';
 
                 if (par1 = 32) then
-			        wb_address <= tempAddress;
-			        wb_byte_enable <= "1111";
-			        wb_read_start <= '1';
-			        wait until rising_edge(wb_write_read_end);
-			        temp_int := to_integer(unsigned(wb_data_read));
-			        wb_read_start <= '0';
+                    wb_address <= tempAddress;
+                    wb_byte_enable <= "1111";
+                    wb_read_start <= '1';
+                    wait until rising_edge(wb_write_read_end);
+                    temp_int := to_integer(unsigned(wb_data_read));
+                    wb_read_start <= '0';
                     wait for 0 ns;
                     wait until Clk'event and Clk = '1';
                 elsif (par1 = 16) then
-			        wb_address <= tempAddress;
-			        wb_byte_enable <= "1111";
-			        wb_read_start <= '1';
-			        wait until rising_edge(wb_write_read_end);
+                    wb_address <= tempAddress;
+                    wb_byte_enable <= "1111";
+                    wb_read_start <= '1';
+                    wait until rising_edge(wb_write_read_end);
                     if (tempAddress(1) = '1') then
                         temp_int := to_integer(unsigned(wb_data_read(31 downto 16)));
                     elsif (tempAddress(1) = '0') then
                         temp_int := to_integer(unsigned(wb_data_read(15 downto 0)));
                     end if;
-			        wb_read_start <= '0';
+                    wb_read_start <= '0';
                     wait for 0 ns;
                     wait until Clk'event and Clk = '1';
                 else

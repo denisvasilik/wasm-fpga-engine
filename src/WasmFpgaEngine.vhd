@@ -7,14 +7,14 @@ library work;
   use work.WasmFpgaStackWshBn_Package.all;
 
 entity WasmFpgaEngine is
-    port ( 
+    port (
         Clk : in std_logic;
         nRst : in std_logic;
         Adr : in std_logic_vector(23 downto 0);
         Sel : in std_logic_vector(3 downto 0);
-        DatIn : in std_logic_vector(31 downto 0); 
+        DatIn : in std_logic_vector(31 downto 0);
         We : in std_logic;
-        Stb : in std_logic; 
+        Stb : in std_logic;
         Cyc : in std_logic_vector(0 downto 0);
         DatOut : out std_logic_vector(31 downto 0);
         Ack : out std_logic;
@@ -147,6 +147,7 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   constant EngineStateOpcodeNop0 : std_logic_vector(15 downto 0) := WASM_OPCODE_NOP & x"00";
   constant EngineStateOpcodeEnd0 : std_logic_vector(15 downto 0) := WASM_OPCODE_END & x"00";
   constant EngineStateI32Const0 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CONST & x"00";
+  constant EngineStateI32Const1 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CONST & x"01";
 
   signal StoreRun : std_logic;
   signal StoreBusy : std_logic;
@@ -267,6 +268,7 @@ begin
       ModuleRun <= '0';
       StoreRun <= '0';
       DecodedValue <= (others => '0');
+      LocalDeclCountIteration <= (others => '0');
       ReadData <= (others => '0');
       ModuleAddress <= (others => '0');
       ModuleInstanceUID <= (others => '0');
@@ -292,7 +294,7 @@ begin
               EngineState <= EngineStateIdle;
           end if;
       --
-      -- Use ModuleInstanceUid = 0, SectionUid = 8 (Start) and Idx = 0 in order 
+      -- Use ModuleInstanceUid = 0, SectionUid = 8 (Start) and Idx = 0 in order
       -- to retrieve the function Idx of the start function.
       --
       elsif(EngineState = EngineStateStartFuncIdx0) then
@@ -395,8 +397,12 @@ begin
       -- i32.const
       --
       elsif(EngineState = EngineStateI32Const0) then
-        -- TODO: Push value onto stack
-        EngineState <= EngineStateIdle;
+        EngineStateReturnU32 <= EngineStateI32Const1;
+        EngineState <= EngineStateReadU32_0;
+      elsif(EngineState = EngineStateI32Const1) then
+        StackLowValue_Written <= DecodedValue;
+        EngineStateReturn <= EngineStateExec0;
+        EngineState <= EngineStatePush0;
       --
       -- Read from RAM
       --
@@ -414,7 +420,7 @@ begin
                 ReadData <= ModuleData(15 downto 8);
             elsif ModuleAddress(1 downto 0) = "10" then
                 ReadData <= ModuleData(23 downto 16);
-            else 
+            else
                 ReadData <= ModuleData(31 downto 24);
             end if;
             ModuleAddress <= std_logic_vector(unsigned(ModuleAddress) + 1);
@@ -464,7 +470,7 @@ begin
           -- 1 byte
           DecodedValue(6 downto 0) <= ReadData(6 downto 0);
           EngineState <= EngineStateReturnU32;
-        else 
+        else
           EngineStateReturn <= EngineStateReadU32_2;
           EngineState <= EngineStateReadRam0;
         end if;

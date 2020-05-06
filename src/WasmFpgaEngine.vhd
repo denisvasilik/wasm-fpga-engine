@@ -148,6 +148,7 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   constant EngineStateOpcodeEnd0 : std_logic_vector(15 downto 0) := WASM_OPCODE_END & x"00";
   constant EngineStateI32Const0 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CONST & x"00";
   constant EngineStateI32Const1 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CONST & x"01";
+  constant EngineStateDrop0 : std_logic_vector(15 downto 0) := WASM_OPCODE_DROP & x"00";
 
   signal StoreRun : std_logic;
   signal StoreBusy : std_logic;
@@ -361,6 +362,7 @@ begin
           LocalDeclCountIteration <= LocalDeclCountIteration + 1;
           EngineStateReturn <= EngineStateActivationFrame2;
           EngineState <= EngineStatePush0;
+          -- EngineState <= EngineStateExec0;
         end if;
       elsif(EngineState = EngineStateActivationFrame3) then
         -- Push ModuleInstanceUid
@@ -369,6 +371,7 @@ begin
         StackLowValue_Written <= ModuleInstanceUID;
         EngineStateReturn <= EngineStateExec0;
         EngineState <= EngineStatePush0;
+        -- EngineState <= EngineStateExec0;
       --
       -- Start executing code of start function.
       --
@@ -393,6 +396,12 @@ begin
       --
       elsif(EngineState = EngineStateOpcodeEnd0) then
         EngineState <= EngineStateIdle;
+      --
+      -- drop
+      --
+      elsif(EngineState = EngineStateDrop0) then
+        EngineStateReturn <= EngineStateExec0;
+        EngineState <= EngineStatePop0;
       --
       -- i32.const
       --

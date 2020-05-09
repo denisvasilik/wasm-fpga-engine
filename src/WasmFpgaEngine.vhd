@@ -143,13 +143,6 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   signal EngineStateReturnU32 : std_logic_vector(15 downto 0);
   signal EngineStateReturn : std_logic_vector(15 downto 0);
 
-  constant EngineStateOpcodeUnreachable0 : std_logic_vector(15 downto 0) := WASM_OPCODE_UNREACHABLE & x"00";
-  constant EngineStateOpcodeNop0 : std_logic_vector(15 downto 0) := WASM_OPCODE_NOP & x"00";
-  constant EngineStateOpcodeEnd0 : std_logic_vector(15 downto 0) := WASM_OPCODE_END & x"00";
-  constant EngineStateI32Const0 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CONST & x"00";
-  constant EngineStateI32Const1 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CONST & x"01";
-  constant EngineStateDrop0 : std_logic_vector(15 downto 0) := WASM_OPCODE_DROP & x"00";
-
   signal StoreRun : std_logic;
   signal StoreBusy : std_logic;
 
@@ -262,6 +255,21 @@ begin
     constant EngineStateReadU32_5 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"A5";
     constant EngineStateTrap0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"FE";
     constant EngineStateError : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"FF";
+    constant EngineStateOpcodeUnreachable0 : std_logic_vector(15 downto 0) := WASM_OPCODE_UNREACHABLE & x"00";
+    constant EngineStateOpcodeNop0 : std_logic_vector(15 downto 0) := WASM_OPCODE_NOP & x"00";
+    constant EngineStateOpcodeEnd0 : std_logic_vector(15 downto 0) := WASM_OPCODE_END & x"00";
+    constant EngineStateI32Const0 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CONST & x"00";
+    constant EngineStateI32Const1 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CONST & x"01";
+    constant EngineStateDrop0 : std_logic_vector(15 downto 0) := WASM_OPCODE_DROP & x"00";
+    constant EngineStateI32Ctz0 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CTZ & x"00";
+    constant EngineStateI32Ctz1 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CTZ & x"01";
+    constant EngineStateI32Ctz2 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CTZ & x"02";
+    constant EngineStateI32Clz0 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CLZ & x"00";
+    constant EngineStateI32Clz1 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CLZ & x"01";
+    constant EngineStateI32Clz2 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CLZ & x"02";
+    constant EngineStateI32Popcnt0 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_POPCNT & x"00";
+    constant EngineStateI32Popcnt1 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_POPCNT & x"01";
+    constant EngineStateI32Popcnt2 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_POPCNT & x"02";
   begin
     if (Rst = '1') then
       Trap <= '1';
@@ -382,17 +390,17 @@ begin
         -- FIX ME: Assume valid instruction, for now.
         EngineState <= ReadData & x"00";
       --
-      -- UNREACHABLE
+      -- unreachable
       --
       elsif(EngineState = EngineStateOpcodeUnreachable0) then
         EngineState <= EngineStateTrap0;
       --
-      -- NOP
+      -- nop
       --
       elsif(EngineState = EngineStateOpcodeNop0) then
         EngineState <= EngineStateExec0;
       --
-      -- END
+      -- end
       --
       elsif(EngineState = EngineStateOpcodeEnd0) then
         EngineState <= EngineStateIdle;
@@ -409,6 +417,53 @@ begin
         EngineStateReturnU32 <= EngineStateI32Const1;
         EngineState <= EngineStateReadU32_0;
       elsif(EngineState = EngineStateI32Const1) then
+        StackLowValue_Written <= DecodedValue;
+        EngineStateReturn <= EngineStateExec0;
+        EngineState <= EngineStatePush0;
+      --
+      -- i32.ctz
+      --
+      -- Return the count of trailing zero bits in i; all bits are considered
+      -- trailing zeros if i is 0.
+      --
+      elsif(EngineState = EngineStateI32Ctz0) then
+        EngineStateReturn <= EngineStateI32Ctz1;
+        EngineState <= EngineStatePop0;
+      elsif(EngineState = EngineStateI32Ctz1) then
+        DecodedValue <= ctz(StackLowValue_ToBeRead);
+        EngineState <= EngineStateI32Ctz2;
+      elsif(EngineState = EngineStateI32Ctz2) then
+        StackLowValue_Written <= DecodedValue;
+        EngineStateReturn <= EngineStateExec0;
+        EngineState <= EngineStatePush0;
+      --
+      -- i32.clz
+      --
+      -- Return the count of leading zero bits in i; all bits are considered
+      -- leading zeros if i is 0.
+      --
+      elsif(EngineState = EngineStateI32Clz0) then
+        EngineStateReturn <= EngineStateI32Clz1;
+        EngineState <= EngineStatePop0;
+      elsif(EngineState = EngineStateI32Clz1) then
+        DecodedValue <= clz(StackLowValue_ToBeRead);
+        EngineState <= EngineStateI32Clz2;
+      elsif(EngineState = EngineStateI32Clz2) then
+        StackLowValue_Written <= DecodedValue;
+        EngineStateReturn <= EngineStateExec0;
+        EngineState <= EngineStatePush0;
+      --
+      -- i32.popcnt
+      --
+      -- Return the count of non-zero bits in i.
+      --
+      elsif(EngineState = EngineStateI32Popcnt0) then
+        EngineStateReturn <= EngineStateI32Popcnt1;
+        EngineState <= EngineStatePop0;
+      elsif(EngineState = EngineStateI32Popcnt1) then
+        DecodedValue <= popcnt(StackLowValue_ToBeRead);
+        EngineState <= EngineStateI32Popcnt2;
+      elsif(EngineState = EngineStateI32Popcnt2) then
         StackLowValue_Written <= DecodedValue;
         EngineStateReturn <= EngineStateExec0;
         EngineState <= EngineStatePush0;

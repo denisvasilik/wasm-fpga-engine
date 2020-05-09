@@ -194,4 +194,58 @@ package WasmFpgaEnginePackage is
           Stb : std_logic;
           Cyc : std_logic_vector(0 downto 0);
     end record;
+
+    function ctz(value: std_logic_vector) return std_logic_vector;
+
+    function clz(value: std_logic_vector) return std_logic_vector;
+
+    function popcnt(value: std_logic_vector) return std_logic_vector;
+
+end;
+
+package body WasmFpgaEnginePackage is
+
+    function ctz(value: std_logic_vector)
+        return std_logic_vector
+    is
+        variable total : integer range 0 to value'length := 0;
+    begin
+        for i in value'reverse_range loop
+            if value(i) = '1' then
+                exit;
+            else
+                total := total + 1;
+            end if;
+        end loop;
+        return std_logic_vector(to_unsigned(total, value'length));
+    end;
+
+    function clz(value: std_logic_vector)
+        return std_logic_vector
+    is
+        variable total : integer range 0 to value'length := 0;
+    begin
+        for i in value'range loop
+            if value(i) = '1' then
+                exit;
+            else
+                total := total + 1;
+            end if;
+        end loop;
+        return std_logic_vector(to_unsigned(total, value'length));
+    end;
+
+    function popcnt(value: std_logic_vector)
+        return std_logic_vector
+    is
+        variable total : integer range 0 to value'length := 0;
+    begin
+        for i in value'range loop
+            if value(i) = '1' then
+                total := total + 1;
+            end if;
+        end loop;
+        return std_logic_vector(to_unsigned(total, value'length));
+    end;
+
 end;

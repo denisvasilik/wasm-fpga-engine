@@ -70,7 +70,7 @@ add_files -norecurse -fileset $obj $files_vhd
 
 foreach i $files_vhd {
     set file_obj [get_files -of_objects [get_filesets sources_1] [file tail [list $i]]]
-    set_property -name "file_type" -value "VHDL" -objects $file_obj
+    set_property -name "file_type" -value "VHDL 2008" -objects $file_obj
 }
 
 set file "${project_package}/component.xml"

@@ -145,11 +145,8 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
 
   signal StoreRun : std_logic;
   signal StoreBusy : std_logic;
-
-  signal StackRun : std_logic;
   signal StackBusy : std_logic;
 
-  signal StackAction : std_logic;
   signal StackValueType : std_logic_vector(2 downto 0);
   signal StackHighValue_ToBeRead : std_logic_vector(31 downto 0);
   signal StackHighValue_Written : std_logic_vector(31 downto 0);
@@ -176,6 +173,8 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   constant SECTION_UID_ELEMENT : std_logic_vector(31 downto 0) := (31 downto 8 => '0') & x"09";
   constant SECTION_UID_CODE : std_logic_vector(31 downto 0) := (31 downto 8 => '0') & x"0A";
   constant SECTION_UID_DATA : std_logic_vector(31 downto 0) := (31 downto 8 => '0') & x"0B";
+
+    signal Stack : T_WasmFpgaStack;
 
 begin
 
@@ -224,52 +223,6 @@ begin
   Bus_StoreBlk.Ack <= Bus_Ack;
 
   Engine : process (Clk, Rst) is
-    constant EngineStateIdle : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"00";
-    constant EngineStateExec0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"01";
-    constant EngineStateDispatch0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"02";
-    constant EngineStateReadRam0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"03";
-    constant EngineStateReadRam1 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"04";
-    constant EngineStateReadRam2 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"05";
-    constant EngineStateStartFuncIdx0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"06";
-    constant EngineStateStartFuncIdx1 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"07";
-    constant EngineStateStartFuncIdx2 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"08";
-    constant EngineStateStartFuncIdx3 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"09";
-    constant EngineStateStartFuncIdx4 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"0A";
-    constant EngineStateStartFuncIdx5 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"0B";
-    constant EngineStateStartFuncIdx6 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"0C";
-    constant EngineStateActivationFrame0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"10";
-    constant EngineStateActivationFrame1 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"11";
-    constant EngineStateActivationFrame2 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"12";
-    constant EngineStateActivationFrame3 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"13";
-    constant EngineStatePush0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"20";
-    constant EngineStatePush1 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"21";
-    constant EngineStatePush2 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"22";
-    constant EngineStatePop0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"23";
-    constant EngineStatePop1 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"24";
-    constant EngineStatePop2 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"25";
-    constant EngineStateReadU32_0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"A0";
-    constant EngineStateReadU32_1 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"A1";
-    constant EngineStateReadU32_2 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"A2";
-    constant EngineStateReadU32_3 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"A3";
-    constant EngineStateReadU32_4 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"A4";
-    constant EngineStateReadU32_5 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"A5";
-    constant EngineStateTrap0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"FE";
-    constant EngineStateError : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"FF";
-    constant EngineStateOpcodeUnreachable0 : std_logic_vector(15 downto 0) := WASM_OPCODE_UNREACHABLE & x"00";
-    constant EngineStateOpcodeNop0 : std_logic_vector(15 downto 0) := WASM_OPCODE_NOP & x"00";
-    constant EngineStateOpcodeEnd0 : std_logic_vector(15 downto 0) := WASM_OPCODE_END & x"00";
-    constant EngineStateI32Const0 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CONST & x"00";
-    constant EngineStateI32Const1 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CONST & x"01";
-    constant EngineStateDrop0 : std_logic_vector(15 downto 0) := WASM_OPCODE_DROP & x"00";
-    constant EngineStateI32Ctz0 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CTZ & x"00";
-    constant EngineStateI32Ctz1 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CTZ & x"01";
-    constant EngineStateI32Ctz2 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CTZ & x"02";
-    constant EngineStateI32Clz0 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CLZ & x"00";
-    constant EngineStateI32Clz1 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CLZ & x"01";
-    constant EngineStateI32Clz2 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CLZ & x"02";
-    constant EngineStateI32Popcnt0 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_POPCNT & x"00";
-    constant EngineStateI32Popcnt1 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_POPCNT & x"01";
-    constant EngineStateI32Popcnt2 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_POPCNT & x"02";
   begin
     if (Rst = '1') then
       Trap <= '1';
@@ -283,14 +236,17 @@ begin
       ModuleInstanceUID <= (others => '0');
       SectionUID <= SECTION_UID_START;
       Idx <= (others => '0');
-      StackRun <= '0';
-      StackAction <= '0';
       StackValueType <= (others => '0');
       StackHighValue_Written <= (others => '0');
       StackLowValue_Written <= (others => '0');
+      Stack.Run <= '0';
+      Stack.Action <= '0';
+      Stack.Busy <= '0';
+      Stack.State <= (others => '0');
       EngineStateReturn <= (others => '0');
       EngineState <= EngineStateIdle;
     elsif rising_edge(Clk) then
+      Stack.Busy <= StackBusy;
       --
       -- Idle
       --
@@ -368,18 +324,15 @@ begin
           StackHighValue_Written <= (others => '0');
           StackLowValue_Written <= (others => '0');
           LocalDeclCountIteration <= LocalDeclCountIteration + 1;
-          EngineStateReturn <= EngineStateActivationFrame2;
-          EngineState <= EngineStatePush0;
-          -- EngineState <= EngineStateExec0;
+          PushToStack(EngineState, EngineStateActivationFrame2, Stack);
         end if;
       elsif(EngineState = EngineStateActivationFrame3) then
         -- Push ModuleInstanceUid
         StackValueType <= WASMFPGASTACK_VAL_Activation;
         StackHighValue_Written <= (others => '0');
-        StackLowValue_Written <= ModuleInstanceUID;
-        EngineStateReturn <= EngineStateExec0;
-        EngineState <= EngineStatePush0;
-        -- EngineState <= EngineStateExec0;
+        -- StackLowValue_Written <= ModuleInstanceUID;
+        StackLowValue_Written <= (others => '0');
+        PushToStack(EngineState, EngineStateExec0, Stack);
       --
       -- Start executing code of start function.
       --
@@ -408,8 +361,7 @@ begin
       -- drop
       --
       elsif(EngineState = EngineStateDrop0) then
-        EngineStateReturn <= EngineStateExec0;
-        EngineState <= EngineStatePop0;
+        PopFromStack(EngineState, EngineStateExec0, Stack);
       --
       -- i32.const
       --
@@ -418,8 +370,9 @@ begin
         EngineState <= EngineStateReadU32_0;
       elsif(EngineState = EngineStateI32Const1) then
         StackLowValue_Written <= DecodedValue;
-        EngineStateReturn <= EngineStateExec0;
-        EngineState <= EngineStatePush0;
+        EngineState <= EngineStateI32Const2;
+      elsif(EngineState = EngineStateI32Const2) then
+        PushToStack(EngineState, EngineStateExec0, Stack);
       --
       -- i32.ctz
       --
@@ -427,15 +380,12 @@ begin
       -- trailing zeros if i is 0.
       --
       elsif(EngineState = EngineStateI32Ctz0) then
-        EngineStateReturn <= EngineStateI32Ctz1;
-        EngineState <= EngineStatePop0;
+        PopFromStack(EngineState, EngineStateI32Ctz1, Stack);
       elsif(EngineState = EngineStateI32Ctz1) then
-        DecodedValue <= ctz(StackLowValue_ToBeRead);
+        StackLowValue_Written <= ctz(StackLowValue_ToBeRead);
         EngineState <= EngineStateI32Ctz2;
       elsif(EngineState = EngineStateI32Ctz2) then
-        StackLowValue_Written <= DecodedValue;
-        EngineStateReturn <= EngineStateExec0;
-        EngineState <= EngineStatePush0;
+        PushToStack(EngineState, EngineStateExec0, Stack);
       --
       -- i32.clz
       --
@@ -443,30 +393,25 @@ begin
       -- leading zeros if i is 0.
       --
       elsif(EngineState = EngineStateI32Clz0) then
-        EngineStateReturn <= EngineStateI32Clz1;
-        EngineState <= EngineStatePop0;
+        PopFromStack(EngineState, EngineStateI32Clz1, Stack);
       elsif(EngineState = EngineStateI32Clz1) then
-        DecodedValue <= clz(StackLowValue_ToBeRead);
+        StackLowValue_Written <= clz(StackLowValue_ToBeRead);
         EngineState <= EngineStateI32Clz2;
       elsif(EngineState = EngineStateI32Clz2) then
-        StackLowValue_Written <= DecodedValue;
-        EngineStateReturn <= EngineStateExec0;
-        EngineState <= EngineStatePush0;
+        PushToStack(EngineState, EngineStateExec0, Stack);
       --
       -- i32.popcnt
       --
       -- Return the count of non-zero bits in i.
       --
       elsif(EngineState = EngineStateI32Popcnt0) then
-        EngineStateReturn <= EngineStateI32Popcnt1;
-        EngineState <= EngineStatePop0;
+        PopFromStack(EngineState, EngineStateI32Popcnt1, Stack);
       elsif(EngineState = EngineStateI32Popcnt1) then
-        DecodedValue <= popcnt(StackLowValue_ToBeRead);
+        StackLowValue_Written <= popcnt(StackLowValue_ToBeRead);
         EngineState <= EngineStateI32Popcnt2;
       elsif(EngineState = EngineStateI32Popcnt2) then
-        StackLowValue_Written <= DecodedValue;
-        EngineStateReturn <= EngineStateExec0;
-        EngineState <= EngineStatePush0;
+        PushToStack(EngineState, EngineStateExec0, Stack);
+
       --
       -- Read from RAM
       --
@@ -489,34 +434,6 @@ begin
             end if;
             ModuleAddress <= std_logic_vector(unsigned(ModuleAddress) + 1);
             EngineState <= EngineStateReturn;
-        end if;
-      --
-      -- Push value onto stack
-      --
-      elsif (EngineState = EngineStatePush0) then
-        StackRun <= '1';
-        StackAction <= WASMFPGASTACK_VAL_Push;
-        EngineState <= EngineStatePush1;
-      elsif (EngineState = EngineStatePush1) then
-        StackRun <= '0';
-        EngineState <= EngineStatePush2;
-      elsif (EngineState = EngineStatePush2) then
-        if (StackBusy = '0') then
-          EngineState <= EngineStateReturn;
-        end if;
-      --
-      -- Pop value from stack
-      --
-      elsif (EngineState = EngineStatePop0) then
-        StackRun <= '1';
-        StackAction <= WASMFPGASTACK_VAL_Pop;
-        EngineState <= EngineStatePop1;
-      elsif (EngineState = EngineStatePop1) then
-        StackRun <= '0';
-        EngineState <= EngineStatePop2;
-      elsif (EngineState = EngineStatePop2) then
-        if (StackBusy = '0') then
-          EngineState <= EngineStateReturn;
         end if;
       --
       -- Read address from store (ModuleInstanceUid, SectionUid, Idx) -> Address
@@ -649,9 +566,9 @@ begin
       Cyc => StackBlk_Bus.Cyc,
       StackBlk_DatOut => Bus_StackBlk.DatOut,
       StackBlk_Ack => Bus_StackBlk.Ack,
-      Run =>  StackRun,
+      Run =>  Stack.Run,
       Busy => StackBusy,
-      Action => StackAction,
+      Action => Stack.Action,
       ValueType => StackValueType,
       HighValue_ToBeRead => StackHighValue_ToBeRead,
       HighValue_Written => StackHighValue_Written,

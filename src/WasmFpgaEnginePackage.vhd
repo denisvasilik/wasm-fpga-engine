@@ -2,6 +2,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+library work;
+  use work.WasmFpgaStackWshBn_Package.all;
+
 package WasmFpgaEnginePackage is
 
     constant WASM_NO_OPCODE : std_logic_vector(7 downto 0) := x"FF";
@@ -179,6 +182,57 @@ package WasmFpgaEnginePackage is
     constant WASM_OPCODE_F32_REINTERPRET_I32 : std_logic_vector(7 downto 0) := x"BE";
     constant WASM_OPCODE_F64_REINTERPRET_I64 : std_logic_vector(7 downto 0) := x"BF";
 
+    --
+    -- WebAssembly Engine States
+    --
+    constant EngineStateIdle : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"00";
+    constant EngineStateExec0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"01";
+    constant EngineStateDispatch0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"02";
+    constant EngineStateReadRam0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"03";
+    constant EngineStateReadRam1 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"04";
+    constant EngineStateReadRam2 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"05";
+    constant EngineStateStartFuncIdx0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"06";
+    constant EngineStateStartFuncIdx1 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"07";
+    constant EngineStateStartFuncIdx2 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"08";
+    constant EngineStateStartFuncIdx3 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"09";
+    constant EngineStateStartFuncIdx4 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"0A";
+    constant EngineStateStartFuncIdx5 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"0B";
+    constant EngineStateStartFuncIdx6 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"0C";
+    constant EngineStateActivationFrame0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"10";
+    constant EngineStateActivationFrame1 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"11";
+    constant EngineStateActivationFrame2 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"12";
+    constant EngineStateActivationFrame3 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"13";
+    constant EngineStatePush0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"20";
+    constant EngineStatePush1 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"21";
+    constant EngineStatePush2 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"22";
+    constant EngineStatePop0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"23";
+    constant EngineStatePop1 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"24";
+    constant EngineStatePop2 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"25";
+    constant EngineStateReadU32_0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"A0";
+    constant EngineStateReadU32_1 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"A1";
+    constant EngineStateReadU32_2 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"A2";
+    constant EngineStateReadU32_3 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"A3";
+    constant EngineStateReadU32_4 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"A4";
+    constant EngineStateReadU32_5 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"A5";
+    constant EngineStateTrap0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"FE";
+    constant EngineStateError : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"FF";
+    constant EngineStateOpcodeUnreachable0 : std_logic_vector(15 downto 0) := WASM_OPCODE_UNREACHABLE & x"00";
+    constant EngineStateOpcodeNop0 : std_logic_vector(15 downto 0) := WASM_OPCODE_NOP & x"00";
+    constant EngineStateOpcodeEnd0 : std_logic_vector(15 downto 0) := WASM_OPCODE_END & x"00";
+    constant EngineStateI32Const0 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CONST & x"00";
+    constant EngineStateI32Const1 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CONST & x"01";
+    constant EngineStateI32Const2 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CONST & x"02";
+    constant EngineStateDrop0 : std_logic_vector(15 downto 0) := WASM_OPCODE_DROP & x"00";
+    constant EngineStateI32Ctz0 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CTZ & x"00";
+    constant EngineStateI32Ctz1 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CTZ & x"01";
+    constant EngineStateI32Ctz2 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CTZ & x"02";
+    constant EngineStateI32Clz0 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CLZ & x"00";
+    constant EngineStateI32Clz1 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CLZ & x"01";
+    constant EngineStateI32Clz2 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CLZ & x"02";
+    constant EngineStateI32Popcnt0 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_POPCNT & x"00";
+    constant EngineStateI32Popcnt1 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_POPCNT & x"01";
+    constant EngineStateI32Popcnt2 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_POPCNT & x"02";
+
     type T_WshBnUp is
     record
         DatOut : std_logic_vector(31 downto 0);
@@ -195,15 +249,89 @@ package WasmFpgaEnginePackage is
           Cyc : std_logic_vector(0 downto 0);
     end record;
 
+    type T_WasmFpgaStack is
+    record
+        State : std_logic_vector(3 downto 0);
+        Run : std_logic;
+        Action : std_logic;
+        Busy : std_logic;
+    end record;
+
     function ctz(value: std_logic_vector) return std_logic_vector;
 
     function clz(value: std_logic_vector) return std_logic_vector;
 
     function popcnt(value: std_logic_vector) return std_logic_vector;
 
+    procedure PopFromStack(signal EngineState : out std_logic_vector;
+                           constant ReturnState : in std_logic_vector;
+                           signal Stack : inout T_WasmFpgaStack);
+
+    procedure PushToStack(signal EngineState : out std_logic_vector;
+                          constant ReturnState : in std_logic_vector;
+                          signal Stack : inout T_WasmFpgaStack);
+
 end;
 
 package body WasmFpgaEnginePackage is
+
+    procedure PopFromStack(signal EngineState : out std_logic_vector;
+                           constant ReturnState : in std_logic_vector;
+                           signal Stack : inout T_WasmFpgaStack)
+    is
+        constant StatePop0 : std_logic_vector(3 downto 0) := x"0";
+        constant StatePop1 : std_logic_vector(3 downto 0) := x"1";
+        constant StatePop2 : std_logic_vector(3 downto 0) := x"2";
+        constant StatePop3 : std_logic_vector(3 downto 0) := x"3";
+    begin
+        if (Stack.State = StatePop0) then
+            Stack.Run <= '1';
+            Stack.Action <= WASMFPGASTACK_VAL_Pop;
+            Stack.State <= StatePop1;
+        elsif (Stack.State = StatePop1) then
+            Stack.Run <= '0';
+            Stack.State <= StatePop2;
+        elsif (Stack.State = StatePop2) then
+            Stack.State <= StatePop3;
+        elsif (Stack.State = StatePop3) then
+            if (Stack.Busy = '0') then
+                Stack.State <= (others => '0');
+                EngineState <= ReturnState;
+            end if;
+        else
+            EngineState <= EngineStateError;
+        end if;
+    end;
+
+
+    procedure PushToStack(signal EngineState : out std_logic_vector;
+                          constant ReturnState : in std_logic_vector;
+                          signal Stack : inout T_WasmFpgaStack)
+    is
+        constant StatePush0 : std_logic_vector(3 downto 0) := x"0";
+        constant StatePush1 : std_logic_vector(3 downto 0) := x"1";
+        constant StatePush2 : std_logic_vector(3 downto 0) := x"2";
+        constant StatePush3 : std_logic_vector(3 downto 0) := x"3";
+    begin
+        if (Stack.State = StatePush0) then
+            Stack.Run <= '1';
+            Stack.Action <= WASMFPGASTACK_VAL_Push;
+            Stack.State <= StatePush1;
+        elsif (Stack.State = StatePush1) then
+            Stack.Run <= '0';
+            Stack.State <= StatePush2;
+        elsif (Stack.State = StatePush2) then
+            Stack.State <= StatePush3;
+        elsif (Stack.State = StatePush3) then
+            if (Stack.Busy = '0') then
+                Stack.State <= (others => '0');
+                EngineState <= ReturnState;
+            end if;
+        else
+            EngineState <= EngineStateError;
+        end if;
+    end;
+
 
     function ctz(value: std_logic_vector)
         return std_logic_vector

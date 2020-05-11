@@ -257,6 +257,16 @@ package WasmFpgaEnginePackage is
         Busy : std_logic;
     end record;
 
+    type T_WasmFpgaModuleRam is
+    record
+        State : std_logic_vector(3 downto 0);
+        Run : std_logic;
+        Busy : std_logic;
+        Data : std_logic_vector(31 downto 0);
+        Byte : std_logic_vector(7 downto 0);
+        Address : std_logic_vector(23 downto 0);
+    end record;
+
     function ctz(value: std_logic_vector) return std_logic_vector;
 
     function clz(value: std_logic_vector) return std_logic_vector;
@@ -271,9 +281,53 @@ package WasmFpgaEnginePackage is
                           constant ReturnState : in std_logic_vector;
                           signal Stack : inout T_WasmFpgaStack);
 
+    procedure ReadFromModuleRam(signal EngineState : out std_logic_vector;
+                                constant ReturnState : in std_logic_vector;
+                                signal ModuleRam : inout T_WasmFpgaModuleRam);
+
 end;
 
 package body WasmFpgaEnginePackage is
+
+    procedure ReadFromModuleRam(signal EngineState : out std_logic_vector;
+                                constant ReturnState : in std_logic_vector;
+                                signal ModuleRam : inout T_WasmFpgaModuleRam)
+    is
+        constant State0 : std_logic_vector(3 downto 0) := x"0";
+        constant State1 : std_logic_vector(3 downto 0) := x"1";
+        constant State2 : std_logic_vector(3 downto 0) := x"2";
+        constant State3 : std_logic_vector(3 downto 0) := x"3";
+        constant State4 : std_logic_vector(3 downto 0) := x"4";
+    begin
+        if (ModuleRam.State = State0) then
+            ModuleRam.Run <= '1';
+            ModuleRam.State <= State1;
+        elsif (ModuleRam.State = State1) then
+            ModuleRam.State <= State2;
+        elsif (ModuleRam.State = State2) then
+            ModuleRam.Run <= '0';
+            ModuleRam.State <= State3;
+        elsif (ModuleRam.State = State3) then
+            ModuleRam.State <= State4;
+        elsif (ModuleRam.State = State4) then
+            if (ModuleRam.Busy = '0') then
+                if ModuleRam.Address(1 downto 0) = "00" then
+                    ModuleRam.Byte <= ModuleRam.Data(7 downto 0);
+                elsif ModuleRam.Address(1 downto 0) = "01" then
+                    ModuleRam.Byte <= ModuleRam.Data(15 downto 8);
+                elsif ModuleRam.Address(1 downto 0) = "10" then
+                    ModuleRam.Byte <= ModuleRam.Data(23 downto 16);
+                else
+                    ModuleRam.Byte <= ModuleRam.Data(31 downto 24);
+                end if;
+                ModuleRam.Address <= std_logic_vector(unsigned(ModuleRam.Address) + 1);
+                ModuleRam.State <= (others => '0');
+                EngineState <= ReturnState;
+            end if;
+        else
+            EngineState <= EngineStateError;
+        end if;
+    end;
 
     procedure PopFromStack(signal EngineState : out std_logic_vector;
                            constant ReturnState : in std_logic_vector;

@@ -123,13 +123,6 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   signal EngineBlk_DatOut : std_logic_vector(31 downto 0);
   signal EngineBlk_Unoccupied_Ack : std_logic;
 
-  signal ModuleRun : std_logic;
-  signal ModuleBusy : std_logic;
-  signal ModuleData : std_logic_vector(31 downto 0);
-  signal ModuleAddress : std_logic_vector(23 downto 0);
-
-  signal ReadData : std_logic_vector(7 downto 0);
-
   signal DecodedValue : std_logic_vector(31 downto 0);
   signal LocalDeclCount : std_logic_vector(31 downto 0);
   signal LocalDeclCountIteration : unsigned(31 downto 0);
@@ -145,7 +138,9 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
 
   signal StoreRun : std_logic;
   signal StoreBusy : std_logic;
+
   signal StackBusy : std_logic;
+  signal ModuleRamBusy : std_logic;
 
   signal StackValueType : std_logic_vector(2 downto 0);
   signal StackHighValue_ToBeRead : std_logic_vector(31 downto 0);
@@ -175,6 +170,8 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   constant SECTION_UID_DATA : std_logic_vector(31 downto 0) := (31 downto 8 => '0') & x"0B";
 
     signal Stack : T_WasmFpgaStack;
+    signal ModuleRam : T_WasmFpgaModuleRam;
+    signal ModuleRamData : std_logic_vector(31 downto 0);
 
 begin
 
@@ -227,12 +224,14 @@ begin
     if (Rst = '1') then
       Trap <= '1';
       Busy <= '1';
-      ModuleRun <= '0';
+      ModuleRam.State <= (others => '0');
+      ModuleRam.Run <= '0';
+      ModuleRam.Byte <= (others => '0');
+      ModuleRam.Data <= (others => '0');
+      ModuleRam.Address <= (others => '0');
       StoreRun <= '0';
       DecodedValue <= (others => '0');
       LocalDeclCountIteration <= (others => '0');
-      ReadData <= (others => '0');
-      ModuleAddress <= (others => '0');
       ModuleInstanceUID <= (others => '0');
       SectionUID <= SECTION_UID_START;
       Idx <= (others => '0');
@@ -247,6 +246,8 @@ begin
       EngineState <= EngineStateIdle;
     elsif rising_edge(Clk) then
       Stack.Busy <= StackBusy;
+      ModuleRam.Busy <= ModuleRamBusy;
+      ModuleRam.Data <= ModuleRamData;
       --
       -- Idle
       --
@@ -274,7 +275,7 @@ begin
       elsif(EngineState = EngineStateStartFuncIdx2) then
         if(StoreBusy <= '0') then
             -- Start section size address
-            ModuleAddress <= Address(23 downto 0);
+            ModuleRam.Address <= Address(23 downto 0);
             EngineStateReturnU32 <= EngineStateStartFuncIdx3;
             EngineState <= EngineStateReadU32_0;
         end if;
@@ -298,7 +299,7 @@ begin
       elsif(EngineState = EngineStateStartFuncIdx6) then
         if(StoreBusy <= '0') then
             -- Function address within code section
-            ModuleAddress <= Address(23 downto 0);
+            ModuleRam.Address <= Address(23 downto 0);
             EngineStateReturnU32 <= EngineStateActivationFrame0;
             EngineState <= EngineStateReadU32_0;
         end if;
@@ -341,7 +342,7 @@ begin
         EngineState <= EngineStateReadRam0;
       elsif(EngineState = EngineStateDispatch0) then
         -- FIX ME: Assume valid instruction, for now.
-        EngineState <= ReadData & x"00";
+        EngineState <= ModuleRam.Byte & x"00";
       --
       -- unreachable
       --
@@ -411,32 +412,13 @@ begin
         EngineState <= EngineStateI32Popcnt2;
       elsif(EngineState = EngineStateI32Popcnt2) then
         PushToStack(EngineState, EngineStateExec0, Stack);
-
       --
       -- Read from RAM
       --
       elsif (EngineState = EngineStateReadRam0) then
-        ModuleRun <= '1';
-        EngineState <= EngineStateReadRam1;
-      elsif (EngineState = EngineStateReadRam1) then
-        EngineState <= EngineStateReadRam2;
-      elsif (EngineState = EngineStateReadRam2) then
-        ModuleRun <= '0';
-        if(ModuleBusy = '0') then
-            if ModuleAddress(1 downto 0) = "00" then
-                ReadData <= ModuleData(7 downto 0);
-            elsif ModuleAddress(1 downto 0) = "01" then
-                ReadData <= ModuleData(15 downto 8);
-            elsif ModuleAddress(1 downto 0) = "10" then
-                ReadData <= ModuleData(23 downto 16);
-            else
-                ReadData <= ModuleData(31 downto 24);
-            end if;
-            ModuleAddress <= std_logic_vector(unsigned(ModuleAddress) + 1);
-            EngineState <= EngineStateReturn;
-        end if;
+        ReadFromModuleRam(EngineState, EngineStateReturn, ModuleRam);
       --
-      -- Read address from store (ModuleInstanceUid, SectionUid, Idx) -> Address
+      -- Read address from Store (ModuleInstanceUid, SectionUid, Idx) -> Address
       --
 
       --
@@ -447,36 +429,36 @@ begin
         EngineStateReturn <= EngineStateReadU32_1;
         EngineState <= EngineStateReadRam0;
       elsif (EngineState = EngineStateReadU32_1) then
-        if ((ReadData and x"80") = x"00") then
+        if ((ModuleRam.Byte and x"80") = x"00") then
           -- 1 byte
-          DecodedValue(6 downto 0) <= ReadData(6 downto 0);
+          DecodedValue(6 downto 0) <= ModuleRam.Byte(6 downto 0);
           EngineState <= EngineStateReturnU32;
         else
           EngineStateReturn <= EngineStateReadU32_2;
           EngineState <= EngineStateReadRam0;
         end if;
       elsif (EngineState = EngineStateReadU32_3) then
-        if ((ReadData and x"80") = x"00") then
+        if ((ModuleRam.Byte and x"80") = x"00") then
           -- 2 byte
-          DecodedValue(13 downto 7) <= ReadData(6 downto 0);
+          DecodedValue(13 downto 7) <= ModuleRam.Byte(6 downto 0);
           EngineState <= EngineStateReturnU32;
         else
           EngineStateReturn <= EngineStateReadU32_4;
           EngineState <= EngineStateReadRam0;
         end if;
       elsif (EngineState = EngineStateReadU32_4) then
-        if ((ReadData and x"80") = x"00") then
+        if ((ModuleRam.Byte and x"80") = x"00") then
           -- 3 byte
-          DecodedValue(20 downto 14) <= ReadData(6 downto 0);
+          DecodedValue(20 downto 14) <= ModuleRam.Byte(6 downto 0);
           EngineState <= EngineStateReturnU32;
         else
           EngineStateReturn <= EngineStateReadU32_5;
           EngineState <= EngineStateReadRam0;
         end if;
       elsif (EngineState = EngineStateReadU32_5) then
-        if ((ReadData and x"80") = x"00") then
+        if ((ModuleRam.Byte and x"80") = x"00") then
           -- 4 byte
-          DecodedValue(27 downto 21) <= ReadData(6 downto 0);
+          DecodedValue(27 downto 21) <= ModuleRam.Byte(6 downto 0);
           EngineState <= EngineStateReturnU32;
         else
           -- > u32 not supported
@@ -526,10 +508,10 @@ begin
         Cyc => ModuleBlk_Bus.Cyc,
         ModuleBlk_DatOut => Bus_ModuleBlk.DatOut,
         ModuleBlk_Ack => Bus_ModuleBlk.Ack,
-        Run => ModuleRun,
-        Busy => ModuleBusy,
-        Address => ModuleAddress,
-        Data => ModuleData
+        Run => ModuleRam.Run,
+        Busy => ModuleRamBusy,
+        Address => ModuleRam.Address,
+        Data => ModuleRamData
       );
 
   WasmFpgaEngine_StoreBlk_i : WasmFpgaEngine_StoreBlk

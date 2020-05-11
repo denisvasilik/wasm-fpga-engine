@@ -338,8 +338,7 @@ begin
       -- Start executing code of start function.
       --
       elsif(EngineState = EngineStateExec0) then
-        EngineStateReturn <= EngineStateDispatch0;
-        EngineState <= EngineStateReadRam0;
+        ReadFromModuleRam(EngineState, EngineStateDispatch0, ModuleRam);
       elsif(EngineState = EngineStateDispatch0) then
         -- FIX ME: Assume valid instruction, for now.
         EngineState <= ModuleRam.Byte & x"00";
@@ -413,11 +412,6 @@ begin
       elsif(EngineState = EngineStateI32Popcnt2) then
         PushToStack(EngineState, EngineStateExec0, Stack);
       --
-      -- Read from RAM
-      --
-      elsif (EngineState = EngineStateReadRam0) then
-        ReadFromModuleRam(EngineState, EngineStateReturn, ModuleRam);
-      --
       -- Read address from Store (ModuleInstanceUid, SectionUid, Idx) -> Address
       --
 
@@ -426,16 +420,14 @@ begin
       --
       elsif (EngineState = EngineStateReadU32_0) then
         DecodedValue <= (others => '0');
-        EngineStateReturn <= EngineStateReadU32_1;
-        EngineState <= EngineStateReadRam0;
+        ReadFromModuleRam(EngineState, EngineStateReadU32_1, ModuleRam);
       elsif (EngineState = EngineStateReadU32_1) then
         if ((ModuleRam.Byte and x"80") = x"00") then
           -- 1 byte
           DecodedValue(6 downto 0) <= ModuleRam.Byte(6 downto 0);
           EngineState <= EngineStateReturnU32;
         else
-          EngineStateReturn <= EngineStateReadU32_2;
-          EngineState <= EngineStateReadRam0;
+          ReadFromModuleRam(EngineState, EngineStateReadU32_2, ModuleRam);
         end if;
       elsif (EngineState = EngineStateReadU32_3) then
         if ((ModuleRam.Byte and x"80") = x"00") then
@@ -443,8 +435,7 @@ begin
           DecodedValue(13 downto 7) <= ModuleRam.Byte(6 downto 0);
           EngineState <= EngineStateReturnU32;
         else
-          EngineStateReturn <= EngineStateReadU32_4;
-          EngineState <= EngineStateReadRam0;
+          ReadFromModuleRam(EngineState, EngineStateReadU32_4, ModuleRam);
         end if;
       elsif (EngineState = EngineStateReadU32_4) then
         if ((ModuleRam.Byte and x"80") = x"00") then
@@ -452,8 +443,7 @@ begin
           DecodedValue(20 downto 14) <= ModuleRam.Byte(6 downto 0);
           EngineState <= EngineStateReturnU32;
         else
-          EngineStateReturn <= EngineStateReadU32_5;
-          EngineState <= EngineStateReadRam0;
+          ReadFromModuleRam(EngineState, EngineStateReadU32_5, ModuleRam);
         end if;
       elsif (EngineState = EngineStateReadU32_5) then
         if ((ModuleRam.Byte and x"80") = x"00") then

@@ -284,20 +284,24 @@ package WasmFpgaEnginePackage is
 
     function popcnt(value: std_logic_vector) return std_logic_vector;
 
-    procedure PopFromStack(signal Engine : inout T_WasmFpgaEngine;
+    procedure PopFromStack(signal State : out std_logic_vector;
                            constant ReturnState : in std_logic_vector;
+                           signal Engine : inout T_WasmFpgaEngine;
                            signal Stack : inout T_WasmFpgaStack);
 
-    procedure PushToStack(signal Engine : inout T_WasmFpgaEngine;
+    procedure PushToStack(signal State : out std_logic_vector;
                           constant ReturnState : in std_logic_vector;
+                          signal Engine : inout T_WasmFpgaEngine;
                           signal Stack : inout T_WasmFpgaStack);
 
-    procedure ReadFromModuleRam(signal Engine : inout T_WasmFpgaEngine;
+    procedure ReadFromModuleRam(signal State : out std_logic_vector;
                                 constant ReturnState : in std_logic_vector;
+                                signal Engine : inout T_WasmFpgaEngine;
                                 signal ModuleRam : inout T_WasmFpgaModuleRam);
 
-    procedure ReadU32(signal Engine : inout T_WasmFpgaEngine;
+    procedure ReadU32(signal State : out std_logic_vector;
                       constant ReturnState : in std_logic_vector;
+                      signal Engine : inout T_WasmFpgaEngine;
                       signal ModuleRam : inout T_WasmFpgaModuleRam);
 
 end;
@@ -307,8 +311,9 @@ package body WasmFpgaEnginePackage is
     --
     -- Read u32 (LEB128 encoded)
     --
-    procedure ReadU32(signal Engine : inout T_WasmFpgaEngine;
+    procedure ReadU32(signal State : out std_logic_vector;
                       constant ReturnState : in std_logic_vector;
+                      signal Engine : inout T_WasmFpgaEngine;
                       signal ModuleRam : inout T_WasmFpgaModuleRam)
     is
         constant State0 : std_logic_vector(3 downto 0) := x"0";
@@ -319,56 +324,53 @@ package body WasmFpgaEnginePackage is
     begin
         if (Engine.ReadU32State = State0) then
             ModuleRam.DecodedValue <= (others => '0');
-            Engine.ReadU32State <= State1;
-            ReadFromModuleRam(Engine, Engine.State, ModuleRam);
+            ReadFromModuleRam(Engine.ReadU32State, State1, Engine, ModuleRam);
         elsif (Engine.ReadU32State = State1) then
             if ((ModuleRam.CurrentByte and x"80") = x"00") then
                 -- 1 byte
                 ModuleRam.DecodedValue(6 downto 0) <= ModuleRam.CurrentByte(6 downto 0);
                 Engine.ReadU32State <= (others => '0');
-                Engine.State <= ReturnState;
+                State <= ReturnState;
             else
-                Engine.ReadU32State <= State2;
-                ReadFromModuleRam(Engine, Engine.State, ModuleRam);
+                ReadFromModuleRam(Engine.ReadU32State, State2, Engine, ModuleRam);
             end if;
         elsif (Engine.ReadU32State = State2) then
             if ((ModuleRam.CurrentByte and x"80") = x"00") then
                 -- 2 byte
                 ModuleRam.DecodedValue(13 downto 7) <= ModuleRam.CurrentByte(6 downto 0);
                 Engine.ReadU32State <= (others => '0');
-                Engine.State <= ReturnState;
+                State <= ReturnState;
             else
-                Engine.ReadU32State <= State3;
-                ReadFromModuleRam(Engine, Engine.State, ModuleRam);
+                ReadFromModuleRam(Engine.ReadU32State, State3, Engine, ModuleRam);
             end if;
         elsif (Engine.ReadU32State = State3) then
             if ((ModuleRam.CurrentByte and x"80") = x"00") then
                 -- 3 byte
                 ModuleRam.DecodedValue(20 downto 14) <= ModuleRam.CurrentByte(6 downto 0);
                 Engine.ReadU32State <= (others => '0');
-                Engine.State <= ReturnState;
+                State <= ReturnState;
             else
-                Engine.ReadU32State <= State4;
-                ReadFromModuleRam(Engine, Engine.State, ModuleRam);
+                ReadFromModuleRam(Engine.ReadU32State, State4, Engine, ModuleRam);
             end if;
         elsif (Engine.ReadU32State = State4) then
             if ((ModuleRam.CurrentByte and x"80") = x"00") then
                 -- 4 byte
                 ModuleRam.DecodedValue(27 downto 21) <= ModuleRam.CurrentByte(6 downto 0);
                 Engine.ReadU32State <= (others => '0');
-                Engine.State <= ReturnState;
+                State <= ReturnState;
             else
                 -- Greater than u32 not supported
-                Engine.State <= (others => '1');
+                State <= (others => '1');
             end if;
         else
             -- Error state by convention
-            Engine.State <= (others => '1');
+            State <= (others => '1');
         end if;
     end;
 
-    procedure ReadFromModuleRam(signal Engine : inout T_WasmFpgaEngine;
+    procedure ReadFromModuleRam(signal State : out std_logic_vector;
                                 constant ReturnState : in std_logic_vector;
+                                signal Engine : inout T_WasmFpgaEngine;
                                 signal ModuleRam : inout T_WasmFpgaModuleRam)
     is
         constant State0 : std_logic_vector(3 downto 0) := x"0";
@@ -400,16 +402,17 @@ package body WasmFpgaEnginePackage is
                 end if;
                 ModuleRam.Address <= std_logic_vector(unsigned(ModuleRam.Address) + 1);
                 Engine.ReadFromModuleRamState <= (others => '0');
-                Engine.State <= ReturnState;
+                State <= ReturnState;
             end if;
         else
             -- Error state by convention
-            Engine.State <= (others => '1');
+            State <= (others => '1');
         end if;
     end;
 
-    procedure PopFromStack(signal Engine : inout T_WasmFpgaEngine;
+    procedure PopFromStack(signal State : out std_logic_vector;
                            constant ReturnState : in std_logic_vector;
+                           signal Engine : inout T_WasmFpgaEngine;
                            signal Stack : inout T_WasmFpgaStack)
     is
         constant StatePop0 : std_logic_vector(3 downto 0) := x"0";
@@ -433,13 +436,14 @@ package body WasmFpgaEnginePackage is
             end if;
         else
             -- Error state by convention
-            Engine.State <= (others => '1');
+            State <= (others => '1');
         end if;
     end;
 
 
-    procedure PushToStack(signal Engine : inout T_WasmFpgaEngine;
+    procedure PushToStack(signal State : out std_logic_vector;
                           constant ReturnState : in std_logic_vector;
+                          signal Engine : inout T_WasmFpgaEngine;
                           signal Stack : inout T_WasmFpgaStack)
     is
         constant StatePush0 : std_logic_vector(3 downto 0) := x"0";
@@ -462,7 +466,7 @@ package body WasmFpgaEnginePackage is
                 Engine.State <= ReturnState;
             end if;
         else
-            Engine.State <= (others => '1');
+            State <= (others => '1');
         end if;
     end;
 

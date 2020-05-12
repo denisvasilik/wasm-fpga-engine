@@ -282,11 +282,11 @@ begin
         end if;
       elsif(Engine.State = EngineStateStartFuncIdx3) then
         -- Read section size
-        ReadU32(Engine, EngineStateStartFuncIdx4, ModuleRam);
+        ReadU32(Engine.State, EngineStateStartFuncIdx4, Engine, ModuleRam);
       elsif(Engine.State = EngineStateStartFuncIdx4) then
         -- Ignore section size
         -- Read start funx idx
-        ReadU32(Engine, EngineStateStartFuncIdx5, ModuleRam);
+        ReadU32(Engine.State, EngineStateStartFuncIdx5, Engine, ModuleRam);
       --
       -- Use ModuleInstanceUid = 0, SectionUid = 10 (Code) and function Idx of
       -- start function to get address of start function body.
@@ -307,13 +307,13 @@ begin
             Engine.State <= EngineStateStartFuncIdx8;
         end if;
       elsif(Engine.State = EngineStateStartFuncIdx8) then
-        ReadU32(Engine, EngineStateActivationFrame0, ModuleRam);
+        ReadU32(Engine.State, EngineStateActivationFrame0, Engine, ModuleRam);
       --
       -- Create initial activation frame
       --
       elsif(Engine.State = EngineStateActivationFrame0) then
         -- Ignore function body size
-        ReadU32(Engine, EngineStateActivationFrame1, ModuleRam);
+        ReadU32(Engine.State, EngineStateActivationFrame1, Engine, ModuleRam);
       elsif(Engine.State = EngineStateActivationFrame1) then
         LocalDeclCount <= ModuleRam.DecodedValue;
         LocalDeclCountIteration <= (others => '0');
@@ -329,7 +329,7 @@ begin
           StackHighValue_Written <= (others => '0');
           StackLowValue_Written <= (others => '0');
           LocalDeclCountIteration <= LocalDeclCountIteration + 1;
-          PushToStack(Engine, EngineStateActivationFrame2, Stack);
+          PushToStack(Engine.State, EngineStateActivationFrame2, Engine, Stack);
         end if;
       elsif(Engine.State = EngineStateActivationFrame3) then
         -- Push ModuleInstanceUid
@@ -337,12 +337,12 @@ begin
         StackHighValue_Written <= (others => '0');
         -- StackLowValue_Written <= ModuleInstanceUID;
         StackLowValue_Written <= (others => '0');
-        PushToStack(Engine, EngineStateExec0, Stack);
+        PushToStack(Engine.State, EngineStateExec0, Engine, Stack);
       --
       -- Start executing code of start function.
       --
       elsif(Engine.State = EngineStateExec0) then
-        ReadFromModuleRam(Engine, EngineStateDispatch0, ModuleRam);
+        ReadFromModuleRam(Engine.State, EngineStateDispatch0, Engine, ModuleRam);
       elsif(Engine.State = EngineStateDispatch0) then
         -- FIX ME: Assume valid instruction, for now.
         Engine.State <= ModuleRam.CurrentByte & x"00";
@@ -365,17 +365,17 @@ begin
       -- drop
       --
       elsif(Engine.State = EngineStateDrop0) then
-        PopFromStack(Engine, EngineStateExec0, Stack);
+        PopFromStack(Engine.State, EngineStateExec0, Engine, Stack);
       --
       -- i32.const
       --
       elsif(Engine.State = EngineStateI32Const0) then
-        ReadU32(Engine, EngineStateI32Const1, ModuleRam);
+        ReadU32(Engine.State, EngineStateI32Const1, Engine, ModuleRam);
       elsif(Engine.State = EngineStateI32Const1) then
         StackLowValue_Written <= ModuleRam.DecodedValue;
         Engine.State <= EngineStateI32Const2;
       elsif(Engine.State = EngineStateI32Const2) then
-        PushToStack(Engine, EngineStateExec0, Stack);
+        PushToStack(Engine.State, EngineStateExec0, Engine, Stack);
       --
       -- i32.ctz
       --
@@ -383,12 +383,12 @@ begin
       -- trailing zeros if i is 0.
       --
       elsif(Engine.State = EngineStateI32Ctz0) then
-        PopFromStack(Engine, EngineStateI32Ctz1, Stack);
+        PopFromStack(Engine.State, EngineStateI32Ctz1, Engine, Stack);
       elsif(Engine.State = EngineStateI32Ctz1) then
         StackLowValue_Written <= ctz(StackLowValue_ToBeRead);
         Engine.State <= EngineStateI32Ctz2;
       elsif(Engine.State = EngineStateI32Ctz2) then
-        PushToStack(Engine, EngineStateExec0, Stack);
+        PushToStack(Engine.State, EngineStateExec0, Engine, Stack);
       --
       -- i32.clz
       --
@@ -396,24 +396,24 @@ begin
       -- leading zeros if i is 0.
       --
       elsif(Engine.State = EngineStateI32Clz0) then
-        PopFromStack(Engine, EngineStateI32Clz1, Stack);
+        PopFromStack(Engine.State, EngineStateI32Clz1, Engine, Stack);
       elsif(Engine.State = EngineStateI32Clz1) then
         StackLowValue_Written <= clz(StackLowValue_ToBeRead);
         Engine.State <= EngineStateI32Clz2;
       elsif(Engine.State = EngineStateI32Clz2) then
-        PushToStack(Engine, EngineStateExec0, Stack);
+        PushToStack(Engine.State, EngineStateExec0, Engine, Stack);
       --
       -- i32.popcnt
       --
       -- Return the count of non-zero bits in i.
       --
       elsif(Engine.State = EngineStateI32Popcnt0) then
-        PopFromStack(Engine, EngineStateI32Popcnt1, Stack);
+        PopFromStack(Engine.State, EngineStateI32Popcnt1, Engine, Stack);
       elsif(Engine.State = EngineStateI32Popcnt1) then
         StackLowValue_Written <= popcnt(StackLowValue_ToBeRead);
         Engine.State <= EngineStateI32Popcnt2;
       elsif(Engine.State = EngineStateI32Popcnt2) then
-        PushToStack(Engine, EngineStateExec0, Stack);
+        PushToStack(Engine.State, EngineStateExec0, Engine, Stack);
       --
       -- Read address from Store (ModuleInstanceUid, SectionUid, Idx) -> Address
       --

@@ -123,7 +123,6 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   signal EngineBlk_DatOut : std_logic_vector(31 downto 0);
   signal EngineBlk_Unoccupied_Ack : std_logic;
 
-  signal DecodedValue : std_logic_vector(31 downto 0);
   signal LocalDeclCount : std_logic_vector(31 downto 0);
   signal LocalDeclCountIteration : unsigned(31 downto 0);
 
@@ -131,10 +130,6 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   signal SectionUID : std_logic_vector(31 downto 0);
   signal Idx : std_logic_vector(31 downto 0);
   signal Address : std_logic_vector(31 downto 0);
-
-  signal EngineState : std_logic_vector(15 downto 0);
-  signal EngineStateReturnU32 : std_logic_vector(15 downto 0);
-  signal EngineStateReturn : std_logic_vector(15 downto 0);
 
   signal StoreRun : std_logic;
   signal StoreBusy : std_logic;
@@ -169,9 +164,11 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   constant SECTION_UID_CODE : std_logic_vector(31 downto 0) := (31 downto 8 => '0') & x"0A";
   constant SECTION_UID_DATA : std_logic_vector(31 downto 0) := (31 downto 8 => '0') & x"0B";
 
-    signal Stack : T_WasmFpgaStack;
-    signal ModuleRam : T_WasmFpgaModuleRam;
-    signal ModuleRamData : std_logic_vector(31 downto 0);
+  signal ModuleRamData : std_logic_vector(31 downto 0);
+
+  signal Engine : T_WasmFpgaEngine;
+  signal Stack : T_WasmFpgaStack;
+  signal ModuleRam : T_WasmFpgaModuleRam;
 
 begin
 
@@ -219,18 +216,24 @@ begin
   Bus_StoreBlk.DatOut <= Bus_DatIn;
   Bus_StoreBlk.Ack <= Bus_Ack;
 
-  Engine : process (Clk, Rst) is
+  EngineProcess : process (Clk, Rst) is
   begin
     if (Rst = '1') then
       Trap <= '1';
       Busy <= '1';
-      ModuleRam.State <= (others => '0');
+      Engine.State <= (others => '0');
+      Engine.ReturnState <= (others => '0');
+      Engine.PushToStackState <= (others => '0');
+      Engine.PopFromStackState <= (others => '0');
+      Engine.ReadU32State <= (others => '0');
+      Engine.ReadFromModuleRamState <= (others => '0');
       ModuleRam.Run <= '0';
-      ModuleRam.Byte <= (others => '0');
+      ModuleRam.CurrentByte <= (others => '0');
       ModuleRam.Data <= (others => '0');
       ModuleRam.Address <= (others => '0');
+      ModuleRam.DecodedValue <= (others => '0');
       StoreRun <= '0';
-      DecodedValue <= (others => '0');
+      LocalDeclCount <= (others => '0');
       LocalDeclCountIteration <= (others => '0');
       ModuleInstanceUID <= (others => '0');
       SectionUID <= SECTION_UID_START;
@@ -241,9 +244,8 @@ begin
       Stack.Run <= '0';
       Stack.Action <= '0';
       Stack.Busy <= '0';
-      Stack.State <= (others => '0');
-      EngineStateReturn <= (others => '0');
-      EngineState <= EngineStateIdle;
+      Engine.ReturnState <= (others => '0');
+      Engine.State <= EngineStateIdle;
     elsif rising_edge(Clk) then
       Stack.Busy <= StackBusy;
       ModuleRam.Busy <= ModuleRamBusy;
@@ -251,72 +253,74 @@ begin
       --
       -- Idle
       --
-      if (EngineState = EngineStateIdle) then
+      if (Engine.State = EngineStateIdle) then
           Busy <= '0';
           if (Run = '1') then
               Busy <= '1';
-              EngineState <= EngineStateStartFuncIdx0;
+              Engine.State <= EngineStateStartFuncIdx0;
           else
-              EngineState <= EngineStateIdle;
+              Engine.State <= EngineStateIdle;
           end if;
       --
       -- Use ModuleInstanceUid = 0, SectionUid = 8 (Start) and Idx = 0 in order
       -- to retrieve the function Idx of the start function.
       --
-      elsif(EngineState = EngineStateStartFuncIdx0) then
+      elsif(Engine.State = EngineStateStartFuncIdx0) then
         ModuleInstanceUID <= (others => '0');
         SectionUID <= SECTION_UID_START;
         Idx <= (others => '0');
         StoreRun <= '1';
-        EngineState <= EngineStateStartFuncIdx1;
-      elsif(EngineState = EngineStateStartFuncIdx1) then
+        Engine.State <= EngineStateStartFuncIdx1;
+      elsif(Engine.State = EngineStateStartFuncIdx1) then
         StoreRun <= '0';
-        EngineState <= EngineStateStartFuncIdx2;
-      elsif(EngineState = EngineStateStartFuncIdx2) then
+        Engine.State <= EngineStateStartFuncIdx2;
+      elsif(Engine.State = EngineStateStartFuncIdx2) then
         if(StoreBusy <= '0') then
             -- Start section size address
             ModuleRam.Address <= Address(23 downto 0);
-            EngineStateReturnU32 <= EngineStateStartFuncIdx3;
-            EngineState <= EngineStateReadU32_0;
+            Engine.State <= EngineStateStartFuncIdx3;
         end if;
-      elsif(EngineState = EngineStateStartFuncIdx3) then
+      elsif(Engine.State = EngineStateStartFuncIdx3) then
+        -- Read section size
+        ReadU32(Engine, EngineStateStartFuncIdx4, ModuleRam);
+      elsif(Engine.State = EngineStateStartFuncIdx4) then
         -- Ignore section size
-        EngineStateReturnU32 <= EngineStateStartFuncIdx4;
-        EngineState <= EngineStateReadU32_0;
+        -- Read start funx idx
+        ReadU32(Engine, EngineStateStartFuncIdx5, ModuleRam);
       --
       -- Use ModuleInstanceUid = 0, SectionUid = 10 (Code) and function Idx of
       -- start function to get address of start function body.
       --
-      elsif(EngineState = EngineStateStartFuncIdx4) then
+      elsif(Engine.State = EngineStateStartFuncIdx5) then
         ModuleInstanceUID <= (others => '0');
         SectionUID <= SECTION_UID_CODE;
-        Idx <= DecodedValue; -- Use start function idx
+        Idx <= ModuleRam.DecodedValue; -- Use start function idx
         StoreRun <= '1';
-        EngineState <= EngineStateStartFuncIdx5;
-      elsif(EngineState = EngineStateStartFuncIdx5) then
+        Engine.State <= EngineStateStartFuncIdx6;
+      elsif(Engine.State = EngineStateStartFuncIdx6) then
         StoreRun <= '0';
-        EngineState <= EngineStateStartFuncIdx6;
-      elsif(EngineState = EngineStateStartFuncIdx6) then
+        Engine.State <= EngineStateStartFuncIdx7;
+      elsif(Engine.State = EngineStateStartFuncIdx7) then
         if(StoreBusy <= '0') then
             -- Function address within code section
             ModuleRam.Address <= Address(23 downto 0);
-            EngineStateReturnU32 <= EngineStateActivationFrame0;
-            EngineState <= EngineStateReadU32_0;
+            Engine.State <= EngineStateStartFuncIdx8;
         end if;
+      elsif(Engine.State = EngineStateStartFuncIdx8) then
+        ReadU32(Engine, EngineStateActivationFrame0, ModuleRam);
       --
       -- Create initial activation frame
       --
-      elsif(EngineState = EngineStateActivationFrame0) then
+      elsif(Engine.State = EngineStateActivationFrame0) then
         -- Ignore function body size
-        EngineStateReturnU32 <= EngineStateActivationFrame1;
-        EngineState <= EngineStateReadU32_0;
-      elsif(EngineState = EngineStateActivationFrame1) then
-        LocalDeclCount <= DecodedValue;
+        ReadU32(Engine, EngineStateActivationFrame1, ModuleRam);
+      elsif(Engine.State = EngineStateActivationFrame1) then
+        LocalDeclCount <= ModuleRam.DecodedValue;
         LocalDeclCountIteration <= (others => '0');
-        EngineState <= EngineStateActivationFrame2;
-      elsif(EngineState = EngineStateActivationFrame2) then
+        Engine.State <= EngineStateActivationFrame2;
+      elsif(Engine.State = EngineStateActivationFrame2) then
         if (LocalDeclCountIteration = unsigned(LocalDeclCount)) then
-          EngineState <= EngineStateActivationFrame3;
+          Engine.State <= EngineStateActivationFrame3;
         else
           -- Reserve stack space for local variable
           --
@@ -325,146 +329,106 @@ begin
           StackHighValue_Written <= (others => '0');
           StackLowValue_Written <= (others => '0');
           LocalDeclCountIteration <= LocalDeclCountIteration + 1;
-          PushToStack(EngineState, EngineStateActivationFrame2, Stack);
+          PushToStack(Engine, EngineStateActivationFrame2, Stack);
         end if;
-      elsif(EngineState = EngineStateActivationFrame3) then
+      elsif(Engine.State = EngineStateActivationFrame3) then
         -- Push ModuleInstanceUid
         StackValueType <= WASMFPGASTACK_VAL_Activation;
         StackHighValue_Written <= (others => '0');
         -- StackLowValue_Written <= ModuleInstanceUID;
         StackLowValue_Written <= (others => '0');
-        PushToStack(EngineState, EngineStateExec0, Stack);
+        PushToStack(Engine, EngineStateExec0, Stack);
       --
       -- Start executing code of start function.
       --
-      elsif(EngineState = EngineStateExec0) then
-        ReadFromModuleRam(EngineState, EngineStateDispatch0, ModuleRam);
-      elsif(EngineState = EngineStateDispatch0) then
+      elsif(Engine.State = EngineStateExec0) then
+        ReadFromModuleRam(Engine, EngineStateDispatch0, ModuleRam);
+      elsif(Engine.State = EngineStateDispatch0) then
         -- FIX ME: Assume valid instruction, for now.
-        EngineState <= ModuleRam.Byte & x"00";
+        Engine.State <= ModuleRam.CurrentByte & x"00";
       --
       -- unreachable
       --
-      elsif(EngineState = EngineStateOpcodeUnreachable0) then
-        EngineState <= EngineStateTrap0;
+      elsif(Engine.State = EngineStateOpcodeUnreachable0) then
+        Engine.State <= EngineStateTrap0;
       --
       -- nop
       --
-      elsif(EngineState = EngineStateOpcodeNop0) then
-        EngineState <= EngineStateExec0;
+      elsif(Engine.State = EngineStateOpcodeNop0) then
+        Engine.State <= EngineStateExec0;
       --
       -- end
       --
-      elsif(EngineState = EngineStateOpcodeEnd0) then
-        EngineState <= EngineStateIdle;
+      elsif(Engine.State = EngineStateOpcodeEnd0) then
+        Engine.State <= EngineStateIdle;
       --
       -- drop
       --
-      elsif(EngineState = EngineStateDrop0) then
-        PopFromStack(EngineState, EngineStateExec0, Stack);
+      elsif(Engine.State = EngineStateDrop0) then
+        PopFromStack(Engine, EngineStateExec0, Stack);
       --
       -- i32.const
       --
-      elsif(EngineState = EngineStateI32Const0) then
-        EngineStateReturnU32 <= EngineStateI32Const1;
-        EngineState <= EngineStateReadU32_0;
-      elsif(EngineState = EngineStateI32Const1) then
-        StackLowValue_Written <= DecodedValue;
-        EngineState <= EngineStateI32Const2;
-      elsif(EngineState = EngineStateI32Const2) then
-        PushToStack(EngineState, EngineStateExec0, Stack);
+      elsif(Engine.State = EngineStateI32Const0) then
+        ReadU32(Engine, EngineStateI32Const1, ModuleRam);
+      elsif(Engine.State = EngineStateI32Const1) then
+        StackLowValue_Written <= ModuleRam.DecodedValue;
+        Engine.State <= EngineStateI32Const2;
+      elsif(Engine.State = EngineStateI32Const2) then
+        PushToStack(Engine, EngineStateExec0, Stack);
       --
       -- i32.ctz
       --
       -- Return the count of trailing zero bits in i; all bits are considered
       -- trailing zeros if i is 0.
       --
-      elsif(EngineState = EngineStateI32Ctz0) then
-        PopFromStack(EngineState, EngineStateI32Ctz1, Stack);
-      elsif(EngineState = EngineStateI32Ctz1) then
+      elsif(Engine.State = EngineStateI32Ctz0) then
+        PopFromStack(Engine, EngineStateI32Ctz1, Stack);
+      elsif(Engine.State = EngineStateI32Ctz1) then
         StackLowValue_Written <= ctz(StackLowValue_ToBeRead);
-        EngineState <= EngineStateI32Ctz2;
-      elsif(EngineState = EngineStateI32Ctz2) then
-        PushToStack(EngineState, EngineStateExec0, Stack);
+        Engine.State <= EngineStateI32Ctz2;
+      elsif(Engine.State = EngineStateI32Ctz2) then
+        PushToStack(Engine, EngineStateExec0, Stack);
       --
       -- i32.clz
       --
       -- Return the count of leading zero bits in i; all bits are considered
       -- leading zeros if i is 0.
       --
-      elsif(EngineState = EngineStateI32Clz0) then
-        PopFromStack(EngineState, EngineStateI32Clz1, Stack);
-      elsif(EngineState = EngineStateI32Clz1) then
+      elsif(Engine.State = EngineStateI32Clz0) then
+        PopFromStack(Engine, EngineStateI32Clz1, Stack);
+      elsif(Engine.State = EngineStateI32Clz1) then
         StackLowValue_Written <= clz(StackLowValue_ToBeRead);
-        EngineState <= EngineStateI32Clz2;
-      elsif(EngineState = EngineStateI32Clz2) then
-        PushToStack(EngineState, EngineStateExec0, Stack);
+        Engine.State <= EngineStateI32Clz2;
+      elsif(Engine.State = EngineStateI32Clz2) then
+        PushToStack(Engine, EngineStateExec0, Stack);
       --
       -- i32.popcnt
       --
       -- Return the count of non-zero bits in i.
       --
-      elsif(EngineState = EngineStateI32Popcnt0) then
-        PopFromStack(EngineState, EngineStateI32Popcnt1, Stack);
-      elsif(EngineState = EngineStateI32Popcnt1) then
+      elsif(Engine.State = EngineStateI32Popcnt0) then
+        PopFromStack(Engine, EngineStateI32Popcnt1, Stack);
+      elsif(Engine.State = EngineStateI32Popcnt1) then
         StackLowValue_Written <= popcnt(StackLowValue_ToBeRead);
-        EngineState <= EngineStateI32Popcnt2;
-      elsif(EngineState = EngineStateI32Popcnt2) then
-        PushToStack(EngineState, EngineStateExec0, Stack);
+        Engine.State <= EngineStateI32Popcnt2;
+      elsif(Engine.State = EngineStateI32Popcnt2) then
+        PushToStack(Engine, EngineStateExec0, Stack);
       --
       -- Read address from Store (ModuleInstanceUid, SectionUid, Idx) -> Address
       --
 
       --
-      -- Read u32 (LEB128 encoded)
-      --
-      elsif (EngineState = EngineStateReadU32_0) then
-        DecodedValue <= (others => '0');
-        ReadFromModuleRam(EngineState, EngineStateReadU32_1, ModuleRam);
-      elsif (EngineState = EngineStateReadU32_1) then
-        if ((ModuleRam.Byte and x"80") = x"00") then
-          -- 1 byte
-          DecodedValue(6 downto 0) <= ModuleRam.Byte(6 downto 0);
-          EngineState <= EngineStateReturnU32;
-        else
-          ReadFromModuleRam(EngineState, EngineStateReadU32_2, ModuleRam);
-        end if;
-      elsif (EngineState = EngineStateReadU32_3) then
-        if ((ModuleRam.Byte and x"80") = x"00") then
-          -- 2 byte
-          DecodedValue(13 downto 7) <= ModuleRam.Byte(6 downto 0);
-          EngineState <= EngineStateReturnU32;
-        else
-          ReadFromModuleRam(EngineState, EngineStateReadU32_4, ModuleRam);
-        end if;
-      elsif (EngineState = EngineStateReadU32_4) then
-        if ((ModuleRam.Byte and x"80") = x"00") then
-          -- 3 byte
-          DecodedValue(20 downto 14) <= ModuleRam.Byte(6 downto 0);
-          EngineState <= EngineStateReturnU32;
-        else
-          ReadFromModuleRam(EngineState, EngineStateReadU32_5, ModuleRam);
-        end if;
-      elsif (EngineState = EngineStateReadU32_5) then
-        if ((ModuleRam.Byte and x"80") = x"00") then
-          -- 4 byte
-          DecodedValue(27 downto 21) <= ModuleRam.Byte(6 downto 0);
-          EngineState <= EngineStateReturnU32;
-        else
-          -- > u32 not supported
-          EngineState <= EngineStateError;
-        end if;
-      --
       -- Unconditional trap
       --
-      elsif (EngineState = EngineStateTrap0) then
+      elsif (Engine.State = EngineStateTrap0) then
         Trap <= '1';
-        EngineState <= EngineStateTrap0;
+        Engine.State <= EngineStateTrap0;
       --
       -- Internal error
       --
-      elsif (EngineState = EngineStateError) then
-        EngineState <= EngineStateError;
+      elsif (Engine.State = EngineStateError) then
+        Engine.State <= EngineStateError;
       end if;
     end if;
   end process;

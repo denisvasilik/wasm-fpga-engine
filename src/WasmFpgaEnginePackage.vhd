@@ -198,6 +198,8 @@ package WasmFpgaEnginePackage is
     constant EngineStateStartFuncIdx4 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"0A";
     constant EngineStateStartFuncIdx5 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"0B";
     constant EngineStateStartFuncIdx6 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"0C";
+    constant EngineStateStartFuncIdx7 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"0D";
+    constant EngineStateStartFuncIdx8 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"0E";
     constant EngineStateActivationFrame0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"10";
     constant EngineStateActivationFrame1 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"11";
     constant EngineStateActivationFrame2 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"12";
@@ -251,7 +253,6 @@ package WasmFpgaEnginePackage is
 
     type T_WasmFpgaStack is
     record
-        State : std_logic_vector(3 downto 0);
         Run : std_logic;
         Action : std_logic;
         Busy : std_logic;
@@ -259,12 +260,22 @@ package WasmFpgaEnginePackage is
 
     type T_WasmFpgaModuleRam is
     record
-        State : std_logic_vector(3 downto 0);
         Run : std_logic;
         Busy : std_logic;
         Data : std_logic_vector(31 downto 0);
-        Byte : std_logic_vector(7 downto 0);
+        CurrentByte : std_logic_vector(7 downto 0);
         Address : std_logic_vector(23 downto 0);
+        DecodedValue : std_logic_vector(31 downto 0);
+    end record;
+
+    type T_WasmFpgaEngine is
+    record
+        State : std_logic_vector(15 downto 0);
+        ReturnState : std_logic_vector(15 downto 0);
+        PushToStackState : std_logic_vector(3 downto 0);
+        PopFromStackState : std_logic_vector(3 downto 0);
+        ReadU32State : std_logic_vector(3 downto 0);
+        ReadFromModuleRamState : std_logic_vector(3 downto 0);
     end record;
 
     function ctz(value: std_logic_vector) return std_logic_vector;
@@ -273,23 +284,90 @@ package WasmFpgaEnginePackage is
 
     function popcnt(value: std_logic_vector) return std_logic_vector;
 
-    procedure PopFromStack(signal EngineState : out std_logic_vector;
+    procedure PopFromStack(signal Engine : inout T_WasmFpgaEngine;
                            constant ReturnState : in std_logic_vector;
                            signal Stack : inout T_WasmFpgaStack);
 
-    procedure PushToStack(signal EngineState : out std_logic_vector;
+    procedure PushToStack(signal Engine : inout T_WasmFpgaEngine;
                           constant ReturnState : in std_logic_vector;
                           signal Stack : inout T_WasmFpgaStack);
 
-    procedure ReadFromModuleRam(signal EngineState : out std_logic_vector;
+    procedure ReadFromModuleRam(signal Engine : inout T_WasmFpgaEngine;
                                 constant ReturnState : in std_logic_vector;
                                 signal ModuleRam : inout T_WasmFpgaModuleRam);
+
+    procedure ReadU32(signal Engine : inout T_WasmFpgaEngine;
+                      constant ReturnState : in std_logic_vector;
+                      signal ModuleRam : inout T_WasmFpgaModuleRam);
 
 end;
 
 package body WasmFpgaEnginePackage is
 
-    procedure ReadFromModuleRam(signal EngineState : out std_logic_vector;
+    --
+    -- Read u32 (LEB128 encoded)
+    --
+    procedure ReadU32(signal Engine : inout T_WasmFpgaEngine;
+                      constant ReturnState : in std_logic_vector;
+                      signal ModuleRam : inout T_WasmFpgaModuleRam)
+    is
+        constant State0 : std_logic_vector(3 downto 0) := x"0";
+        constant State1 : std_logic_vector(3 downto 0) := x"1";
+        constant State2 : std_logic_vector(3 downto 0) := x"2";
+        constant State3 : std_logic_vector(3 downto 0) := x"3";
+        constant State4 : std_logic_vector(3 downto 0) := x"4";
+    begin
+        if (Engine.ReadU32State = State0) then
+            ModuleRam.DecodedValue <= (others => '0');
+            Engine.ReadU32State <= State1;
+            ReadFromModuleRam(Engine, Engine.State, ModuleRam);
+        elsif (Engine.ReadU32State = State1) then
+            if ((ModuleRam.CurrentByte and x"80") = x"00") then
+                -- 1 byte
+                ModuleRam.DecodedValue(6 downto 0) <= ModuleRam.CurrentByte(6 downto 0);
+                Engine.ReadU32State <= (others => '0');
+                Engine.State <= ReturnState;
+            else
+                Engine.ReadU32State <= State2;
+                ReadFromModuleRam(Engine, Engine.State, ModuleRam);
+            end if;
+        elsif (Engine.ReadU32State = State2) then
+            if ((ModuleRam.CurrentByte and x"80") = x"00") then
+                -- 2 byte
+                ModuleRam.DecodedValue(13 downto 7) <= ModuleRam.CurrentByte(6 downto 0);
+                Engine.ReadU32State <= (others => '0');
+                Engine.State <= ReturnState;
+            else
+                Engine.ReadU32State <= State3;
+                ReadFromModuleRam(Engine, Engine.State, ModuleRam);
+            end if;
+        elsif (Engine.ReadU32State = State3) then
+            if ((ModuleRam.CurrentByte and x"80") = x"00") then
+                -- 3 byte
+                ModuleRam.DecodedValue(20 downto 14) <= ModuleRam.CurrentByte(6 downto 0);
+                Engine.ReadU32State <= (others => '0');
+                Engine.State <= ReturnState;
+            else
+                Engine.ReadU32State <= State4;
+                ReadFromModuleRam(Engine, Engine.State, ModuleRam);
+            end if;
+        elsif (Engine.ReadU32State = State4) then
+            if ((ModuleRam.CurrentByte and x"80") = x"00") then
+                -- 4 byte
+                ModuleRam.DecodedValue(27 downto 21) <= ModuleRam.CurrentByte(6 downto 0);
+                Engine.ReadU32State <= (others => '0');
+                Engine.State <= ReturnState;
+            else
+                -- Greater than u32 not supported
+                Engine.State <= (others => '1');
+            end if;
+        else
+            -- Error state by convention
+            Engine.State <= (others => '1');
+        end if;
+    end;
+
+    procedure ReadFromModuleRam(signal Engine : inout T_WasmFpgaEngine;
                                 constant ReturnState : in std_logic_vector;
                                 signal ModuleRam : inout T_WasmFpgaModuleRam)
     is
@@ -299,37 +377,38 @@ package body WasmFpgaEnginePackage is
         constant State3 : std_logic_vector(3 downto 0) := x"3";
         constant State4 : std_logic_vector(3 downto 0) := x"4";
     begin
-        if (ModuleRam.State = State0) then
+        if (Engine.ReadFromModuleRamState = State0) then
             ModuleRam.Run <= '1';
-            ModuleRam.State <= State1;
-        elsif (ModuleRam.State = State1) then
-            ModuleRam.State <= State2;
-        elsif (ModuleRam.State = State2) then
+            Engine.ReadFromModuleRamState <= State1;
+        elsif (Engine.ReadFromModuleRamState = State1) then
+            Engine.ReadFromModuleRamState <= State2;
+        elsif (Engine.ReadFromModuleRamState = State2) then
             ModuleRam.Run <= '0';
-            ModuleRam.State <= State3;
-        elsif (ModuleRam.State = State3) then
-            ModuleRam.State <= State4;
-        elsif (ModuleRam.State = State4) then
+            Engine.ReadFromModuleRamState <= State3;
+        elsif (Engine.ReadFromModuleRamState = State3) then
+            Engine.ReadFromModuleRamState <= State4;
+        elsif (Engine.ReadFromModuleRamState = State4) then
             if (ModuleRam.Busy = '0') then
                 if ModuleRam.Address(1 downto 0) = "00" then
-                    ModuleRam.Byte <= ModuleRam.Data(7 downto 0);
+                    ModuleRam.CurrentByte <= ModuleRam.Data(7 downto 0);
                 elsif ModuleRam.Address(1 downto 0) = "01" then
-                    ModuleRam.Byte <= ModuleRam.Data(15 downto 8);
+                    ModuleRam.CurrentByte <= ModuleRam.Data(15 downto 8);
                 elsif ModuleRam.Address(1 downto 0) = "10" then
-                    ModuleRam.Byte <= ModuleRam.Data(23 downto 16);
+                    ModuleRam.CurrentByte <= ModuleRam.Data(23 downto 16);
                 else
-                    ModuleRam.Byte <= ModuleRam.Data(31 downto 24);
+                    ModuleRam.CurrentByte <= ModuleRam.Data(31 downto 24);
                 end if;
                 ModuleRam.Address <= std_logic_vector(unsigned(ModuleRam.Address) + 1);
-                ModuleRam.State <= (others => '0');
-                EngineState <= ReturnState;
+                Engine.ReadFromModuleRamState <= (others => '0');
+                Engine.State <= ReturnState;
             end if;
         else
-            EngineState <= EngineStateError;
+            -- Error state by convention
+            Engine.State <= (others => '1');
         end if;
     end;
 
-    procedure PopFromStack(signal EngineState : out std_logic_vector;
+    procedure PopFromStack(signal Engine : inout T_WasmFpgaEngine;
                            constant ReturnState : in std_logic_vector;
                            signal Stack : inout T_WasmFpgaStack)
     is
@@ -338,27 +417,28 @@ package body WasmFpgaEnginePackage is
         constant StatePop2 : std_logic_vector(3 downto 0) := x"2";
         constant StatePop3 : std_logic_vector(3 downto 0) := x"3";
     begin
-        if (Stack.State = StatePop0) then
+        if (Engine.PopFromStackState = StatePop0) then
             Stack.Run <= '1';
             Stack.Action <= WASMFPGASTACK_VAL_Pop;
-            Stack.State <= StatePop1;
-        elsif (Stack.State = StatePop1) then
+            Engine.PopFromStackState <= StatePop1;
+        elsif (Engine.PopFromStackState = StatePop1) then
             Stack.Run <= '0';
-            Stack.State <= StatePop2;
-        elsif (Stack.State = StatePop2) then
-            Stack.State <= StatePop3;
-        elsif (Stack.State = StatePop3) then
+            Engine.PopFromStackState <= StatePop2;
+        elsif (Engine.PopFromStackState = StatePop2) then
+            Engine.PopFromStackState <= StatePop3;
+        elsif (Engine.PopFromStackState = StatePop3) then
             if (Stack.Busy = '0') then
-                Stack.State <= (others => '0');
-                EngineState <= ReturnState;
+                Engine.PopFromStackState <= (others => '0');
+                Engine.State <= ReturnState;
             end if;
         else
-            EngineState <= EngineStateError;
+            -- Error state by convention
+            Engine.State <= (others => '1');
         end if;
     end;
 
 
-    procedure PushToStack(signal EngineState : out std_logic_vector;
+    procedure PushToStack(signal Engine : inout T_WasmFpgaEngine;
                           constant ReturnState : in std_logic_vector;
                           signal Stack : inout T_WasmFpgaStack)
     is
@@ -367,22 +447,22 @@ package body WasmFpgaEnginePackage is
         constant StatePush2 : std_logic_vector(3 downto 0) := x"2";
         constant StatePush3 : std_logic_vector(3 downto 0) := x"3";
     begin
-        if (Stack.State = StatePush0) then
+        if (Engine.PushToStackState = StatePush0) then
             Stack.Run <= '1';
             Stack.Action <= WASMFPGASTACK_VAL_Push;
-            Stack.State <= StatePush1;
-        elsif (Stack.State = StatePush1) then
+            Engine.PushToStackState <= StatePush1;
+        elsif (Engine.PushToStackState = StatePush1) then
             Stack.Run <= '0';
-            Stack.State <= StatePush2;
-        elsif (Stack.State = StatePush2) then
-            Stack.State <= StatePush3;
-        elsif (Stack.State = StatePush3) then
+            Engine.PushToStackState <= StatePush2;
+        elsif (Engine.PushToStackState = StatePush2) then
+            Engine.PushToStackState <= StatePush3;
+        elsif (Engine.PushToStackState = StatePush3) then
             if (Stack.Busy = '0') then
-                Stack.State <= (others => '0');
-                EngineState <= ReturnState;
+                Engine.PushToStackState <= (others => '0');
+                Engine.State <= ReturnState;
             end if;
         else
-            EngineState <= EngineStateError;
+            Engine.State <= (others => '1');
         end if;
     end;
 

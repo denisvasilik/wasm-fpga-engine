@@ -136,7 +136,7 @@ begin
           Adr <= std_logic_vector(unsigned(WASMFPGABUS_ADR_BASE_StackArea) +
                                   unsigned(WASMFPGASTACK_ADR_ControlReg));
           DatIn <= (31 downto 5 => '0') &
-                   WASMFPGASTACK_VAL_DoRun &
+                   WASMFPGASTACK_VAL_DoNotRun &
                    Action &
                    ValueType;
           State <= WriteControlReg3;

@@ -26,7 +26,9 @@ entity tb_FileIo is
     ModuleMemory_FileIO : in T_ModuleMemory_FileIO;
     FileIO_ModuleMemory : out T_FileIO_ModuleMemory;
     StoreMemory_FileIO : in T_StoreMemory_FileIO;
-    FileIO_StoreMemory : out T_FileIO_StoreMemory
+    FileIO_StoreMemory : out T_FileIO_StoreMemory;
+    StackMemory_FileIO : in T_StackMemory_FileIO;
+    FileIO_StackMemory : out T_FileIO_StackMemory
   );
 end tb_FileIo;
 
@@ -245,7 +247,14 @@ begin
         FileIO_StoreMemory.Cyc <= (others => '0');
         FileIO_StoreMemory.We <= '0';
         FileIO_StoreMemory.Stb <= '0';
-        
+
+        FileIO_StackMemory.DatIn <= (others => '0');
+        FileIO_StackMemory.Adr <= (others => '0');
+        FileIO_StackMemory.Sel <= (others => '0');
+        FileIO_StackMemory.Cyc <= (others => '0');
+        FileIO_StackMemory.We <= '0';
+        FileIO_StackMemory.Stb <= '0';
+
         tempAddress <= (others => '0');
         tempValue <= (others => '0');
 
@@ -950,13 +959,107 @@ begin
                 end if;
                 wait for 0 ns;
 
+            -- READ RAM
+            elsif (instruction(1 to len) = "READ_RAM" or instruction(1 to len) = "VERIFY_RAM") then
+                tempAddress <= std_logic_vector(to_unsigned(par2, tempAddress'LENGTH));
+                wait for 0 ns;
+                wait until Clk'event and Clk = '1';
+
+                if (par1 = 0) then
+                    --
+                    -- Read from Module RAM using byte-addressing
+                    --
+                    FileIO_ModuleMemory.Adr <= "00" & tempAddress(23 downto 2);
+                    FileIO_ModuleMemory.Sel <= x"F";
+                    FileIO_ModuleMemory.Cyc <= "1";
+                    FileIO_ModuleMemory.Stb <= '1';
+                    FileIO_ModuleMemory.We <= '0';
+                    wait until rising_edge(ModuleMemory_FileIO.Ack);
+                    if (tempAddress(1 downto 0) = "00") then
+                        temp_int := to_integer(unsigned(ModuleMemory_FileIO.DatOut(7 downto 0)));
+                    elsif (tempAddress(1 downto 0) = "01") then
+                        temp_int := to_integer(unsigned(ModuleMemory_FileIO.DatOut(15 downto 8)));
+                    elsif (tempAddress(1 downto 0) = "10") then
+                        temp_int := to_integer(unsigned(ModuleMemory_FileIO.DatOut(23 downto 16)));
+                    else
+                        temp_int := to_integer(unsigned(ModuleMemory_FileIO.DatOut(31 downto 24)));
+                    end if;
+                    FileIO_ModuleMemory.Sel <= x"0";
+                    FileIO_ModuleMemory.Cyc <= "0";
+                    FileIO_ModuleMemory.Stb <= '0';
+                    FileIO_ModuleMemory.We <= '0';
+                    wait until Clk'event and Clk = '1';
+                elsif (par1 = 1) then
+                    --
+                    -- Read from Store 4 byte-wise
+                    --
+                    FileIO_StoreMemory.DatIn <= std_logic_vector(to_unsigned(par3, FileIO_StoreMemory.DatIn'LENGTH));
+                    FileIO_StoreMemory.Adr <= std_logic_vector(to_unsigned(par2, FileIO_StoreMemory.Adr'LENGTH));
+                    FileIO_StoreMemory.Sel <= x"F";
+                    FileIO_StoreMemory.Cyc <= "1";
+                    FileIO_StoreMemory.Stb <= '1';
+                    FileIO_StoreMemory.We <= '0';
+                    wait until rising_edge(StoreMemory_FileIO.Ack);
+                    temp_int := to_integer(unsigned(StoreMemory_FileIO.DatOut(31 downto 24)));
+                    FileIO_StoreMemory.Sel <= x"0";
+                    FileIO_StoreMemory.Cyc <= "0";
+                    FileIO_StoreMemory.Stb <= '0';
+                    FileIO_StoreMemory.We <= '0';
+                elsif (par1 = 2) then
+                    --
+                    -- Read from Stack 4 byte-wise
+                    --
+                    FileIO_StackMemory.DatIn <= std_logic_vector(to_unsigned(par3, FileIO_StackMemory.DatIn'LENGTH));
+                    FileIO_StackMemory.Adr <= std_logic_vector(to_unsigned(par2, FileIO_StackMemory.Adr'LENGTH));
+                    FileIO_StackMemory.Sel <= x"F";
+                    FileIO_StackMemory.Cyc <= "1";
+                    FileIO_StackMemory.Stb <= '1';
+                    FileIO_StackMemory.We <= '0';
+                    wait until rising_edge(StackMemory_FileIO.Ack);
+                    temp_int := to_integer(unsigned(StackMemory_FileIO.DatOut(31 downto 24)));
+                    FileIO_StackMemory.Sel <= x"0";
+                    FileIO_StackMemory.Cyc <= "0";
+                    FileIO_StackMemory.Stb <= '0';
+                    FileIO_StackMemory.We <= '0';
+                else
+                    assert (false)
+                    report " Line " & (integer'image(file_line)) & ", " & instruction(1 to len) & ": wrong data width or unaligned address."
+                    severity failure;
+                end if;
+
+                update_variable(defined_vars, par3, temp_int, valid);
+
+                if(valid = 0) then
+                    assert (false)
+                    report " Line " & (integer'image(file_line)) & ", " & instruction(1 to len) & ": Not a valid Variable??"
+                    severity failure;
+                end if;
+
+                if (instruction(1 to len) = "VERIFY_RAM") then
+                    temp_stdvec_a  :=  std_logic_vector(to_unsigned(temp_int,32));
+                    temp_stdvec_b  :=  std_logic_vector(to_unsigned(par4,32));
+                    temp_stdvec_c  :=  std_logic_vector(to_unsigned(par5,32));
+
+                    if (temp_stdvec_c and temp_stdvec_a) /= (temp_stdvec_c and temp_stdvec_b) then
+                        assert (false)
+                        report " Line " & (integer'image(file_line)) & ", " & instruction(1 to len) & ":"
+                             & " address=0x" & to_hstring(tempAddress)
+                             & ", read=0x" & to_hstring(temp_stdvec_a)
+                             & ", expected=0x" & to_hstring(temp_stdvec_b)
+                             & ", mask=0x" & to_hstring(temp_stdvec_c)
+                        severity failure;
+                    end if;
+                end if;
+                wait for 0 ns;
 
             -- WRITE_RAM
             elsif (instruction(1 to len) = "WRITE_RAM" ) then
                 tempAddress <= std_logic_vector(to_unsigned(par2, tempAddress'LENGTH));
                 wait for 0 ns;
-            
+
                 if (par1 = 0) then
+                    -- Write to Module RAM byte-wise (needs to do a read-modify-write)
+                    --
                     -- Read from Module RAM
                     FileIO_ModuleMemory.Adr <= "00" & tempAddress(23 downto 2);
                     FileIO_ModuleMemory.Sel <= x"F";
@@ -993,7 +1096,7 @@ begin
                     FileIO_ModuleMemory.Stb <= '0';
                     FileIO_ModuleMemory.We <= '0';
                 elsif(par1 = 1) then
-                    -- write to store memory
+                    -- Write to Store (4 byte-wise)
                     FileIO_StoreMemory.DatIn <= std_logic_vector(to_unsigned(par3, FileIO_StoreMemory.DatIn'LENGTH));
                     FileIO_StoreMemory.Adr <= std_logic_vector(to_unsigned(par2, FileIO_StoreMemory.Adr'LENGTH));
                     FileIO_StoreMemory.Sel <= x"F";

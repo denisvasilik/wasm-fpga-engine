@@ -30,6 +30,9 @@ architecture behavioural of tb_WasmFpgaEngine is
     signal StoreMemory_FileIO : T_StoreMemory_FileIO;
     signal FileIO_StoreMemory : T_FileIO_StoreMemory;
 
+    signal StackMemory_FileIO : T_StackMemory_FileIO;
+    signal FileIO_StackMemory : T_FileIO_StackMemory;
+
     signal WasmFpgaBus_WasmFpgaStore : T_WasmFpgaBus_WasmFpgaStore;
     signal WasmFpgaStore_WasmFpgaBus : T_WasmFpgaStore_WasmFpgaBus;
 
@@ -78,6 +81,15 @@ architecture behavioural of tb_WasmFpgaEngine is
     signal StoreMemory_Ack : std_logic;
     signal StoreMemory_Cyc : std_logic_vector(0 downto 0);
 
+    signal StackMemory_Adr : std_logic_vector(23 downto 0);
+    signal StackMemory_Sel : std_logic_vector(3 downto 0);
+    signal StackMemory_We : std_logic;
+    signal StackMemory_Stb : std_logic;
+    signal StackMemory_DatOut : std_logic_vector(31 downto 0);
+    signal StackMemory_DatIn: std_logic_vector(31 downto 0);
+    signal StackMemory_Ack : std_logic;
+    signal StackMemory_Cyc : std_logic_vector(0 downto 0);
+
     signal ModuleMemory_Adr : std_logic_vector(23 downto 0);
     signal ModuleMemory_Sel : std_logic_vector(3 downto 0);
     signal ModuleMemory_We : std_logic;
@@ -100,19 +112,21 @@ architecture behavioural of tb_WasmFpgaEngine is
             ModuleMemory_FileIO : in T_ModuleMemory_FileIO;
             FileIO_ModuleMemory : out T_FileIO_ModuleMemory;
             StoreMemory_FileIO : in T_StoreMemory_FileIO;
-            FileIO_StoreMemory : out T_FileIO_StoreMemory
+            FileIO_StoreMemory : out T_FileIO_StoreMemory;
+            StackMemory_FileIO : in T_StackMemory_FileIO;
+            FileIO_StackMemory : out T_FileIO_StackMemory
         );
     end component;
 
     component WbRam is
-        port ( 
+        port (
             Clk : in std_logic;
             nRst : in std_logic;
             Adr : in std_logic_vector(23 downto 0);
             Sel : in std_logic_vector(3 downto 0);
-            DatIn : in std_logic_vector(31 downto 0); 
+            DatIn : in std_logic_vector(31 downto 0);
             We : in std_logic;
-            Stb : in std_logic; 
+            Stb : in std_logic;
             Cyc : in std_logic_vector(0 downto 0);
             DatOut : out std_logic_vector(31 downto 0);
             Ack : out std_logic
@@ -125,9 +139,9 @@ architecture behavioural of tb_WasmFpgaEngine is
             nRst : in std_logic;
             Adr : in std_logic_vector(23 downto 0);
             Sel : in std_logic_vector(3 downto 0);
-            DatIn : in std_logic_vector(31 downto 0); 
+            DatIn : in std_logic_vector(31 downto 0);
             We : in std_logic;
-            Stb : in std_logic; 
+            Stb : in std_logic;
             Cyc : in std_logic_vector(0 downto 0);
             DatOut : out std_logic_vector(31 downto 0);
             Ack : out std_logic;
@@ -149,9 +163,9 @@ architecture behavioural of tb_WasmFpgaEngine is
         nRst : in std_logic;
         Adr : in std_logic_vector(23 downto 0);
         Sel : in std_logic_vector(3 downto 0);
-        DatIn : in std_logic_vector(31 downto 0); 
+        DatIn : in std_logic_vector(31 downto 0);
         We : in std_logic;
-        Stb : in std_logic; 
+        Stb : in std_logic;
         Cyc : in std_logic_vector(0 downto 0);
         DatOut : out std_logic_vector(31 downto 0);
         Ack : out std_logic;
@@ -188,9 +202,9 @@ architecture behavioural of tb_WasmFpgaEngine is
             nRst : in std_logic;
             Adr : in std_logic_vector(23 downto 0);
             Sel : in std_logic_vector(3 downto 0);
-            DatIn : in std_logic_vector(31 downto 0); 
+            DatIn : in std_logic_vector(31 downto 0);
             We : in std_logic;
-            Stb : in std_logic; 
+            Stb : in std_logic;
             Cyc : in std_logic_vector(0 downto 0);
             DatOut : out std_logic_vector(31 downto 0);
             Ack : out std_logic
@@ -255,8 +269,24 @@ begin
             ModuleMemory_FileIO => ModuleMemory_FileIO,
             FileIO_ModuleMemory => FileIO_ModuleMemory,
             StoreMemory_FileIO => StoreMemory_FileIO,
-            FileIO_StoreMemory => FileIO_StoreMemory
+            FileIO_StoreMemory => FileIO_StoreMemory,
+            StackMemory_FileIO => StackMemory_FileIO,
+            FileIO_StackMemory => FileIO_StackMemory
         );
+
+    -- File IO and WebAssembly engine can write to store memory
+    StackMemory_Adr <= FileIO_StackMemory.Adr when FileIO_StackMemory.Cyc = "1" else Stack_Adr;
+    StackMemory_Sel <= FileIO_StackMemory.Sel when FileIO_StackMemory.Cyc = "1" else Stack_Sel;
+    StackMemory_We <= FileIO_StackMemory.We when FileIO_StackMemory.Cyc = "1" else '0';
+    StackMemory_Stb <= FileIO_StackMemory.Stb when FileIO_StackMemory.Cyc = "1" else Stack_Stb;
+    StackMemory_DatIn <= FileIO_StackMemory.DatIn when FileIO_StackMemory.Cyc = "1" else Stack_DatIn;
+    StackMemory_Cyc <= FileIO_StackMemory.Cyc when FileIO_StackMemory.Cyc = "1" else Stack_Cyc;
+
+    StackMemory_FileIO.Ack <= StackMemory_Ack;
+    StackMemory_FileIO.DatOut <= StackMemory_DatOut;
+
+    Stack_DatOut <= StackMemory_DatOut;
+    Stack_Ack <= StackMemory_Ack;
 
     -- File IO and WebAssembly engine can write to module memory
     ModuleMemory_Adr <= FileIO_ModuleMemory.Adr when FileIO_ModuleMemory.Cyc = "1" else Module_Adr;
@@ -351,14 +381,14 @@ begin
         port map (
             Clk => Clk100M,
             nRst => nRst,
-            Adr => Stack_Adr,
-            Sel => Stack_Sel,
-            DatIn => Stack_DatIn,
-            We => Stack_We,
-            Stb => Stack_Stb,
-            Cyc => Stack_Cyc,
-            DatOut => Stack_DatOut,
-            Ack => Stack_Ack
+            Adr => StackMemory_Adr,
+            Sel => StackMemory_Sel,
+            DatIn => StackMemory_DatIn,
+            We => StackMemory_We,
+            Stb => StackMemory_Stb,
+            Cyc => StackMemory_Cyc,
+            DatOut => StackMemory_DatOut,
+            Ack => StackMemory_Ack
        );
 
     WasmFpgaStore_i : WasmFpgaStore
@@ -388,7 +418,7 @@ begin
       );
 
     ModuleMemory_i : WbRam
-        port map ( 
+        port map (
             Clk => Clk100M,
             nRst => nRst,
             Adr => ModuleMemory_Adr,
@@ -402,7 +432,7 @@ begin
         );
 
     StoreMemory_i : WbRam
-        port map ( 
+        port map (
             Clk => Clk100M,
             nRst => nRst,
             Adr => StoreMemory_Adr,

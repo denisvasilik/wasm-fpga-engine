@@ -124,7 +124,6 @@ printMessage "Adding IP cores..."
 
 set files [list \
  "[file normalize "${project_ip}/WasmFpgaTestBenchRam/WasmFpgaTestBenchRam.xci"]"\
- "[file normalize "${project_origin}/wasm-fpga-stack/ip/WasmFpgaStackRam/WasmFpgaStackRam.xci"]"\
 ]
 
 add_files -fileset sim_1 $files

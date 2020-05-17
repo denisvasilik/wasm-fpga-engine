@@ -246,8 +246,6 @@ begin
           if (Run = '1') then
               Busy <= '1';
               Engine.State <= EngineStateStartFuncIdx0;
-          else
-              Engine.State <= EngineStateIdle;
           end if;
       --
       -- Use ModuleInstanceUid = 0, SectionUid = 8 (Start) and Idx = 0 in order
@@ -361,6 +359,7 @@ begin
         ReadU32(Engine.State, EngineStateI32Const1, Engine, ModuleRam);
       elsif(Engine.State = EngineStateI32Const1) then
         StackLowValue_Written <= ModuleRam.DecodedValue;
+        StackValueType <= WASMFPGASTACK_VAL_i32;
         Engine.State <= EngineStateI32Const2;
       elsif(Engine.State = EngineStateI32Const2) then
         PushToStack(Engine.State, EngineStateExec0, Engine, Stack);

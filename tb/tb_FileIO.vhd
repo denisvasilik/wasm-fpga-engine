@@ -993,14 +993,13 @@ begin
                     --
                     -- Read from Store 4 byte-wise
                     --
-                    FileIO_StoreMemory.DatIn <= std_logic_vector(to_unsigned(par3, FileIO_StoreMemory.DatIn'LENGTH));
                     FileIO_StoreMemory.Adr <= std_logic_vector(to_unsigned(par2, FileIO_StoreMemory.Adr'LENGTH));
                     FileIO_StoreMemory.Sel <= x"F";
                     FileIO_StoreMemory.Cyc <= "1";
                     FileIO_StoreMemory.Stb <= '1';
                     FileIO_StoreMemory.We <= '0';
                     wait until rising_edge(StoreMemory_FileIO.Ack);
-                    temp_int := to_integer(unsigned(StoreMemory_FileIO.DatOut(31 downto 24)));
+                    temp_int := to_integer(unsigned(StoreMemory_FileIO.DatOut(31 downto 0)));
                     FileIO_StoreMemory.Sel <= x"0";
                     FileIO_StoreMemory.Cyc <= "0";
                     FileIO_StoreMemory.Stb <= '0';
@@ -1009,14 +1008,13 @@ begin
                     --
                     -- Read from Stack 4 byte-wise
                     --
-                    FileIO_StackMemory.DatIn <= std_logic_vector(to_unsigned(par3, FileIO_StackMemory.DatIn'LENGTH));
                     FileIO_StackMemory.Adr <= std_logic_vector(to_unsigned(par2, FileIO_StackMemory.Adr'LENGTH));
                     FileIO_StackMemory.Sel <= x"F";
                     FileIO_StackMemory.Cyc <= "1";
                     FileIO_StackMemory.Stb <= '1';
                     FileIO_StackMemory.We <= '0';
                     wait until rising_edge(StackMemory_FileIO.Ack);
-                    temp_int := to_integer(unsigned(StackMemory_FileIO.DatOut(31 downto 24)));
+                    temp_int := to_integer(unsigned(StackMemory_FileIO.DatOut(31 downto 0)));
                     FileIO_StackMemory.Sel <= x"0";
                     FileIO_StackMemory.Cyc <= "0";
                     FileIO_StackMemory.Stb <= '0';

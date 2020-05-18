@@ -108,6 +108,7 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
       Busy : out std_logic;
       Action : in std_logic;
       ValueType : in std_logic_vector(2 downto 0);
+      SizeValue : out std_logic_vector(31 downto 0);
       HighValue_ToBeRead : out std_logic_vector(31 downto 0);
       HighValue_Written : in std_logic_vector(31 downto 0);
       LowValue_ToBeRead : out std_logic_vector(31 downto 0);
@@ -135,6 +136,7 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   signal StoreBusy : std_logic;
 
   signal StackBusy : std_logic;
+  signal StackSizeValue : std_logic_vector(31 downto 0);
   signal ModuleRamBusy : std_logic;
 
   signal StackValueType : std_logic_vector(2 downto 0);
@@ -246,8 +248,6 @@ begin
           if (Run = '1') then
               Busy <= '1';
               Engine.State <= EngineStateStartFuncIdx0;
-          else
-              Engine.State <= EngineStateIdle;
           end if;
       --
       -- Use ModuleInstanceUid = 0, SectionUid = 8 (Start) and Idx = 0 in order
@@ -361,6 +361,7 @@ begin
         ReadU32(Engine.State, EngineStateI32Const1, Engine, ModuleRam);
       elsif(Engine.State = EngineStateI32Const1) then
         StackLowValue_Written <= ModuleRam.DecodedValue;
+        StackValueType <= WASMFPGASTACK_VAL_i32;
         Engine.State <= EngineStateI32Const2;
       elsif(Engine.State = EngineStateI32Const2) then
         PushToStack(Engine.State, EngineStateExec0, Engine, Stack);
@@ -494,6 +495,7 @@ begin
       Busy => StackBusy,
       Action => Stack.Action,
       ValueType => StackValueType,
+      SizeValue => StackSizeValue,
       HighValue_ToBeRead => StackHighValue_ToBeRead,
       HighValue_Written => StackHighValue_Written,
       LowValue_ToBeRead => StackLowValue_ToBeRead,

@@ -22,6 +22,7 @@ entity WasmFpgaEngine_StackBlk is
         Busy : out std_logic;
         Action : in std_logic;
         ValueType : in std_logic_vector(2 downto 0);
+        SizeValue : out std_logic_vector(31 downto 0);
         HighValue_ToBeRead : out std_logic_vector(31 downto 0);
         HighValue_Written : in std_logic_vector(31 downto 0);
         LowValue_ToBeRead : out std_logic_vector(31 downto 0);
@@ -39,6 +40,8 @@ begin
 
   Ack <= StackBlk_Ack;
   DatOut <= StackBlk_DatOut;
+
+  SizeValue <= (others => '0');
 
   Stack : process (Clk, Rst) is
     constant Idle : std_logic_vector(7 downto 0) := x"00";
@@ -116,9 +119,9 @@ begin
           We <= '1';
           Adr <= std_logic_vector(unsigned(WASMFPGABUS_ADR_BASE_StackArea) +
                                   unsigned(WASMFPGASTACK_ADR_ControlReg));
-          DatIn <= (31 downto 5 => '0') & 
+          DatIn <= (31 downto 5 => '0') &
                    WASMFPGASTACK_VAL_DoRun &
-                   Action & 
+                   Action &
                    ValueType;
           State <= WriteControlReg1;
       elsif( State = WriteControlReg1 ) then

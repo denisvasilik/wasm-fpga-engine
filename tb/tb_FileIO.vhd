@@ -21,6 +21,7 @@ entity tb_FileIo is
   port (
     Clk : in std_logic;
     Rst : in std_logic;
+    nRst : out std_logic;
     WasmFpgaEngine_FileIO : in T_WasmFpgaEngine_FileIO;
     FileIO_WasmFpgaEngine : out T_FileIO_WasmFpgaEngine;
     ModuleMemory_FileIO : in T_ModuleMemory_FileIO;
@@ -233,6 +234,8 @@ begin
     begin  -- process Read_file
 
         wb_data_write <= (others => '0');
+
+        nRst <= '1';
 
         FileIO_ModuleMemory.DatIn <= (others => '0');
         FileIO_ModuleMemory.Adr <= (others => '0');
@@ -910,8 +913,12 @@ begin
             --  par1  0  signal number
             --  par2  1  signal value
             elsif (instruction(1 to len) = "SET_SIG") then
-                if (par1 = 16) then
-
+                if (par1 = 0) then
+                    if(par2 = 0) then
+                        nRst <= '1';
+                    else
+                        nRst <= '0';
+                    end if;
                 else
                     assert (false)
                     report " Line " & (integer'image(file_line)) & ", " & instruction(1 to len) & ": Signal not defined"

@@ -110,6 +110,7 @@ architecture behavioural of tb_WasmFpgaEngine is
         port (
             Clk : in std_logic;
             Rst : in std_logic;
+            nRst : out std_logic;
             WasmFpgaEngine_FileIO : in T_WasmFpgaEngine_FileIO;
             FileIO_WasmFpgaEngine : out T_FileIO_WasmFpgaEngine;
             ModuleMemory_FileIO : in T_ModuleMemory_FileIO;
@@ -251,8 +252,6 @@ architecture behavioural of tb_WasmFpgaEngine is
 
 begin
 
-	nRst <= not Rst;
-
     Clk100MGen : process is
     begin
         Clk100M <= not Clk100M;
@@ -275,6 +274,7 @@ begin
         port map (
             Clk => Clk100M,
             Rst => Rst,
+            nRst => nRst,
             WasmFpgaEngine_FileIO => WasmFpgaEngine_FileIO,
             FileIO_WasmFpgaEngine => FileIO_WasmFpgaEngine,
             ModuleMemory_FileIO => ModuleMemory_FileIO,

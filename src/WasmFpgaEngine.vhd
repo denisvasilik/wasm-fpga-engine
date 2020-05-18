@@ -106,7 +106,7 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
       StackBlk_Ack : in std_logic;
       Run : in std_logic;
       Busy : out std_logic;
-      Action : in std_logic_vector(1 downto 0);
+      Action : in std_logic;
       ValueType : in std_logic_vector(2 downto 0);
       SizeValue : out std_logic_vector(31 downto 0);
       HighValue_ToBeRead : out std_logic_vector(31 downto 0);
@@ -232,7 +232,7 @@ begin
       StackHighValue_Written <= (others => '0');
       StackLowValue_Written <= (others => '0');
       Stack.Run <= '0';
-      Stack.Action <= (others => '0');
+      Stack.Action <= '0';
       Stack.Busy <= '0';
       Engine.ReturnState <= (others => '0');
       Engine.State <= EngineStateIdle;

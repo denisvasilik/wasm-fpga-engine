@@ -20,7 +20,7 @@ entity WasmFpgaEngine_StackBlk is
         StackBlk_Ack : in std_logic;
         Run : in std_logic;
         Busy : out std_logic;
-        Action : in std_logic_vector(1 downto 0);
+        Action : in std_logic;
         ValueType : in std_logic_vector(2 downto 0);
         SizeValue : out std_logic_vector(31 downto 0);
         HighValue_ToBeRead : out std_logic_vector(31 downto 0);
@@ -119,7 +119,7 @@ begin
           We <= '1';
           Adr <= std_logic_vector(unsigned(WASMFPGABUS_ADR_BASE_StackArea) +
                                   unsigned(WASMFPGASTACK_ADR_ControlReg));
-          DatIn <= (31 downto 6 => '0') &
+          DatIn <= (31 downto 5 => '0') &
                    WASMFPGASTACK_VAL_DoRun &
                    Action &
                    ValueType;
@@ -138,7 +138,7 @@ begin
           We <= '1';
           Adr <= std_logic_vector(unsigned(WASMFPGABUS_ADR_BASE_StackArea) +
                                   unsigned(WASMFPGASTACK_ADR_ControlReg));
-          DatIn <= (31 downto 6 => '0') &
+          DatIn <= (31 downto 5 => '0') &
                    WASMFPGASTACK_VAL_DoNotRun &
                    Action &
                    ValueType;

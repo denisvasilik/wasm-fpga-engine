@@ -106,8 +106,9 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
       StackBlk_Ack : in std_logic;
       Run : in std_logic;
       Busy : out std_logic;
-      Action : in std_logic;
+      Action : in std_logic_vector(1 downto 0);
       ValueType : in std_logic_vector(2 downto 0);
+      SizeValue : out std_logic_vector(31 downto 0);
       HighValue_ToBeRead : out std_logic_vector(31 downto 0);
       HighValue_Written : in std_logic_vector(31 downto 0);
       LowValue_ToBeRead : out std_logic_vector(31 downto 0);
@@ -135,6 +136,7 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   signal StoreBusy : std_logic;
 
   signal StackBusy : std_logic;
+  signal StackSizeValue : std_logic_vector(31 downto 0);
   signal ModuleRamBusy : std_logic;
 
   signal StackValueType : std_logic_vector(2 downto 0);
@@ -230,7 +232,7 @@ begin
       StackHighValue_Written <= (others => '0');
       StackLowValue_Written <= (others => '0');
       Stack.Run <= '0';
-      Stack.Action <= '0';
+      Stack.Action <= (others => '0');
       Stack.Busy <= '0';
       Engine.ReturnState <= (others => '0');
       Engine.State <= EngineStateIdle;
@@ -493,6 +495,7 @@ begin
       Busy => StackBusy,
       Action => Stack.Action,
       ValueType => StackValueType,
+      SizeValue => StackSizeValue,
       HighValue_ToBeRead => StackHighValue_ToBeRead,
       HighValue_Written => StackHighValue_Written,
       LowValue_ToBeRead => StackLowValue_ToBeRead,

@@ -272,7 +272,7 @@ package WasmFpgaEnginePackage is
     type T_WasmFpgaStack is
     record
         Run : std_logic;
-        Action : std_logic;
+        Action : std_logic_vector(1 downto 0);
         Busy : std_logic;
     end record;
 

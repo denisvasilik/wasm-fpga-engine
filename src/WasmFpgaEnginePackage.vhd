@@ -252,6 +252,11 @@ package WasmFpgaEnginePackage is
     constant EngineStateI32Popcnt0 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_POPCNT & x"00";
     constant EngineStateI32Popcnt1 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_POPCNT & x"01";
     constant EngineStateI32Popcnt2 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_POPCNT & x"02";
+    constant EngineStateI32And0 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_AND & x"00";
+    constant EngineStateI32And1 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_AND & x"01";
+    constant EngineStateI32And2 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_AND & x"02";
+    constant EngineStateI32And3 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_AND & x"03";
+    constant EngineStateI32And4 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_AND & x"04";
 
     type T_WshBnUp is
     record
@@ -301,6 +306,8 @@ package WasmFpgaEnginePackage is
     function clz(value: std_logic_vector) return std_logic_vector;
 
     function popcnt(value: std_logic_vector) return std_logic_vector;
+
+    function i32_and(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
 
     procedure PopFromStack(signal State : out std_logic_vector;
                            constant ReturnState : in std_logic_vector;
@@ -530,6 +537,13 @@ package body WasmFpgaEnginePackage is
             end if;
         end loop;
         return std_logic_vector(to_unsigned(total, value'length));
+    end;
+
+    function i32_and(a: std_logic_vector; b: std_logic_vector)
+        return std_logic_vector
+    is
+    begin
+        return a and b;
     end;
 
 end;

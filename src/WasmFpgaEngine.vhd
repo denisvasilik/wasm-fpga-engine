@@ -132,6 +132,8 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   signal Idx : std_logic_vector(31 downto 0);
   signal Address : std_logic_vector(31 downto 0);
 
+  signal FunctionOperandA : std_logic_vector(31 downto 0);
+
   signal StoreRun : std_logic;
   signal StoreBusy : std_logic;
 
@@ -402,6 +404,24 @@ begin
         StackLowValue_Written <= popcnt(StackLowValue_ToBeRead);
         Engine.State <= EngineStateI32Popcnt2;
       elsif(Engine.State = EngineStateI32Popcnt2) then
+        PushToStack(Engine.State, EngineStateExec0, Engine, Stack);
+      --
+      -- i32.and
+      --
+      -- Operator: https://www.w3.org/TR/wasm-core-1/#exec-binop
+      -- Execution: https://www.w3.org/TR/wasm-core-1/#op-iand
+      --
+      elsif(Engine.State = EngineStateI32And0) then
+        PopFromStack(Engine.State, EngineStateI32And1, Engine, Stack);
+      elsif(Engine.State = EngineStateI32And1) then
+        FunctionOperandA <= StackLowValue_ToBeRead;
+        Engine.State <= EngineStateI32And2;
+      elsif(Engine.State = EngineStateI32And2) then
+        PopFromStack(Engine.State, EngineStateI32And3, Engine, Stack);
+      elsif(Engine.State = EngineStateI32And3) then
+        StackLowValue_Written <= i32_and(FunctionOperandA, StackLowValue_ToBeRead);
+        Engine.State <= EngineStateI32And4;
+      elsif(Engine.State = EngineStateI32And4) then
         PushToStack(Engine.State, EngineStateExec0, Engine, Stack);
       --
       -- Read address from Store (ModuleInstanceUid, SectionUid, Idx) -> Address

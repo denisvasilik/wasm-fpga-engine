@@ -252,6 +252,10 @@ begin
       Stack.Run <= '0';
       Stack.Action <= '0';
       Stack.Busy <= '0';
+      InstructionI32CtzRun <= '0';
+      WasmFpgaStack_WasmFpgaInstruction.Busy <= '0';
+      WasmFpgaStack_WasmFpgaInstruction.HighValue <= (others => '0');
+      WasmFpgaStack_WasmFpgaInstruction.LowValue <= (others => '0');
       Engine.ReturnState <= (others => '0');
       Engine.State <= EngineStateIdle;
     elsif rising_edge(Clk) then
@@ -390,12 +394,22 @@ begin
       -- trailing zeros if i is 0.
       --
       elsif(Engine.State = EngineStateI32Ctz0) then
-        PopFromStack(Engine.State, EngineStateI32Ctz1, Engine, Stack);
+        InstructionI32CtzRun <= '1';
+        Engine.State <= EngineStateI32Ctz1;
       elsif(Engine.State = EngineStateI32Ctz1) then
-        StackLowValue_Written <= ctz(StackLowValue_ToBeRead);
+        InstructionI32CtzRun <= '0';
         Engine.State <= EngineStateI32Ctz2;
       elsif(Engine.State = EngineStateI32Ctz2) then
-        PushToStack(Engine.State, EngineStateExec0, Engine, Stack);
+        WasmFpgaStack_WasmFpgaInstruction.Busy <= StackBusy;
+        WasmFpgaStack_WasmFpgaInstruction.HighValue <= StackHighValue_ToBeRead;
+        WasmFpgaStack_WasmFpgaInstruction.LowValue <= StackLowValue_ToBeRead;
+        Stack.Run <= WasmFpgaInstruction_WasmFpgaStack.Run;
+        Stack.Action <= WasmFpgaInstruction_WasmFpgaStack.Action;
+        StackValueType <= WasmFpgaInstruction_WasmFpgaStack.ValueType;
+        StackLowValue_Written <= WasmFpgaInstruction_WasmFpgaStack.LowValue;
+        if (InstructionI32CtzBusy = '0') then
+            Engine.State <= EngineStateExec0;
+        end if;
       --
       -- i32.clz
       --

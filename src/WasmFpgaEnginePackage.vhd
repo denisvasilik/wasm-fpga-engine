@@ -258,11 +258,11 @@ package WasmFpgaEnginePackage is
     constant EngineStateI32And3 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_AND & x"03";
     constant EngineStateI32And4 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_AND & x"04";
 
-    constant StateIdle : std_logic_vector(7 downto 0) := x"00";
-    constant State0 : std_logic_vector(7 downto 0) := x"01";
-    constant State1 : std_logic_vector(7 downto 0) := x"02";
-    constant State2 : std_logic_vector(7 downto 0) := x"03";
-    constant State3 : std_logic_vector(7 downto 0) := x"04";
+    constant StateIdle : std_logic_vector(15 downto 0) := x"0000";
+    constant State0 : std_logic_vector(15 downto 0) := x"0001";
+    constant State1 : std_logic_vector(15 downto 0) := x"0002";
+    constant State2 : std_logic_vector(15 downto 0) := x"0003";
+    constant State3 : std_logic_vector(15 downto 0) := x"0004";
 
     type T_WshBnUp is
     record
@@ -476,6 +476,9 @@ package body WasmFpgaEnginePackage is
         constant StatePop1 : std_logic_vector(3 downto 0) := x"1";
         constant StatePop2 : std_logic_vector(3 downto 0) := x"2";
         constant StatePop3 : std_logic_vector(3 downto 0) := x"3";
+        constant StatePop4 : std_logic_vector(3 downto 0) := x"4";
+        constant StatePop5 : std_logic_vector(3 downto 0) := x"5";
+        constant StatePop6 : std_logic_vector(3 downto 0) := x"6";
     begin
         if (Engine.PopFromStackState = StatePop0) then
             Stack.Run <= '1';
@@ -487,6 +490,12 @@ package body WasmFpgaEnginePackage is
         elsif (Engine.PopFromStackState = StatePop2) then
             Engine.PopFromStackState <= StatePop3;
         elsif (Engine.PopFromStackState = StatePop3) then
+            Engine.PopFromStackState <= StatePop4;
+        elsif (Engine.PopFromStackState = StatePop4) then
+            Engine.PopFromStackState <= StatePop5;
+        elsif (Engine.PopFromStackState = StatePop5) then
+            Engine.PopFromStackState <= StatePop6;
+        elsif (Engine.PopFromStackState = StatePop6) then
             if (Stack.Busy = '0') then
                 Engine.PopFromStackState <= (others => '0');
                 Engine.State <= ReturnState;

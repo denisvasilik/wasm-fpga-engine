@@ -41,22 +41,33 @@ begin
             WasmFpgaInstruction_WasmFpgaStack.ValueType <= (others => '0');
             WasmFpgaInstruction_WasmFpgaStack.HighValue <= (others => '0');
             WasmFpgaInstruction_WasmFpgaStack.LowValue <= (others => '0');
+          Stack.Run <= '0';
+          Stack.Action <= '0';
+          Stack.Busy <= '0';
+          Instruction.State <= StateIdle;
+          Instruction.ReturnState <= (others => '0');
+          Instruction.PushToStackState <= (others => '0');
+          Instruction.PopFromStackState <= (others => '0');
+          Instruction.ReadU32State <= (others => '0');
+          Instruction.ReadFromModuleRamState <= (others => '0');
         elsif rising_edge(Clk) then
             Stack.Busy <= WasmFpgaStack_WasmFpgaInstruction.Busy;
             WasmFpgaInstruction_WasmFpgaStack.Run <= Stack.Run;
             WasmFpgaInstruction_WasmFpgaStack.Action <= Stack.Action;
-            if(Instruction.State = StateIdle) then
+            if (Instruction.State = StateIdle) then
                 Busy <= '0';
                 if (Run = '1') then
                     Busy <= '1';
                     Instruction.State <= State0;
                 end if;
-            elsif(Instruction.State = State0) then
+            elsif (Instruction.State = State0) then
                 PopFromStack(Instruction.State, State1, Instruction, Stack);
-            elsif(Instruction.State = State1) then
+            elsif (Instruction.State = State1) then
                 WasmFpgaInstruction_WasmFpgaStack.LowValue <= ctz(WasmFpgaStack_WasmFpgaInstruction.LowValue);
                 Instruction.State <= State2;
-            elsif(Instruction.State = State2) then
+            elsif (Instruction.State = State2) then
+                PushToStack(Instruction.State, StateIdle, Instruction, Stack);
+            else
                 PushToStack(Instruction.State, StateIdle, Instruction, Stack);
             end if;
         end if;

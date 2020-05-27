@@ -116,9 +116,25 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
     );
   end component;
 
+  component InstructionI32Ctz is
+    port (
+      Clk : in std_logic;
+      nRst : in std_logic;
+      Run : in std_logic;
+      Busy : out std_logic;
+      WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction;
+      WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack
+    );
+  end component;
+
   signal Rst : std_logic;
   signal Run : std_logic;
   signal Busy : std_logic;
+
+  signal InstructionI32CtzRun : std_logic;
+  signal InstructionI32CtzBusy : std_logic;
+  signal WasmFpgaStack_WasmFpgaInstruction : T_WasmFpgaStack_WasmFpgaInstruction;
+  signal WasmFpgaInstruction_WasmFpgaStack : T_WasmFpgaInstruction_WasmFpgaStack;
 
   signal EngineBlk_Ack : std_logic;
   signal EngineBlk_DatOut : std_logic_vector(31 downto 0);
@@ -520,6 +536,16 @@ begin
       HighValue_Written => StackHighValue_Written,
       LowValue_ToBeRead => StackLowValue_ToBeRead,
       LowValue_Written => StackLowValue_Written
+    );
+
+  InstructionI32Ctz_i : InstructionI32Ctz
+    port map (
+      Clk => Clk,
+      nRst => nRst,
+      Run => InstructionI32CtzRun,
+      Busy => InstructionI32CtzBusy,
+      WasmFpgaStack_WasmFpgaInstruction => WasmFpgaStack_WasmFpgaInstruction,
+      WasmFpgaInstruction_WasmFpgaStack => WasmFpgaInstruction_WasmFpgaStack
     );
 
 end;

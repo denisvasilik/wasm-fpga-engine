@@ -258,6 +258,12 @@ package WasmFpgaEnginePackage is
     constant EngineStateI32And3 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_AND & x"03";
     constant EngineStateI32And4 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_AND & x"04";
 
+    constant StateIdle : std_logic_vector(7 downto 0) := x"00";
+    constant State0 : std_logic_vector(7 downto 0) := x"01";
+    constant State1 : std_logic_vector(7 downto 0) := x"02";
+    constant State2 : std_logic_vector(7 downto 0) := x"03";
+    constant State3 : std_logic_vector(7 downto 0) := x"04";
+
     type T_WshBnUp is
     record
         DatOut : std_logic_vector(31 downto 0);
@@ -299,6 +305,32 @@ package WasmFpgaEnginePackage is
         PopFromStackState : std_logic_vector(3 downto 0);
         ReadU32State : std_logic_vector(3 downto 0);
         ReadFromModuleRamState : std_logic_vector(3 downto 0);
+    end record;
+
+    type T_WasmFpgaInstruction is
+    record
+        State : std_logic_vector(15 downto 0);
+        ReturnState : std_logic_vector(15 downto 0);
+        PushToStackState : std_logic_vector(3 downto 0);
+        PopFromStackState : std_logic_vector(3 downto 0);
+        ReadU32State : std_logic_vector(3 downto 0);
+        ReadFromModuleRamState : std_logic_vector(3 downto 0);
+    end record;
+
+    type T_WasmFpgaStack_WasmFpgaInstruction is
+    record
+        Busy : std_logic;
+        HighValue : std_logic_vector(31 downto 0);
+        LowValue : std_logic_vector(31 downto 0);
+    end record;
+
+    type T_WasmFpgaInstruction_WasmFpgaStack is
+    record
+        Run : std_logic;
+        Action : std_logic;
+        ValueType : std_logic_vector(2 downto 0);
+        HighValue : std_logic_vector(31 downto 0);
+        LowValue : std_logic_vector(31 downto 0);
     end record;
 
     function ctz(value: std_logic_vector) return std_logic_vector;

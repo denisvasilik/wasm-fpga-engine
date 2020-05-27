@@ -67,8 +67,6 @@ begin
                 Instruction.State <= State2;
             elsif (Instruction.State = State2) then
                 PushToStack(Instruction.State, StateIdle, Instruction, Stack);
-            else
-                PushToStack(Instruction.State, StateIdle, Instruction, Stack);
             end if;
         end if;
     end process;

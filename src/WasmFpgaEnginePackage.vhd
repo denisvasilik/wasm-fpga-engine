@@ -263,6 +263,7 @@ package WasmFpgaEnginePackage is
     constant State1 : std_logic_vector(15 downto 0) := x"0002";
     constant State2 : std_logic_vector(15 downto 0) := x"0003";
     constant State3 : std_logic_vector(15 downto 0) := x"0004";
+    constant StateEnd : std_logic_vector(15 downto 0) := x"00FE";
 
     type T_WshBnUp is
     record
@@ -360,6 +361,14 @@ package WasmFpgaEnginePackage is
                       constant ReturnState : in std_logic_vector;
                       signal Engine : inout T_WasmFpgaEngine;
                       signal ModuleRam : inout T_WasmFpgaModuleRam);
+
+    procedure PopFromStack2(signal State : inout std_logic_vector;
+                            signal WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
+                            signal WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction);
+
+    procedure PushToStack2(signal State : inout std_logic_vector;
+                           signal WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
+                           signal WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction);
 
 end;
 
@@ -502,6 +511,80 @@ package body WasmFpgaEnginePackage is
             end if;
         else
             -- Error state by convention
+            State <= (others => '1');
+        end if;
+    end;
+
+    procedure PopFromStack2(signal State : inout std_logic_vector;
+                            signal WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
+                            signal WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction)
+    is
+        constant StatePop0 : std_logic_vector(15 downto 0) := x"0000";
+        constant StatePop1 : std_logic_vector(15 downto 0) := x"0001";
+        constant StatePop2 : std_logic_vector(15 downto 0) := x"0002";
+        constant StatePop3 : std_logic_vector(15 downto 0) := x"0003";
+        constant StatePop4 : std_logic_vector(15 downto 0) := x"0004";
+        constant StatePop5 : std_logic_vector(15 downto 0) := x"0005";
+        constant StatePop6 : std_logic_vector(15 downto 0) := x"0006";
+    begin
+        if (State = StatePop0) then
+            WasmFpgaInstruction_WasmFpgaStack.Run <= '1';
+            WasmFpgaInstruction_WasmFpgaStack.Action <= WASMFPGASTACK_VAL_Pop;
+            State <= StatePop1;
+        elsif (State = StatePop1) then
+            WasmFpgaInstruction_WasmFpgaStack.Run <= '0';
+            State <= StatePop2;
+        elsif (State = StatePop2) then
+            State <= StatePop3;
+        elsif (State = StatePop3) then
+            State <= StatePop4;
+        elsif (State = StatePop4) then
+            State <= StatePop5;
+        elsif (State = StatePop5) then
+            State <= StatePop6;
+        elsif (State = StatePop6) then
+            if (WasmFpgaStack_WasmFpgaInstruction.Busy = '0') then
+                State <= StateEnd;
+            end if;
+        elsif (State = StateEnd) then
+            State <= StateIdle;
+        else
+            -- Error state by convention
+            State <= (others => '1');
+        end if;
+    end;
+
+    procedure PushToStack2(signal State : inout std_logic_vector;
+                           signal WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
+                           signal WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction)
+    is
+        constant StatePush0 : std_logic_vector(15 downto 0) := x"0000";
+        constant StatePush1 : std_logic_vector(15 downto 0) := x"0001";
+        constant StatePush2 : std_logic_vector(15 downto 0) := x"0002";
+        constant StatePush3 : std_logic_vector(15 downto 0) := x"0003";
+        constant StatePush4 : std_logic_vector(15 downto 0) := x"0004";
+        constant StatePush5 : std_logic_vector(15 downto 0) := x"0005";
+    begin
+        if (State = StatePush0) then
+            WasmFpgaInstruction_WasmFpgaStack.Run <= '1';
+            WasmFpgaInstruction_WasmFpgaStack.Action <= WASMFPGASTACK_VAL_Push;
+            State <= StatePush1;
+        elsif (State = StatePush1) then
+            WasmFpgaInstruction_WasmFpgaStack.Run <= '0';
+            State <= StatePush2;
+        elsif (State = StatePush2) then
+            State <= StatePush3;
+        elsif (State = StatePush3) then
+            State <= StatePush4;
+        elsif (State = StatePush4) then
+            State <= StatePush5;
+        elsif (State = StatePush5) then
+            if (WasmFpgaStack_WasmFpgaInstruction.Busy = '0') then
+                State <= StateEnd;
+            end if;
+        elsif (State = StateEnd) then
+            State <= StateIdle;
+        else
             State <= (others => '1');
         end if;
     end;

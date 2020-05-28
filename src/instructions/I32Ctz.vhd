@@ -25,8 +25,9 @@ end entity;
 architecture InstructionI32CtzArchitecture of InstructionI32Ctz is
 
     signal Rst : std_logic;
-    signal Instruction : T_WasmFpgaEngine;
-    signal Stack : T_WasmFpgaStack;
+    signal State : std_logic_vector(15 downto 0);
+    signal PopFromStackState : std_logic_vector(15 downto 0);
+    signal PushToStackState : std_logic_vector(15 downto 0);
 
 begin
 
@@ -35,38 +36,39 @@ begin
     process (Clk, Rst) is
     begin
         if (Rst = '1') then
-            Busy <= '1';
-            WasmFpgaInstruction_WasmFpgaStack.Run <= '0';
-            WasmFpgaInstruction_WasmFpgaStack.Action <= '0';
-            WasmFpgaInstruction_WasmFpgaStack.ValueType <= (others => '0');
-            WasmFpgaInstruction_WasmFpgaStack.HighValue <= (others => '0');
-            WasmFpgaInstruction_WasmFpgaStack.LowValue <= (others => '0');
-          Stack.Run <= '0';
-          Stack.Action <= '0';
-          Stack.Busy <= '0';
-          Instruction.State <= StateIdle;
-          Instruction.ReturnState <= (others => '0');
-          Instruction.PushToStackState <= (others => '0');
-          Instruction.PopFromStackState <= (others => '0');
-          Instruction.ReadU32State <= (others => '0');
-          Instruction.ReadFromModuleRamState <= (others => '0');
+          Busy <= '1';
+          WasmFpgaInstruction_WasmFpgaStack.Run <= '0';
+          WasmFpgaInstruction_WasmFpgaStack.Action <= '0';
+          WasmFpgaInstruction_WasmFpgaStack.ValueType <= (others => '0');
+          WasmFpgaInstruction_WasmFpgaStack.HighValue <= (others => '0');
+          WasmFpgaInstruction_WasmFpgaStack.LowValue <= (others => '0');
+          PopFromStackState <= (others => '0');
+          PushToStackState <= (others => '0');
+          State <= StateIdle;
         elsif rising_edge(Clk) then
-            Stack.Busy <= WasmFpgaStack_WasmFpgaInstruction.Busy;
-            WasmFpgaInstruction_WasmFpgaStack.Run <= Stack.Run;
-            WasmFpgaInstruction_WasmFpgaStack.Action <= Stack.Action;
-            if (Instruction.State = StateIdle) then
+            if (State = StateIdle) then
                 Busy <= '0';
                 if (Run = '1') then
                     Busy <= '1';
-                    Instruction.State <= State0;
+                    State <= State0;
                 end if;
-            elsif (Instruction.State = State0) then
-                PopFromStack(Instruction.State, State1, Instruction, Stack);
-            elsif (Instruction.State = State1) then
+            elsif (State = State0) then
+                PopFromStack2(PopFromStackState,
+                              WasmFpgaInstruction_WasmFpgaStack,
+                              WasmFpgaStack_WasmFpgaInstruction);
+                if(PopFromStackState = StateEnd) then
+                    State <= State1;
+                end if;
+            elsif (State = State1) then
                 WasmFpgaInstruction_WasmFpgaStack.LowValue <= ctz(WasmFpgaStack_WasmFpgaInstruction.LowValue);
-                Instruction.State <= State2;
-            elsif (Instruction.State = State2) then
-                PushToStack(Instruction.State, StateIdle, Instruction, Stack);
+                State <= State2;
+            elsif (State = State2) then
+                PushToStack2(PushToStackState,
+                             WasmFpgaInstruction_WasmFpgaStack,
+                             WasmFpgaStack_WasmFpgaInstruction);
+                if(PushToStackState = StateEnd) then
+                    State <= StateIdle;
+                end if;
             end if;
         end if;
     end process;

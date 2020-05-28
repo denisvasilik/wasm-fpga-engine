@@ -64,6 +64,7 @@ set files_vhd [list \
  [file normalize "${project_src}/WasmFpgaStack.vhd" ]\
  [file normalize "${project_src_gen}/vhd_gen/header/wasm_fpga_engine_header.vhd" ]\
  [file normalize "${project_src_gen}/vhd_gen/wishbone/wasm_fpga_engine_wishbone.vhd" ]\
+ [file normalize "${project_src}/instructions/I32Ctz.vhd" ]\
  [file normalize "${project_package}/component.xml" ]\
 ]
 add_files -norecurse -fileset $obj $files_vhd

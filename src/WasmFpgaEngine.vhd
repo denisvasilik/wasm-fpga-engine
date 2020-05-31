@@ -127,14 +127,39 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
     );
   end component;
 
+  component InstructionI32Const is
+      port (
+          Clk : in std_logic;
+          nRst : in std_logic;
+          Run : in std_logic;
+          Busy : out std_logic;
+          WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction;
+          WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
+          WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
+          WasmFpgaInstruction_WasmFpgaModuleRam : out T_WasmFpgaInstruction_WasmFpgaModuleRam
+      );
+  end component;
+
   signal Rst : std_logic;
   signal Run : std_logic;
   signal Busy : std_logic;
 
   signal InstructionI32CtzRun : std_logic;
   signal InstructionI32CtzBusy : std_logic;
-  signal WasmFpgaStack_WasmFpgaInstruction : T_WasmFpgaStack_WasmFpgaInstruction;
-  signal WasmFpgaInstruction_WasmFpgaStack : T_WasmFpgaInstruction_WasmFpgaStack;
+  signal InstructionI32ConstRun : std_logic;
+  signal InstructionI32ConstBusy : std_logic;
+
+  type T_WasmFpgaStack_WasmFpgaInstruction_Array is array (127 downto 0) of T_WasmFpgaStack_WasmFpgaInstruction;
+  type T_WasmFpgaInstruction_WasmFpgaStack_Array is array (127 downto 0) of T_WasmFpgaInstruction_WasmFpgaStack;
+
+  type T_WasmFpgaModuleRam_WasmFpgaInstruction_Array is array (127 downto 0) of T_WasmFpgaModuleRam_WasmFpgaInstruction;
+  type T_WasmFpgaInstruction_WasmFpgaModuleRam_Array is array (127 downto 0) of T_WasmFpgaInstruction_WasmFpgaModuleRam;
+
+  signal WasmFpgaStack_WasmFpgaInstruction : T_WasmFpgaStack_WasmFpgaInstruction_Array;
+  signal WasmFpgaInstruction_WasmFpgaStack : T_WasmFpgaInstruction_WasmFpgaStack_Array;
+
+  signal WasmFpgaModuleRam_WasmFpgaInstruction : T_WasmFpgaModuleRam_WasmFpgaInstruction_Array;
+  signal WasmFpgaInstruction_WasmFpgaModuleRam : T_WasmFpgaInstruction_WasmFpgaModuleRam_Array;
 
   signal EngineBlk_Ack : std_logic;
   signal EngineBlk_DatOut : std_logic_vector(31 downto 0);
@@ -148,14 +173,11 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   signal Idx : std_logic_vector(31 downto 0);
   signal Address : std_logic_vector(31 downto 0);
 
-  signal FunctionOperandA : std_logic_vector(31 downto 0);
-
   signal StoreRun : std_logic;
   signal StoreBusy : std_logic;
 
   signal StackBusy : std_logic;
   signal StackSizeValue : std_logic_vector(31 downto 0);
-  signal ModuleRamBusy : std_logic;
 
   signal StackValueType : std_logic_vector(2 downto 0);
   signal StackHighValue_ToBeRead : std_logic_vector(31 downto 0);
@@ -172,11 +194,16 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   signal Bus_StackBlk : T_WshBnUp;
   signal StackBlk_Bus : T_WshBnDown;
 
-  signal ModuleRamData : std_logic_vector(31 downto 0);
-
-  signal Engine : T_WasmFpgaEngine;
   signal Stack : T_WasmFpgaStack;
-  signal ModuleRam : T_WasmFpgaModuleRam;
+
+  signal EngineState : std_logic_vector(15 downto 0);
+
+  signal CurrentInstruction : integer range 0 to 256;
+
+  signal ModuleRamRun : std_logic;
+  signal ModuleRamBusy : std_logic;
+  signal ModuleRamAddress : std_logic_vector(23 downto 0);
+  signal ModuleRamData : std_logic_vector(31 downto 0);
 
 begin
 
@@ -229,248 +256,124 @@ begin
     if (Rst = '1') then
       Trap <= '1';
       Busy <= '1';
-      Engine.State <= (others => '0');
-      Engine.ReturnState <= (others => '0');
-      Engine.PushToStackState <= (others => '0');
-      Engine.PopFromStackState <= (others => '0');
-      Engine.ReadU32State <= (others => '0');
-      Engine.ReadFromModuleRamState <= (others => '0');
-      ModuleRam.Run <= '0';
-      ModuleRam.CurrentByte <= (others => '0');
-      ModuleRam.Data <= (others => '0');
-      ModuleRam.Address <= (others => '0');
-      ModuleRam.DecodedValue <= (others => '0');
       StoreRun <= '0';
       LocalDeclCount <= (others => '0');
       LocalDeclCountIteration <= (others => '0');
       ModuleInstanceUID <= (others => '0');
       SectionUID <= SECTION_UID_START;
       Idx <= (others => '0');
-      StackValueType <= (others => '0');
-      StackHighValue_Written <= (others => '0');
-      StackLowValue_Written <= (others => '0');
-      Stack.Run <= '0';
-      Stack.Action <= '0';
-      Stack.Busy <= '0';
       InstructionI32CtzRun <= '0';
-      WasmFpgaStack_WasmFpgaInstruction.Busy <= '0';
-      WasmFpgaStack_WasmFpgaInstruction.HighValue <= (others => '0');
-      WasmFpgaStack_WasmFpgaInstruction.LowValue <= (others => '0');
-      Engine.ReturnState <= (others => '0');
-      Engine.State <= EngineStateIdle;
+      CurrentInstruction <= 0;
+      EngineState <= EngineStateIdle;
     elsif rising_edge(Clk) then
-      Stack.Busy <= StackBusy;
-      ModuleRam.Busy <= ModuleRamBusy;
-      ModuleRam.Data <= ModuleRamData;
       --
       -- Idle
       --
-      if (Engine.State = EngineStateIdle) then
+      if (EngineState = EngineStateIdle) then
           Busy <= '0';
           if (Run = '1') then
               Busy <= '1';
-              Engine.State <= EngineStateStartFuncIdx0;
+              EngineState <= EngineStateStartFuncIdx0;
           end if;
-      --
-      -- Use ModuleInstanceUid = 0, SectionUid = 8 (Start) and Idx = 0 in order
-      -- to retrieve the function Idx of the start function.
-      --
-      elsif(Engine.State = EngineStateStartFuncIdx0) then
-        ModuleInstanceUID <= (others => '0');
-        SectionUID <= SECTION_UID_START;
-        Idx <= (others => '0');
-        StoreRun <= '1';
-        Engine.State <= EngineStateStartFuncIdx1;
-      elsif(Engine.State = EngineStateStartFuncIdx1) then
-        StoreRun <= '0';
-        Engine.State <= EngineStateStartFuncIdx2;
-      elsif(Engine.State = EngineStateStartFuncIdx2) then
-        if(StoreBusy <= '0') then
-            -- Start section size address
-            ModuleRam.Address <= Address(23 downto 0);
-            Engine.State <= EngineStateStartFuncIdx3;
-        end if;
-      elsif(Engine.State = EngineStateStartFuncIdx3) then
-        -- Read section size
-        ReadU32(Engine.State, EngineStateStartFuncIdx4, Engine, ModuleRam);
-      elsif(Engine.State = EngineStateStartFuncIdx4) then
-        -- Ignore section size
-        -- Read start funx idx
-        ReadU32(Engine.State, EngineStateStartFuncIdx5, Engine, ModuleRam);
-      --
-      -- Use ModuleInstanceUid = 0, SectionUid = 10 (Code) and function Idx of
-      -- start function to get address of start function body.
-      --
-      elsif(Engine.State = EngineStateStartFuncIdx5) then
-        ModuleInstanceUID <= (others => '0');
-        SectionUID <= SECTION_UID_CODE;
-        Idx <= ModuleRam.DecodedValue; -- Use start function idx
-        StoreRun <= '1';
-        Engine.State <= EngineStateStartFuncIdx6;
-      elsif(Engine.State = EngineStateStartFuncIdx6) then
-        StoreRun <= '0';
-        Engine.State <= EngineStateStartFuncIdx7;
-      elsif(Engine.State = EngineStateStartFuncIdx7) then
-        if(StoreBusy <= '0') then
-            -- Function address within code section
-            ModuleRam.Address <= Address(23 downto 0);
-            Engine.State <= EngineStateStartFuncIdx8;
-        end if;
-      elsif(Engine.State = EngineStateStartFuncIdx8) then
-        ReadU32(Engine.State, EngineStateActivationFrame0, Engine, ModuleRam);
-      --
-      -- Create initial activation frame
-      --
-      elsif(Engine.State = EngineStateActivationFrame0) then
-        -- Ignore function body size
-        ReadU32(Engine.State, EngineStateActivationFrame1, Engine, ModuleRam);
-      elsif(Engine.State = EngineStateActivationFrame1) then
-        LocalDeclCount <= ModuleRam.DecodedValue;
-        LocalDeclCountIteration <= (others => '0');
-        Engine.State <= EngineStateActivationFrame2;
-      elsif(Engine.State = EngineStateActivationFrame2) then
-        if (LocalDeclCountIteration = unsigned(LocalDeclCount)) then
-          Engine.State <= EngineStateActivationFrame3;
-        else
-          -- Reserve stack space for local variable
-          --
-          -- FIX ME: Where to get type information for local decl count?
-          StackValueType <= WASMFPGASTACK_VAL_i32;
-          StackHighValue_Written <= (others => '0');
-          StackLowValue_Written <= (others => '0');
-          LocalDeclCountIteration <= LocalDeclCountIteration + 1;
-          PushToStack(Engine.State, EngineStateActivationFrame2, Engine, Stack);
-        end if;
-      elsif(Engine.State = EngineStateActivationFrame3) then
-        -- Push ModuleInstanceUid
-        StackValueType <= WASMFPGASTACK_VAL_Activation;
-        StackHighValue_Written <= (others => '0');
-        -- StackLowValue_Written <= ModuleInstanceUID;
-        StackLowValue_Written <= (others => '0');
-        PushToStack(Engine.State, EngineStateExec0, Engine, Stack);
-      --
-      -- Start executing code of start function.
-      --
-      elsif(Engine.State = EngineStateExec0) then
-        ReadFromModuleRam(Engine.State, EngineStateDispatch0, Engine, ModuleRam);
-      elsif(Engine.State = EngineStateDispatch0) then
-        -- FIX ME: Assume valid instruction, for now.
-        Engine.State <= ModuleRam.CurrentByte & x"00";
-      --
-      -- unreachable
-      --
-      elsif(Engine.State = EngineStateOpcodeUnreachable0) then
-        Engine.State <= EngineStateTrap0;
-      --
-      -- nop
-      --
-      elsif(Engine.State = EngineStateOpcodeNop0) then
-        Engine.State <= EngineStateExec0;
-      --
-      -- end
-      --
-      elsif(Engine.State = EngineStateOpcodeEnd0) then
-        Engine.State <= EngineStateIdle;
-      --
-      -- drop
-      --
-      elsif(Engine.State = EngineStateDrop0) then
-        PopFromStack(Engine.State, EngineStateExec0, Engine, Stack);
       --
       -- i32.const
       --
-      elsif(Engine.State = EngineStateI32Const0) then
-        ReadU32(Engine.State, EngineStateI32Const1, Engine, ModuleRam);
-      elsif(Engine.State = EngineStateI32Const1) then
-        StackLowValue_Written <= ModuleRam.DecodedValue;
-        StackValueType <= WASMFPGASTACK_VAL_i32;
-        Engine.State <= EngineStateI32Const2;
-      elsif(Engine.State = EngineStateI32Const2) then
-        PushToStack(Engine.State, EngineStateExec0, Engine, Stack);
+      elsif(EngineState = EngineStateI32Const0) then
+        InstructionI32CtzRun <= '1';
+        EngineState <= EngineStateI32Const1;
+      elsif(EngineState = EngineStateI32Const1) then
+        InstructionI32CtzRun <= '0';
+        EngineState <= EngineStateI32Const2;
+      elsif(EngineState = EngineStateI32Const2) then
+        if (InstructionI32CtzBusy = '0') then
+            EngineState <= EngineStateExec0;
+        end if;
       --
       -- i32.ctz
       --
       -- Return the count of trailing zero bits in i; all bits are considered
       -- trailing zeros if i is 0.
       --
-      elsif(Engine.State = EngineStateI32Ctz0) then
+      elsif(EngineState = EngineStateI32Ctz0) then
         InstructionI32CtzRun <= '1';
-        Engine.State <= EngineStateI32Ctz1;
-      elsif(Engine.State = EngineStateI32Ctz1) then
+        EngineState <= EngineStateI32Ctz1;
+      elsif(EngineState = EngineStateI32Ctz1) then
         InstructionI32CtzRun <= '0';
-        Engine.State <= EngineStateI32Ctz2;
-      elsif(Engine.State = EngineStateI32Ctz2) then
-        WasmFpgaStack_WasmFpgaInstruction.Busy <= StackBusy;
-        WasmFpgaStack_WasmFpgaInstruction.HighValue <= StackHighValue_ToBeRead;
-        WasmFpgaStack_WasmFpgaInstruction.LowValue <= StackLowValue_ToBeRead;
-        Stack.Run <= WasmFpgaInstruction_WasmFpgaStack.Run;
-        Stack.Action <= WasmFpgaInstruction_WasmFpgaStack.Action;
-        StackValueType <= WasmFpgaInstruction_WasmFpgaStack.ValueType;
-        StackLowValue_Written <= WasmFpgaInstruction_WasmFpgaStack.LowValue;
+        EngineState <= EngineStateI32Ctz2;
+      elsif(EngineState = EngineStateI32Ctz2) then
         if (InstructionI32CtzBusy = '0') then
-            Engine.State <= EngineStateExec0;
+            EngineState <= EngineStateExec0;
         end if;
-      --
-      -- i32.clz
-      --
-      -- Return the count of leading zero bits in i; all bits are considered
-      -- leading zeros if i is 0.
-      --
-      elsif(Engine.State = EngineStateI32Clz0) then
-        PopFromStack(Engine.State, EngineStateI32Clz1, Engine, Stack);
-      elsif(Engine.State = EngineStateI32Clz1) then
-        StackLowValue_Written <= clz(StackLowValue_ToBeRead);
-        Engine.State <= EngineStateI32Clz2;
-      elsif(Engine.State = EngineStateI32Clz2) then
-        PushToStack(Engine.State, EngineStateExec0, Engine, Stack);
-      --
-      -- i32.popcnt
-      --
-      -- Return the count of non-zero bits in i.
-      --
-      elsif(Engine.State = EngineStateI32Popcnt0) then
-        PopFromStack(Engine.State, EngineStateI32Popcnt1, Engine, Stack);
-      elsif(Engine.State = EngineStateI32Popcnt1) then
-        StackLowValue_Written <= popcnt(StackLowValue_ToBeRead);
-        Engine.State <= EngineStateI32Popcnt2;
-      elsif(Engine.State = EngineStateI32Popcnt2) then
-        PushToStack(Engine.State, EngineStateExec0, Engine, Stack);
-      --
-      -- i32.and
-      --
-      -- Operator: https://www.w3.org/TR/wasm-core-1/#exec-binop
-      -- Execution: https://www.w3.org/TR/wasm-core-1/#op-iand
-      --
-      elsif(Engine.State = EngineStateI32And0) then
-        PopFromStack(Engine.State, EngineStateI32And1, Engine, Stack);
-      elsif(Engine.State = EngineStateI32And1) then
-        FunctionOperandA <= StackLowValue_ToBeRead;
-        Engine.State <= EngineStateI32And2;
-      elsif(Engine.State = EngineStateI32And2) then
-        PopFromStack(Engine.State, EngineStateI32And3, Engine, Stack);
-      elsif(Engine.State = EngineStateI32And3) then
-        StackLowValue_Written <= i32_and(FunctionOperandA, StackLowValue_ToBeRead);
-        Engine.State <= EngineStateI32And4;
-      elsif(Engine.State = EngineStateI32And4) then
-        PushToStack(Engine.State, EngineStateExec0, Engine, Stack);
-      --
-      -- Read address from Store (ModuleInstanceUid, SectionUid, Idx) -> Address
-      --
-
       --
       -- Unconditional trap
       --
-      elsif (Engine.State = EngineStateTrap0) then
+      elsif (EngineState = EngineStateTrap0) then
         Trap <= '1';
-        Engine.State <= EngineStateTrap0;
+        EngineState <= EngineStateTrap0;
       --
       -- Internal error
       --
-      elsif (Engine.State = EngineStateError) then
-        Engine.State <= EngineStateError;
+      elsif (EngineState = EngineStateError) then
+        EngineState <= EngineStateError;
       end if;
     end if;
   end process;
+
+  Arbiter : process (Clk, Rst) is
+  begin
+    if (Rst = '1') then
+        Stack.Run <= '0';
+        Stack.Action <= '0';
+        Stack.Busy <= '0';
+        StackValueType <= (others => '0');
+        StackHighValue_Written <= (others => '0');
+        StackLowValue_Written <= (others => '0');
+        for i in WasmFpgaStack_WasmFpgaInstruction'RANGE loop
+            WasmFpgaStack_WasmFpgaInstruction(i).Busy <= '1';
+            WasmFpgaStack_WasmFpgaInstruction(i).HighValue <= (others => '0');
+            WasmFpgaStack_WasmFpgaInstruction(i).LowValue <= (others => '0');
+        end loop;
+    elsif rising_edge(Clk) then
+        for i in WasmFpgaStack_WasmFpgaInstruction'RANGE loop
+            WasmFpgaStack_WasmFpgaInstruction(i).Busy <= Stack.Busy;
+        end loop;
+        WasmFpgaStack_WasmFpgaInstruction(CurrentInstruction).HighValue <= StackHighValue_ToBeRead;
+        WasmFpgaStack_WasmFpgaInstruction(CurrentInstruction).LowValue <= StackLowValue_ToBeRead;
+        Stack.Run <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).Run;
+        Stack.Action <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).Action;
+        StackValueType <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).ValueType;
+        StackLowValue_Written <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).LowValue;
+
+        WasmFpgaModuleRam_WasmFpgaInstruction(CurrentInstruction).Busy <= ModuleRamBusy;
+        WasmFpgaModuleRam_WasmFpgaInstruction(CurrentInstruction).Data <= ModuleRamData;
+
+        ModuleRamRun <= WasmFpgaInstruction_WasmFpgaModuleRam(CurrentInstruction).Run;
+        ModuleRamAddress <= WasmFpgaInstruction_WasmFpgaModuleRam(CurrentInstruction).Address;
+    end if;
+  end process;
+
+  WasmFpgaEngine_StackBlk_i : WasmFpgaEngine_StackBlk
+    port map (
+      Clk => Clk,
+      Rst => Rst,
+      Adr => StackBlk_Bus.Adr,
+      Sel => StackBlk_Bus.Sel,
+      DatIn => StackBlk_Bus.DatIn,
+      We => StackBlk_Bus.We,
+      Stb => StackBlk_Bus.Stb,
+      Cyc => StackBlk_Bus.Cyc,
+      StackBlk_DatOut => Bus_StackBlk.DatOut,
+      StackBlk_Ack => Bus_StackBlk.Ack,
+      Run =>  Stack.Run,
+      Busy => StackBusy,
+      Action => Stack.Action,
+      ValueType => StackValueType,
+      SizeValue => StackSizeValue,
+      HighValue_ToBeRead => StackHighValue_ToBeRead,
+      HighValue_Written => StackHighValue_Written,
+      LowValue_ToBeRead => StackLowValue_ToBeRead,
+      LowValue_Written => StackLowValue_Written
+    );
 
   EngineBlk_WasmFpgaEngine_i : EngineBlk_WasmFpgaEngine
     port map (
@@ -501,9 +404,9 @@ begin
         Cyc => ModuleBlk_Bus.Cyc,
         ModuleBlk_DatOut => Bus_ModuleBlk.DatOut,
         ModuleBlk_Ack => Bus_ModuleBlk.Ack,
-        Run => ModuleRam.Run,
+        Run => ModuleRamRun,
         Busy => ModuleRamBusy,
-        Address => ModuleRam.Address,
+        Address => ModuleRamAddress,
         Data => ModuleRamData
       );
 
@@ -529,37 +432,26 @@ begin
       Address_Written => (others => '0')
     );
 
-  WasmFpgaEngine_StackBlk_i : WasmFpgaEngine_StackBlk
-    port map (
-      Clk => Clk,
-      Rst => Rst,
-      Adr => StackBlk_Bus.Adr,
-      Sel => StackBlk_Bus.Sel,
-      DatIn => StackBlk_Bus.DatIn,
-      We => StackBlk_Bus.We,
-      Stb => StackBlk_Bus.Stb,
-      Cyc => StackBlk_Bus.Cyc,
-      StackBlk_DatOut => Bus_StackBlk.DatOut,
-      StackBlk_Ack => Bus_StackBlk.Ack,
-      Run =>  Stack.Run,
-      Busy => StackBusy,
-      Action => Stack.Action,
-      ValueType => StackValueType,
-      SizeValue => StackSizeValue,
-      HighValue_ToBeRead => StackHighValue_ToBeRead,
-      HighValue_Written => StackHighValue_Written,
-      LowValue_ToBeRead => StackLowValue_ToBeRead,
-      LowValue_Written => StackLowValue_Written
-    );
-
   InstructionI32Ctz_i : InstructionI32Ctz
     port map (
       Clk => Clk,
       nRst => nRst,
       Run => InstructionI32CtzRun,
       Busy => InstructionI32CtzBusy,
-      WasmFpgaStack_WasmFpgaInstruction => WasmFpgaStack_WasmFpgaInstruction,
-      WasmFpgaInstruction_WasmFpgaStack => WasmFpgaInstruction_WasmFpgaStack
+      WasmFpgaStack_WasmFpgaInstruction => WasmFpgaStack_WasmFpgaInstruction(0),
+      WasmFpgaInstruction_WasmFpgaStack => WasmFpgaInstruction_WasmFpgaStack(0)
+    );
+
+  InstructionI32Const_i : InstructionI32Const
+    port map (
+      Clk => Clk,
+      nRst => nRst,
+      Run => InstructionI32ConstRun,
+      Busy => InstructionI32ConstBusy,
+      WasmFpgaStack_WasmFpgaInstruction => WasmFpgaStack_WasmFpgaInstruction(0),
+      WasmFpgaInstruction_WasmFpgaStack => WasmFpgaInstruction_WasmFpgaStack(0),
+      WasmFpgaModuleRam_WasmFpgaInstruction => WasmFpgaModuleRam_WasmFpgaInstruction(0),
+      WasmFpgaInstruction_WasmFpgaModuleRam => WasmFpgaInstruction_WasmFpgaModuleRam(0)
     );
 
 end;

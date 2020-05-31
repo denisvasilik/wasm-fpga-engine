@@ -263,7 +263,11 @@ package WasmFpgaEnginePackage is
     constant State1 : std_logic_vector(15 downto 0) := x"0002";
     constant State2 : std_logic_vector(15 downto 0) := x"0003";
     constant State3 : std_logic_vector(15 downto 0) := x"0004";
-    constant StateEnd : std_logic_vector(15 downto 0) := x"00FE";
+    constant State4 : std_logic_vector(15 downto 0) := x"0005";
+    constant State5 : std_logic_vector(15 downto 0) := x"0006";
+    constant StateEnd : std_logic_vector(15 downto 0) := x"00F0";
+    constant StateNotSupported : std_logic_vector(15 downto 0) := x"00FE";
+    constant StateError : std_logic_vector(15 downto 0) := x"00FF";
 
     type T_WshBnUp is
     record
@@ -291,11 +295,25 @@ package WasmFpgaEnginePackage is
     type T_WasmFpgaModuleRam is
     record
         Run : std_logic;
+        Address : std_logic_vector(23 downto 0);
         Busy : std_logic;
         Data : std_logic_vector(31 downto 0);
         CurrentByte : std_logic_vector(7 downto 0);
-        Address : std_logic_vector(23 downto 0);
         DecodedValue : std_logic_vector(31 downto 0);
+    end record;
+
+    type T_WasmFpgaModuleRam_WasmFpgaInstruction is
+    record
+        Busy : std_logic;
+        Data : std_logic_vector(31 downto 0);
+        CurrentByte : std_logic_vector(7 downto 0);
+        DecodedValue : std_logic_vector(31 downto 0);
+    end record;
+
+    type T_WasmFpgaInstruction_WasmFpgaModuleRam is
+    record
+        Run : std_logic;
+        Address : std_logic_vector(23 downto 0);
     end record;
 
     type T_WasmFpgaEngine is
@@ -356,6 +374,17 @@ package WasmFpgaEnginePackage is
                                 constant ReturnState : in std_logic_vector;
                                 signal Engine : inout T_WasmFpgaEngine;
                                 signal ModuleRam : inout T_WasmFpgaModuleRam);
+
+    procedure ReadFromModuleRam2(signal State : inout std_logic_vector;
+                                 signal CurrentByte : out std_logic_vector;
+                                 signal WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
+                                 signal WasmFpgaInstruction_WasmFpgaModuleRam : out T_WasmFpgaInstruction_WasmFpgaModuleRam);
+
+    procedure ReadU32_2(signal State : inout std_logic_vector;
+                        signal DecodedValue : out std_logic_vector;
+                        signal CurrentByte : out std_logic_vector;
+                        signal WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
+                        signal WasmFpgaInstruction_WasmFpgaModuleRam : out T_WasmFpgaInstruction_WasmFpgaModuleRam);
 
     procedure ReadU32(signal State : out std_logic_vector;
                       constant ReturnState : in std_logic_vector;
@@ -434,6 +463,71 @@ package body WasmFpgaEnginePackage is
         end if;
     end;
 
+
+    procedure ReadU32_2(signal State : inout std_logic_vector;
+                        signal DecodedValue : out std_logic_vector;
+                        signal CurrentByte : out std_logic_vector;
+                        signal WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
+                        signal WasmFpgaInstruction_WasmFpgaModuleRam : out T_WasmFpgaInstruction_WasmFpgaModuleRam) is
+    begin
+        if (State = State0) then
+            DecodedValue <= (others => '0');
+            ReadFromModuleRam2(State,
+                               CurrentByte,
+                               WasmFpgaModuleRam_WasmFpgaInstruction,
+                               WasmFpgaInstruction_WasmFpgaModuleRam);
+        elsif (State = State1) then
+            if ((CurrentByte and x"80") = x"00") then
+                -- 1 byte
+                DecodedValue(6 downto 0) <= CurrentByte(6 downto 0);
+                State <= State2;
+            else
+                ReadFromModuleRam2(State,
+                                   CurrentByte,
+                                   WasmFpgaModuleRam_WasmFpgaInstruction,
+                                   WasmFpgaInstruction_WasmFpgaModuleRam);
+            end if;
+        elsif (State = State2) then
+            if ((CurrentByte and x"80") = x"00") then
+                -- 2 byte
+                DecodedValue(13 downto 7) <= CurrentByte(6 downto 0);
+                State <= State3;
+            else
+                ReadFromModuleRam2(State,
+                                   CurrentByte,
+                                   WasmFpgaModuleRam_WasmFpgaInstruction,
+                                   WasmFpgaInstruction_WasmFpgaModuleRam);
+            end if;
+        elsif (State = State3) then
+            if ((CurrentByte and x"80") = x"00") then
+                -- 3 byte
+                DecodedValue(20 downto 14) <= CurrentByte(6 downto 0);
+                State <= State4;
+            else
+                ReadFromModuleRam2(State,
+                                   CurrentByte,
+                                   WasmFpgaModuleRam_WasmFpgaInstruction,
+                                   WasmFpgaInstruction_WasmFpgaModuleRam);
+            end if;
+        elsif (State = State4) then
+            if ((CurrentByte and x"80") = x"00") then
+                -- 4 byte
+                DecodedValue(27 downto 21) <= CurrentByte(6 downto 0);
+                State <= State5;
+            else
+                -- Greater than u32 not supported
+                DecodedValue <= (others => '0');
+                State <= StateNotSupported;
+            end if;
+        elsif (State = State5) then
+            State <= StateIdle;
+        else
+            DecodedValue <= (others => '0');
+            State <= StateError;
+        end if;
+    end;
+
+
     procedure ReadFromModuleRam(signal State : out std_logic_vector;
                                 constant ReturnState : in std_logic_vector;
                                 signal Engine : inout T_WasmFpgaEngine;
@@ -473,6 +567,44 @@ package body WasmFpgaEnginePackage is
         else
             -- Error state by convention
             State <= (others => '1');
+        end if;
+    end;
+
+    procedure ReadFromModuleRam2(signal State : inout std_logic_vector;
+                                 signal CurrentByte : out std_logic_vector;
+                                 signal WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
+                                 signal WasmFpgaInstruction_WasmFpgaModuleRam : out T_WasmFpgaInstruction_WasmFpgaModuleRam) is
+    begin
+        if (State = State0) then
+            CurrentByte <= (others => '0');
+            WasmFpgaInstruction_WasmFpgaModuleRam.Run <= '1';
+            State <= State1;
+        elsif (State = State1) then
+            State <= State2;
+        elsif (State = State2) then
+            WasmFpgaInstruction_WasmFpgaModuleRam.Run <= '0';
+            State <= State3;
+        elsif (State = State3) then
+            State <= State4;
+        elsif (State = State4) then
+            if (WasmFpgaModuleRam_WasmFpgaInstruction.Busy = '0') then
+                if WasmFpgaInstruction_WasmFpgaModuleRam.Address(1 downto 0) = "00" then
+                    CurrentByte <= WasmFpgaModuleRam_WasmFpgaInstruction.Data(7 downto 0);
+                elsif WasmFpgaInstruction_WasmFpgaModuleRam.Address(1 downto 0) = "01" then
+                    CurrentByte <= WasmFpgaModuleRam_WasmFpgaInstruction.Data(15 downto 8);
+                elsif WasmFpgaInstruction_WasmFpgaModuleRam.Address(1 downto 0) = "10" then
+                    CurrentByte <= WasmFpgaModuleRam_WasmFpgaInstruction.Data(23 downto 16);
+                else
+                    CurrentByte <= WasmFpgaModuleRam_WasmFpgaInstruction.Data(31 downto 24);
+                end if;
+                WasmFpgaInstruction_WasmFpgaModuleRam.Address <= std_logic_vector(unsigned(WasmFpgaInstruction_WasmFpgaModuleRam.Address) + 1);
+                State <= StateEnd;
+            end if;
+        elsif (State = StateEnd) then
+            State <= StateIdle;
+        else
+            CurrentByte <= (others => '0');
+            State <= StateError;
         end if;
     end;
 

@@ -60,18 +60,18 @@ begin
                     State <= State0;
                 end if;
             elsif (State = State0) then
-                ReadU32_2(ReadU32State,
-                          DecodedValue,
-                          CurrentByte,
-                          WasmFpgaModuleRam_WasmFpgaInstruction,
-                          WasmFpgaInstruction_WasmFpgaModuleRam);
+                ReadU32(ReadU32State,
+                        DecodedValue,
+                        CurrentByte,
+                        WasmFpgaModuleRam_WasmFpgaInstruction,
+                        WasmFpgaInstruction_WasmFpgaModuleRam);
                 if(ReadU32State = StateEnd) then
                     State <= State1;
                 end if;
             elsif (State = State1) then
-                PushToStack2(PushToStackState,
-                             WasmFpgaInstruction_WasmFpgaStack,
-                             WasmFpgaStack_WasmFpgaInstruction);
+                PushToStack(PushToStackState,
+                            WasmFpgaInstruction_WasmFpgaStack,
+                            WasmFpgaStack_WasmFpgaInstruction);
                 if(PushToStackState = StateEnd) then
                     State <= StateIdle;
                 end if;

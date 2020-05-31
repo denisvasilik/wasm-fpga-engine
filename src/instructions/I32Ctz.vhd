@@ -53,9 +53,9 @@ begin
                     State <= State0;
                 end if;
             elsif (State = State0) then
-                PopFromStack2(PopFromStackState,
-                              WasmFpgaInstruction_WasmFpgaStack,
-                              WasmFpgaStack_WasmFpgaInstruction);
+                PopFromStack(PopFromStackState,
+                             WasmFpgaInstruction_WasmFpgaStack,
+                             WasmFpgaStack_WasmFpgaInstruction);
                 if(PopFromStackState = StateEnd) then
                     State <= State1;
                 end if;
@@ -63,9 +63,9 @@ begin
                 WasmFpgaInstruction_WasmFpgaStack.LowValue <= ctz(WasmFpgaStack_WasmFpgaInstruction.LowValue);
                 State <= State2;
             elsif (State = State2) then
-                PushToStack2(PushToStackState,
-                             WasmFpgaInstruction_WasmFpgaStack,
-                             WasmFpgaStack_WasmFpgaInstruction);
+                PushToStack(PushToStackState,
+                            WasmFpgaInstruction_WasmFpgaStack,
+                            WasmFpgaStack_WasmFpgaInstruction);
                 if(PushToStackState = StateEnd) then
                     State <= StateIdle;
                 end if;

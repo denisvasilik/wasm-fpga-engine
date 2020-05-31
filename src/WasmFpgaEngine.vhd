@@ -144,10 +144,8 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   signal Run : std_logic;
   signal Busy : std_logic;
 
-  signal InstructionI32CtzRun : std_logic;
-  signal InstructionI32CtzBusy : std_logic;
-  signal InstructionI32ConstRun : std_logic;
-  signal InstructionI32ConstBusy : std_logic;
+  signal InstructionRun : std_logic_vector(127 downto 0);
+  signal InstructionBusy : std_logic_vector(127 downto 0);
 
   type T_WasmFpgaStack_WasmFpgaInstruction_Array is array (127 downto 0) of T_WasmFpgaStack_WasmFpgaInstruction;
   type T_WasmFpgaInstruction_WasmFpgaStack_Array is array (127 downto 0) of T_WasmFpgaInstruction_WasmFpgaStack;
@@ -262,46 +260,31 @@ begin
       ModuleInstanceUID <= (others => '0');
       SectionUID <= SECTION_UID_START;
       Idx <= (others => '0');
-      InstructionI32CtzRun <= '0';
+      InstructionRun <= (others => '0');
       CurrentInstruction <= 0;
       EngineState <= EngineStateIdle;
     elsif rising_edge(Clk) then
-      --
-      -- Idle
-      --
       if (EngineState = EngineStateIdle) then
           Busy <= '0';
           if (Run = '1') then
               Busy <= '1';
-              EngineState <= EngineStateStartFuncIdx0;
+              EngineState <= EngineStateExec0;
           end if;
       --
-      -- i32.const
+      -- Start executing code of start function.
       --
-      elsif(EngineState = EngineStateI32Const0) then
-        InstructionI32CtzRun <= '1';
-        EngineState <= EngineStateI32Const1;
-      elsif(EngineState = EngineStateI32Const1) then
-        InstructionI32CtzRun <= '0';
-        EngineState <= EngineStateI32Const2;
-      elsif(EngineState = EngineStateI32Const2) then
-        if (InstructionI32CtzBusy = '0') then
-            EngineState <= EngineStateExec0;
-        end if;
-      --
-      -- i32.ctz
-      --
-      -- Return the count of trailing zero bits in i; all bits are considered
-      -- trailing zeros if i is 0.
-      --
-      elsif(EngineState = EngineStateI32Ctz0) then
-        InstructionI32CtzRun <= '1';
-        EngineState <= EngineStateI32Ctz1;
-      elsif(EngineState = EngineStateI32Ctz1) then
-        InstructionI32CtzRun <= '0';
-        EngineState <= EngineStateI32Ctz2;
-      elsif(EngineState = EngineStateI32Ctz2) then
-        if (InstructionI32CtzBusy = '0') then
+      elsif(EngineState = EngineStateExec0) then
+        -- FIX ME: Assume valid instruction, for now.
+        -- CurrentInstruction <= to_integer(WasmFpgaInstruction_WasmFpgaModuleRam.CurrentByte);
+        EngineState <= EngineStateExec1;
+      elsif(EngineState = EngineStateExec1) then
+        InstructionRun(CurrentInstruction) <= '1';
+        EngineState <= EngineStateExec2;
+      elsif(EngineState = EngineStateExec2) then
+        InstructionRun(CurrentInstruction) <= '0';
+        EngineState <= EngineStateExec3;
+      elsif(EngineState = EngineStateExec3) then
+        if (InstructionBusy(CurrentInstruction) = '0') then
             EngineState <= EngineStateExec0;
         end if;
       --
@@ -436,8 +419,8 @@ begin
     port map (
       Clk => Clk,
       nRst => nRst,
-      Run => InstructionI32CtzRun,
-      Busy => InstructionI32CtzBusy,
+      Run => InstructionRun(0),
+      Busy => InstructionBusy(0),
       WasmFpgaStack_WasmFpgaInstruction => WasmFpgaStack_WasmFpgaInstruction(0),
       WasmFpgaInstruction_WasmFpgaStack => WasmFpgaInstruction_WasmFpgaStack(0)
     );
@@ -446,12 +429,12 @@ begin
     port map (
       Clk => Clk,
       nRst => nRst,
-      Run => InstructionI32ConstRun,
-      Busy => InstructionI32ConstBusy,
-      WasmFpgaStack_WasmFpgaInstruction => WasmFpgaStack_WasmFpgaInstruction(0),
-      WasmFpgaInstruction_WasmFpgaStack => WasmFpgaInstruction_WasmFpgaStack(0),
-      WasmFpgaModuleRam_WasmFpgaInstruction => WasmFpgaModuleRam_WasmFpgaInstruction(0),
-      WasmFpgaInstruction_WasmFpgaModuleRam => WasmFpgaInstruction_WasmFpgaModuleRam(0)
+      Run => InstructionRun(1),
+      Busy => InstructionBusy(1),
+      WasmFpgaStack_WasmFpgaInstruction => WasmFpgaStack_WasmFpgaInstruction(1),
+      WasmFpgaInstruction_WasmFpgaStack => WasmFpgaInstruction_WasmFpgaStack(1),
+      WasmFpgaModuleRam_WasmFpgaInstruction => WasmFpgaModuleRam_WasmFpgaInstruction(1),
+      WasmFpgaInstruction_WasmFpgaModuleRam => WasmFpgaInstruction_WasmFpgaModuleRam(1)
     );
 
 end;

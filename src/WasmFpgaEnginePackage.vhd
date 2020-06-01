@@ -281,6 +281,7 @@ package WasmFpgaEnginePackage is
                                  signal WasmFpgaInstruction_WasmFpgaModuleRam : out T_WasmFpgaInstruction_WasmFpgaModuleRam);
 
     procedure ReadU32(signal State : inout std_logic_vector;
+                      signal ReadFromModuleRamState : inout std_logic_vector;
                       signal DecodedValue : out std_logic_vector;
                       signal CurrentByte : out std_logic_vector;
                       signal WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
@@ -302,49 +303,53 @@ package body WasmFpgaEnginePackage is
     -- Read u32 (LEB128 encoded)
     --
     procedure ReadU32(signal State : inout std_logic_vector;
+                      signal ReadFromModuleRamState : inout std_logic_vector;
                       signal DecodedValue : out std_logic_vector;
                       signal CurrentByte : out std_logic_vector;
                       signal WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
                       signal WasmFpgaInstruction_WasmFpgaModuleRam : out T_WasmFpgaInstruction_WasmFpgaModuleRam) is
     begin
-        if (State = State0) then
+        if (State = StateIdle) then
             DecodedValue <= (others => '0');
-            ReadFromModuleRam(State,
-                               CurrentByte,
-                               WasmFpgaModuleRam_WasmFpgaInstruction,
-                               WasmFpgaInstruction_WasmFpgaModuleRam);
-        elsif (State = State1) then
+            ReadFromModuleRam(ReadFromModuleRamState,
+                              CurrentByte,
+                              WasmFpgaModuleRam_WasmFpgaInstruction,
+                              WasmFpgaInstruction_WasmFpgaModuleRam);
+            if (ReadFromModuleRamState = StateEnd) then
+                State <= State0;
+            end if;
+        elsif (State = State0) then
             if ((CurrentByte and x"80") = x"00") then
                 -- 1 byte
                 DecodedValue(6 downto 0) <= CurrentByte(6 downto 0);
-                State <= State2;
+                State <= State1;
             else
-                ReadFromModuleRam(State,
-                                   CurrentByte,
-                                   WasmFpgaModuleRam_WasmFpgaInstruction,
-                                   WasmFpgaInstruction_WasmFpgaModuleRam);
+                ReadFromModuleRam(ReadFromModuleRamState,
+                                  CurrentByte,
+                                  WasmFpgaModuleRam_WasmFpgaInstruction,
+                                  WasmFpgaInstruction_WasmFpgaModuleRam);
             end if;
-        elsif (State = State2) then
+        elsif (State = State1) then
             if ((CurrentByte and x"80") = x"00") then
                 -- 2 byte
                 DecodedValue(13 downto 7) <= CurrentByte(6 downto 0);
-                State <= State3;
+                State <= State2;
             else
-                ReadFromModuleRam(State,
-                                   CurrentByte,
-                                   WasmFpgaModuleRam_WasmFpgaInstruction,
-                                   WasmFpgaInstruction_WasmFpgaModuleRam);
+                ReadFromModuleRam(ReadFromModuleRamState,
+                                  CurrentByte,
+                                  WasmFpgaModuleRam_WasmFpgaInstruction,
+                                  WasmFpgaInstruction_WasmFpgaModuleRam);
             end if;
-        elsif (State = State3) then
+        elsif (State = State2) then
             if ((CurrentByte and x"80") = x"00") then
                 -- 3 byte
                 DecodedValue(20 downto 14) <= CurrentByte(6 downto 0);
-                State <= State4;
+                State <= State3;
             else
-                ReadFromModuleRam(State,
-                                   CurrentByte,
-                                   WasmFpgaModuleRam_WasmFpgaInstruction,
-                                   WasmFpgaInstruction_WasmFpgaModuleRam);
+                ReadFromModuleRam(ReadFromModuleRamState,
+                                  CurrentByte,
+                                  WasmFpgaModuleRam_WasmFpgaInstruction,
+                                  WasmFpgaInstruction_WasmFpgaModuleRam);
             end if;
         elsif (State = State4) then
             if ((CurrentByte and x"80") = x"00") then
@@ -369,18 +374,18 @@ package body WasmFpgaEnginePackage is
                                 signal WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
                                 signal WasmFpgaInstruction_WasmFpgaModuleRam : out T_WasmFpgaInstruction_WasmFpgaModuleRam) is
     begin
-        if (State = State0) then
+        if (State = StateIdle) then
             CurrentByte <= (others => '0');
             WasmFpgaInstruction_WasmFpgaModuleRam.Run <= '1';
+            State <= State0;
+        elsif (State = State0) then
             State <= State1;
         elsif (State = State1) then
+            WasmFpgaInstruction_WasmFpgaModuleRam.Run <= '0';
             State <= State2;
         elsif (State = State2) then
-            WasmFpgaInstruction_WasmFpgaModuleRam.Run <= '0';
             State <= State3;
         elsif (State = State3) then
-            State <= State4;
-        elsif (State = State4) then
             if (WasmFpgaModuleRam_WasmFpgaInstruction.Busy = '0') then
                 if WasmFpgaInstruction_WasmFpgaModuleRam.Address(1 downto 0) = "00" then
                     CurrentByte <= WasmFpgaModuleRam_WasmFpgaInstruction.Data(7 downto 0);

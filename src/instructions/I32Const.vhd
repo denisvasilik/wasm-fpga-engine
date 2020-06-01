@@ -4,6 +4,7 @@ library ieee;
 
 library work;
   use work.WasmFpgaEnginePackage.all;
+  use work.WasmFpgaStackWshBn_Package.all;
 
 --
 -- i32.ctz
@@ -29,6 +30,7 @@ architecture InstructionI32ConstArchitecture of InstructionI32Const is
     signal Rst : std_logic;
     signal State : std_logic_vector(15 downto 0);
     signal ReadU32State : std_logic_vector(15 downto 0);
+    signal ReadFromModuleRamState : std_logic_vector(15 downto 0);
     signal PushToStackState : std_logic_vector(15 downto 0);
 
     signal CurrentByte : std_logic_vector(7 downto 0);
@@ -49,8 +51,9 @@ begin
           WasmFpgaInstruction_WasmFpgaModuleRam.Run <= '0';
           WasmFpgaInstruction_WasmFpgaModuleRam.Address <= (others => '0');
           Busy <= '1';
-          ReadU32State <= (others => '0');
-          PushToStackState <= (others => '0');
+          ReadU32State <= StateIdle;
+          ReadFromModuleRamState <= StateIdle;
+          PushToStackState <= StateIdle;
           State <= StateIdle;
         elsif rising_edge(Clk) then
             if (State = StateIdle) then
@@ -61,6 +64,7 @@ begin
                 end if;
             elsif (State = State0) then
                 ReadU32(ReadU32State,
+                        ReadFromModuleRamState,
                         DecodedValue,
                         CurrentByte,
                         WasmFpgaModuleRam_WasmFpgaInstruction,

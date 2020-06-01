@@ -162,6 +162,9 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   signal WasmFpgaModuleRam_WasmFpgaInstantiation : T_WasmFpgaModuleRam_WasmFpgaInstruction;
   signal WasmFpgaInstantiation_WasmFpgaModuleRam : T_WasmFpgaInstruction_WasmFpgaModuleRam;
 
+  signal WasmFpgaInstantiation_WasmFpgaStack : T_WasmFpgaInstruction_WasmFpgaStack;
+  signal WasmFpgaStack_WasmFpgaInstantiation : T_WasmFpgaStack_WasmFpgaInstruction;
+
   signal EngineBlk_Ack : std_logic;
   signal EngineBlk_DatOut : std_logic_vector(31 downto 0);
   signal EngineBlk_Unoccupied_Ack : std_logic;
@@ -174,13 +177,13 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   signal Idx : std_logic_vector(31 downto 0);
 
   signal StoreAddress : std_logic_vector(31 downto 0);
-
   signal StoreRun : std_logic;
   signal StoreBusy : std_logic;
 
+  signal StackRun : std_logic;
+  signal StackAction : std_logic;
   signal StackBusy : std_logic;
   signal StackSizeValue : std_logic_vector(31 downto 0);
-
   signal StackValueType : std_logic_vector(2 downto 0);
   signal StackHighValue_ToBeRead : std_logic_vector(31 downto 0);
   signal StackHighValue_Written : std_logic_vector(31 downto 0);
@@ -196,8 +199,6 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   signal Bus_StackBlk : T_WshBnUp;
   signal StackBlk_Bus : T_WshBnDown;
 
-  signal Stack : T_WasmFpgaStack;
-
   signal InvocationState : std_logic_vector(15 downto 0);
 
   signal CurrentInstruction : integer range 0 to 256;
@@ -207,7 +208,13 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   signal ModuleRamAddress : std_logic_vector(23 downto 0);
   signal ModuleRamData : std_logic_vector(31 downto 0);
 
+  signal CurrentByte : std_logic_vector(7 downto 0);
+  signal DecodedValue : std_logic_vector(31 downto 0);
+
   signal InstantiationState : std_logic_vector(15 downto 0);
+  signal PushToStackState : std_logic_vector(15 downto 0);
+  signal Read32UState : std_logic_vector(15 downto 0);
+  signal ReadFromModuleRamState : std_logic_vector(15 downto 0);
 
   signal InstantiationRun : std_logic;
   signal InstantiationBusy : std_logic;
@@ -271,6 +278,9 @@ begin
       ModuleInstanceUID <= (others => '0');
       SectionUID <= SECTION_UID_START;
       Idx <= (others => '0');
+      ReadFromModuleRamState <= StateIdle;
+      Read32UState <= StateIdle;
+      PushToStackState <= StateIdle;
       InstantiationState <= StateIdle;
     elsif rising_edge(Clk) then
         if (InstantiationState = StateIdle) then
@@ -302,20 +312,25 @@ begin
             end if;
         elsif(InstantiationState = State3) then
             -- Read section size
-            ReadU32(InstantiationState,
+            ReadU32(Read32UState,
+                    ReadFromModuleRamState,
                     DecodedValue,
                     CurrentByte,
                     WasmFpgaModuleRam_WasmFpgaInstantiation,
                     WasmFpgaInstantiation_WasmFpgaModuleRam);
+            if (Read32UState = StateEnd) then
+                InstantiationState <= State4;
+            end if;
         elsif(InstantiationState = State4) then
             -- Ignore section size
             -- Read start funx idx
-            ReadU32(InstantiationState,
+            ReadU32(Read32UState,
+                    ReadFromModuleRamState,
                     DecodedValue,
                     CurrentByte,
                     WasmFpgaModuleRam_WasmFpgaInstantiation,
                     WasmFpgaInstantiation_WasmFpgaModuleRam);
-            if (InstantiationState = StateEnd) then
+            if (Read32UState = StateEnd) then
                 InstantiationState <= State5;
             end if;
         --
@@ -340,21 +355,29 @@ begin
                 InstantiationState <= State9;
             end if;
         elsif(InstantiationState = State9) then
-            ReadU32(InstantiationState,
+            ReadU32(Read32UState,
+                    ReadFromModuleRamState,
                     DecodedValue,
                     CurrentByte,
                     WasmFpgaModuleRam_WasmFpgaInstantiation,
                     WasmFpgaInstantiation_WasmFpgaModuleRam);
+            if (Read32UState = StateEnd) then
+                InstantiationState <= State10;
+            end if;
         --
         -- CreateInitialActivationFrame
         --
         elsif(InstantiationState = State10) then
             -- Ignore function body size
-            ReadU32(InstantiationState,
+            ReadU32(Read32UState,
+                    ReadFromModuleRamState,
                     DecodedValue,
                     CurrentByte,
                     WasmFpgaModuleRam_WasmFpgaInstantiation,
                     WasmFpgaInstantiation_WasmFpgaModuleRam);
+            if (Read32UState = StateEnd) then
+                InstantiationState <= State11;
+            end if;
         elsif(InstantiationState = State11) then
             LocalDeclCount <= WasmFpgaModuleRam_WasmFpgaInstantiation.DecodedValue;
             LocalDeclCountIteration <= (others => '0');
@@ -366,19 +389,22 @@ begin
                 -- Reserve stack space for local variable
                 --
                 -- FIX ME: Where to get type information for local decl count?
-                StackValueType <= WASMFPGASTACK_VAL_i32;
-                StackHighValue_Written <= (others => '0');
-                StackLowValue_Written <= (others => '0');
+                WasmFpgaInstantiation_WasmFpgaStack.ValueType <= WASMFPGASTACK_VAL_i32;
+                WasmFpgaInstantiation_WasmFpgaStack.HighValue <= (others => '0');
+                WasmFpgaInstantiation_WasmFpgaStack.LowValue <= (others => '0');
                 LocalDeclCountIteration <= LocalDeclCountIteration + 1;
-                PushToStack(InstantiationState, State12, Engine, Stack);
+                PushToStack(PushToStackState,
+                            WasmFpgaInstantiation_WasmFpgaStack,
+                            WasmFpgaStack_WasmFpgaInstantiation);
             end if;
         elsif(InstantiationState = State13) then
             -- Push ModuleInstanceUid
-            StackValueType <= WASMFPGASTACK_VAL_Activation;
-            StackHighValue_Written <= (others => '0');
-            StackLowValue_Written <= ModuleInstanceUID;
-            StackLowValue_Written <= (others => '0');
-            PushToStack(InstantiationState, State14, Engine, Stack);
+            WasmFpgaInstantiation_WasmFpgaStack.ValueType <= WASMFPGASTACK_VAL_Activation;
+            WasmFpgaInstantiation_WasmFpgaStack.HighValue <= (others => '0');
+            WasmFpgaInstantiation_WasmFpgaStack.LowValue <= ModuleInstanceUID;
+            PushToStack(PushToStackState,
+                        WasmFpgaInstantiation_WasmFpgaStack,
+                        WasmFpgaStack_WasmFpgaInstantiation);
         elsif (InstantiationState = State14) then
             InvocationRun <= Run;
             InstantiationState <= StateIdle;
@@ -436,9 +462,9 @@ begin
   Arbiter : process (Clk, Rst) is
   begin
     if (Rst = '1') then
-        Stack.Run <= '0';
-        Stack.Action <= '0';
-        Stack.Busy <= '0';
+        StackRun <= '0';
+        StackAction <= '0';
+        StackBusy <= '0';
         StackValueType <= (others => '0');
         StackHighValue_Written <= (others => '0');
         StackLowValue_Written <= (others => '0');
@@ -455,17 +481,27 @@ begin
             WasmFpgaModuleRam_WasmFpgaInstantiation.Data <= ModuleRamData;
             ModuleRamRun <= WasmFpgaInstantiation_WasmFpgaModuleRam.Run;
             ModuleRamAddress <= WasmFpgaInstantiation_WasmFpgaModuleRam.Address;
-        else
+
+            WasmFpgaStack_WasmFpgaInstantiation.Busy <= StackBusy;
+            WasmFpgaStack_WasmFpgaInstantiation.HighValue <= StackHighValue_ToBeRead;
+            WasmFpgaStack_WasmFpgaInstantiation.LowValue <= StackLowValue_ToBeRead;
+            StackRun <= WasmFpgaInstantiation_WasmFpgaStack.Run;
+            StackAction <= WasmFpgaInstantiation_WasmFpgaStack.Action;
+            StackValueType <= WasmFpgaInstantiation_WasmFpgaStack.ValueType;
+            StackLowValue_Written <= WasmFpgaInstantiation_WasmFpgaStack.LowValue;
+        elsif (InstantiationBusy = '1') then
+            -- Stack
             for i in WasmFpgaStack_WasmFpgaInstruction'RANGE loop
-                WasmFpgaStack_WasmFpgaInstruction(i).Busy <= Stack.Busy;
+                WasmFpgaStack_WasmFpgaInstruction(i).Busy <= StackBusy;
             end loop;
             WasmFpgaStack_WasmFpgaInstruction(CurrentInstruction).HighValue <= StackHighValue_ToBeRead;
             WasmFpgaStack_WasmFpgaInstruction(CurrentInstruction).LowValue <= StackLowValue_ToBeRead;
-            Stack.Run <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).Run;
-            Stack.Action <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).Action;
+            StackRun <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).Run;
+            StackAction <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).Action;
             StackValueType <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).ValueType;
             StackLowValue_Written <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).LowValue;
 
+            -- Module RAM
             WasmFpgaModuleRam_WasmFpgaInstruction(CurrentInstruction).Busy <= ModuleRamBusy;
             WasmFpgaModuleRam_WasmFpgaInstruction(CurrentInstruction).Data <= ModuleRamData;
             ModuleRamRun <= WasmFpgaInstruction_WasmFpgaModuleRam(CurrentInstruction).Run;
@@ -486,9 +522,9 @@ begin
       Cyc => StackBlk_Bus.Cyc,
       StackBlk_DatOut => Bus_StackBlk.DatOut,
       StackBlk_Ack => Bus_StackBlk.Ack,
-      Run =>  Stack.Run,
+      Run =>  StackRun,
       Busy => StackBusy,
-      Action => Stack.Action,
+      Action => StackAction,
       ValueType => StackValueType,
       SizeValue => StackSizeValue,
       HighValue_ToBeRead => StackHighValue_ToBeRead,

@@ -278,6 +278,11 @@ begin
       ModuleInstanceUID <= (others => '0');
       SectionUID <= SECTION_UID_START;
       Idx <= (others => '0');
+      DecodedValue <= (others => '0');
+      CurrentByte <= (others => '0');
+      InvocationRun <= '0';
+      WasmFpgaInstantiation_WasmFpgaModuleRam.Run <= '0';
+      WasmFpgaInstantiation_WasmFpgaModuleRam.Address <= (others => '0');
       ReadFromModuleRamState <= StateIdle;
       Read32UState <= StateIdle;
       PushToStackState <= StateIdle;
@@ -339,22 +344,36 @@ begin
         -- Use ModuleInstanceUid = 0, SectionUid = 10 (Code) and function Idx of
         -- start function to get address of start function body.
         --
-        elsif(InstantiationState = State6) then
+        elsif(InstantiationState = State5) then
             ModuleInstanceUID <= (others => '0');
             SectionUID <= SECTION_UID_CODE;
-            Idx <= WasmFpgaModuleRam_WasmFpgaInstantiation.DecodedValue; -- Use start function idx
+            Idx <= DecodedValue; -- Use start function idx
             StoreRun <= '1';
+            InstantiationState <= State6;
+        elsif(InstantiationState = State6) then
+            StoreRun <= '0';
             InstantiationState <= State7;
         elsif(InstantiationState = State7) then
-            StoreRun <= '0';
-            InstantiationState <= State8;
-        elsif(InstantiationState = State8) then
             if(StoreBusy <= '0') then
                 -- Function address within code section
                 WasmFpgaInstantiation_WasmFpgaModuleRam.Address <= StoreAddress(23 downto 0);
+                InstantiationState <= State8;
+            end if;
+        elsif(InstantiationState = State8) then
+            ReadU32(Read32UState,
+                    ReadFromModuleRamState,
+                    DecodedValue,
+                    CurrentByte,
+                    WasmFpgaModuleRam_WasmFpgaInstantiation,
+                    WasmFpgaInstantiation_WasmFpgaModuleRam);
+            if (Read32UState = StateEnd) then
                 InstantiationState <= State9;
             end if;
+        --
+        -- CreateInitialActivationFrame
+        --
         elsif(InstantiationState = State9) then
+            -- Ignore function body size
             ReadU32(Read32UState,
                     ReadFromModuleRamState,
                     DecodedValue,
@@ -364,27 +383,16 @@ begin
             if (Read32UState = StateEnd) then
                 InstantiationState <= State10;
             end if;
-        --
-        -- CreateInitialActivationFrame
-        --
         elsif(InstantiationState = State10) then
-            -- Ignore function body size
-            ReadU32(Read32UState,
-                    ReadFromModuleRamState,
-                    DecodedValue,
-                    CurrentByte,
-                    WasmFpgaModuleRam_WasmFpgaInstantiation,
-                    WasmFpgaInstantiation_WasmFpgaModuleRam);
-            if (Read32UState = StateEnd) then
-                InstantiationState <= State11;
-            end if;
-        elsif(InstantiationState = State11) then
-            LocalDeclCount <= WasmFpgaModuleRam_WasmFpgaInstantiation.DecodedValue;
+            LocalDeclCount <= DecodedValue;
             LocalDeclCountIteration <= (others => '0');
-            InstantiationState <= State12;
-        elsif(InstantiationState = State12) then
+            InstantiationState <= State11;
+        elsif(InstantiationState = State11) then
             if (LocalDeclCountIteration = unsigned(LocalDeclCount)) then
-                InstantiationState <= State13;
+                WasmFpgaInstantiation_WasmFpgaStack.ValueType <= WASMFPGASTACK_VAL_Activation;
+                WasmFpgaInstantiation_WasmFpgaStack.HighValue <= (others => '0');
+                WasmFpgaInstantiation_WasmFpgaStack.LowValue <= ModuleInstanceUID;
+                InstantiationState <= State12;
             else
                 -- Reserve stack space for local variable
                 --
@@ -393,25 +401,31 @@ begin
                 WasmFpgaInstantiation_WasmFpgaStack.HighValue <= (others => '0');
                 WasmFpgaInstantiation_WasmFpgaStack.LowValue <= (others => '0');
                 LocalDeclCountIteration <= LocalDeclCountIteration + 1;
-                PushToStack(PushToStackState,
-                            WasmFpgaInstantiation_WasmFpgaStack,
-                            WasmFpgaStack_WasmFpgaInstantiation);
+                InstantiationState <= State13;
             end if;
-        elsif(InstantiationState = State13) then
-            -- Push ModuleInstanceUid
-            WasmFpgaInstantiation_WasmFpgaStack.ValueType <= WASMFPGASTACK_VAL_Activation;
-            WasmFpgaInstantiation_WasmFpgaStack.HighValue <= (others => '0');
-            WasmFpgaInstantiation_WasmFpgaStack.LowValue <= ModuleInstanceUID;
+        elsif (InstantiationState = State13) then
             PushToStack(PushToStackState,
                         WasmFpgaInstantiation_WasmFpgaStack,
                         WasmFpgaStack_WasmFpgaInstantiation);
+            if (PushToStackState = StateEnd) then
+               InstantiationState <= State11;
+            end if;
+        elsif (InstantiationState = State12) then
+            -- Push ModuleInstanceUid
+            PushToStack(PushToStackState,
+                        WasmFpgaInstantiation_WasmFpgaStack,
+                        WasmFpgaStack_WasmFpgaInstantiation);
+            if (PushToStackState = StateEnd) then
+               InstantiationState <= State14;
+            end if;
         elsif (InstantiationState = State14) then
-            InvocationRun <= Run;
+            InvocationRun <= '1';
             InstantiationState <= StateIdle;
         end if;
     end if;
   end process;
 
+  Busy <= InvocationBusy or InstantiationBusy;
 
   Invocation : process (Clk, Rst) is
   begin
@@ -423,7 +437,7 @@ begin
       InvocationState <= StateIdle;
     elsif rising_edge(Clk) then
       if (InvocationState = StateIdle) then
-          Busy <= '0';
+          InvocationBusy <= '0';
           if (InvocationRun = '1') then
               InvocationBusy <= '1';
               InvocationState <= State0;

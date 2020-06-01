@@ -241,8 +241,6 @@ package WasmFpgaEnginePackage is
     record
         Busy : std_logic;
         Data : std_logic_vector(31 downto 0);
-        CurrentByte : std_logic_vector(7 downto 0);
-        DecodedValue : std_logic_vector(31 downto 0);
     end record;
 
     type T_WasmFpgaInstruction_WasmFpgaModuleRam is
@@ -276,14 +274,14 @@ package WasmFpgaEnginePackage is
     function i32_and(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
 
     procedure ReadFromModuleRam(signal State : inout std_logic_vector;
-                                 signal CurrentByte : out std_logic_vector;
+                                 signal CurrentByte : inout std_logic_vector;
                                  signal WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
                                  signal WasmFpgaInstruction_WasmFpgaModuleRam : out T_WasmFpgaInstruction_WasmFpgaModuleRam);
 
     procedure ReadU32(signal State : inout std_logic_vector;
                       signal ReadFromModuleRamState : inout std_logic_vector;
-                      signal DecodedValue : out std_logic_vector;
-                      signal CurrentByte : out std_logic_vector;
+                      signal DecodedValue : inout std_logic_vector;
+                      signal CurrentByte : inout std_logic_vector;
                       signal WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
                       signal WasmFpgaInstruction_WasmFpgaModuleRam : out T_WasmFpgaInstruction_WasmFpgaModuleRam);
 
@@ -304,13 +302,12 @@ package body WasmFpgaEnginePackage is
     --
     procedure ReadU32(signal State : inout std_logic_vector;
                       signal ReadFromModuleRamState : inout std_logic_vector;
-                      signal DecodedValue : out std_logic_vector;
-                      signal CurrentByte : out std_logic_vector;
+                      signal DecodedValue : inout std_logic_vector;
+                      signal CurrentByte : inout std_logic_vector;
                       signal WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
                       signal WasmFpgaInstruction_WasmFpgaModuleRam : out T_WasmFpgaInstruction_WasmFpgaModuleRam) is
     begin
         if (State = StateIdle) then
-            DecodedValue <= (others => '0');
             ReadFromModuleRam(ReadFromModuleRamState,
                               CurrentByte,
                               WasmFpgaModuleRam_WasmFpgaInstruction,
@@ -373,18 +370,16 @@ package body WasmFpgaEnginePackage is
         elsif (State = StateEnd) then
             State <= StateIdle;
         else
-            DecodedValue <= (others => '0');
             State <= StateError;
         end if;
     end;
 
     procedure ReadFromModuleRam(signal State : inout std_logic_vector;
-                                signal CurrentByte : out std_logic_vector;
+                                signal CurrentByte : inout std_logic_vector;
                                 signal WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
                                 signal WasmFpgaInstruction_WasmFpgaModuleRam : out T_WasmFpgaInstruction_WasmFpgaModuleRam) is
     begin
         if (State = StateIdle) then
-            CurrentByte <= (others => '0');
             WasmFpgaInstruction_WasmFpgaModuleRam.Run <= '1';
             State <= State0;
         elsif (State = State0) then
@@ -411,7 +406,6 @@ package body WasmFpgaEnginePackage is
         elsif (State = StateEnd) then
             State <= StateIdle;
         else
-            CurrentByte <= (others => '0');
             State <= StateError;
         end if;
     end;

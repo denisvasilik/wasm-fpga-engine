@@ -322,46 +322,55 @@ package body WasmFpgaEnginePackage is
             if ((CurrentByte and x"80") = x"00") then
                 -- 1 byte
                 DecodedValue(6 downto 0) <= CurrentByte(6 downto 0);
-                State <= State1;
+                State <= StateEnd;
             else
                 ReadFromModuleRam(ReadFromModuleRamState,
                                   CurrentByte,
                                   WasmFpgaModuleRam_WasmFpgaInstruction,
                                   WasmFpgaInstruction_WasmFpgaModuleRam);
+                if (ReadFromModuleRamState = StateEnd) then
+                    State <= State1;
+                end if;
             end if;
         elsif (State = State1) then
             if ((CurrentByte and x"80") = x"00") then
                 -- 2 byte
                 DecodedValue(13 downto 7) <= CurrentByte(6 downto 0);
-                State <= State2;
+                State <= StateEnd;
             else
                 ReadFromModuleRam(ReadFromModuleRamState,
                                   CurrentByte,
                                   WasmFpgaModuleRam_WasmFpgaInstruction,
                                   WasmFpgaInstruction_WasmFpgaModuleRam);
+                if (ReadFromModuleRamState = StateEnd) then
+                    State <= State2;
+                end if;
             end if;
         elsif (State = State2) then
             if ((CurrentByte and x"80") = x"00") then
                 -- 3 byte
                 DecodedValue(20 downto 14) <= CurrentByte(6 downto 0);
-                State <= State3;
+                State <= StateEnd;
             else
                 ReadFromModuleRam(ReadFromModuleRamState,
                                   CurrentByte,
                                   WasmFpgaModuleRam_WasmFpgaInstruction,
                                   WasmFpgaInstruction_WasmFpgaModuleRam);
+                if (ReadFromModuleRamState = StateEnd) then
+                    State <= State3;
+                end if;
             end if;
-        elsif (State = State4) then
+        elsif (State = State3) then
             if ((CurrentByte and x"80") = x"00") then
                 -- 4 byte
                 DecodedValue(27 downto 21) <= CurrentByte(6 downto 0);
-                State <= State5;
+                State <= StateEnd;
             else
                 -- Greater than u32 not supported
                 DecodedValue <= (others => '0');
                 State <= StateNotSupported;
             end if;
-        elsif (State = State5) then
+        elsif (State = StateEnd) then
             State <= StateIdle;
         else
             DecodedValue <= (others => '0');

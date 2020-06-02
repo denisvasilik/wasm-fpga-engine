@@ -146,6 +146,21 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
     );
   end component;
 
+  component InstructionEnd is
+    port (
+        Clk : in std_logic;
+        nRst : in std_logic;
+        Run : in std_logic;
+        Busy : out std_logic;
+        WasmFpgaInvocation_WasmFpgaInstruction : in T_WasmFpgaInvocation_WasmFpgaInstruction;
+        WasmFpgaInstruction_WasmFpgaInvocation : out T_WasmFpgaInstruction_WasmFpgaInvocation;
+        WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction;
+        WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
+        WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
+        WasmFpgaInstruction_WasmFpgaModuleRam : out T_WasmFpgaInstruction_WasmFpgaModuleRam
+    );
+  end component;
+
   signal Rst : std_logic;
   signal Run : std_logic;
   signal Busy : std_logic;
@@ -307,6 +322,7 @@ begin
     elsif rising_edge(Clk) then
         if (InstantiationState = StateIdle) then
             InstantiationBusy <= '0';
+            InvocationRun <= '0';
             if (InstantiationRun = '1') then
                 InstantiationBusy <= '1';
                 InstantiationState <= State0;
@@ -489,7 +505,11 @@ begin
       elsif(InvocationState = State4) then
         if (InstructionBusy(CurrentInstruction) = '0') then
             WasmFpgaInvocation_WasmFpgaModuleRam.Address <= WasmFpgaInstruction_WasmFpgaInvocation(CurrentInstruction).Address;
-            InvocationState <= State0;
+            if (InvocationCurrentByte = x"0B") then
+                InvocationState <= StateIdle;
+            else
+                InvocationState <= State0;
+            end if;
         end if;
       --
       -- Unconditional trap
@@ -538,7 +558,7 @@ begin
             ModuleRamRun <= WasmFpgaInstantiation_WasmFpgaModuleRam.Run;
             ModuleRamAddress <= WasmFpgaInstantiation_WasmFpgaModuleRam.Address;
         end if;
-        
+
         if (InvocationBusy = '1') then
             -- Stack
             for i in WasmFpgaStack_WasmFpgaInstruction'RANGE loop
@@ -675,5 +695,19 @@ begin
       WasmFpgaModuleRam_WasmFpgaInstruction => WasmFpgaModuleRam_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_I32_CONST))),
       WasmFpgaInstruction_WasmFpgaModuleRam => WasmFpgaInstruction_WasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_I32_CONST)))
     );
+
+    InstructionEnd_i : InstructionEnd
+        port map (
+            Clk => Clk,
+            nRst => nRst,
+            Run => InstructionRun(to_integer(unsigned(WASM_OPCODE_END))),
+            Busy => InstructionBusy(to_integer(unsigned(WASM_OPCODE_END))),
+            WasmFpgaInvocation_WasmFpgaInstruction => WasmFpgaInvocation_WasmFpgaInstruction,
+            WasmFpgaInstruction_WasmFpgaInvocation => WasmFpgaInstruction_WasmFpgaInvocation(to_integer(unsigned(WASM_OPCODE_END))),
+            WasmFpgaStack_WasmFpgaInstruction => WasmFpgaStack_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_END))),
+            WasmFpgaInstruction_WasmFpgaStack => WasmFpgaInstruction_WasmFpgaStack(to_integer(unsigned(WASM_OPCODE_END))),
+            WasmFpgaModuleRam_WasmFpgaInstruction => WasmFpgaModuleRam_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_END))),
+            WasmFpgaInstruction_WasmFpgaModuleRam => WasmFpgaInstruction_WasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_END)))
+        );
 
 end;

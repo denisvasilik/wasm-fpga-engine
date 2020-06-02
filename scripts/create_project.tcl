@@ -67,6 +67,7 @@ set files_vhd [list \
  [file normalize "${project_src}/instructions/I32Ctz.vhd" ]\
  [file normalize "${project_src}/instructions/I32Const.vhd" ]\
  [file normalize "${project_src}/instructions/End.vhd" ]\
+ [file normalize "${project_src}/instructions/Nop.vhd" ]\
  [file normalize "${project_package}/component.xml" ]\
 ]
 add_files -norecurse -fileset $obj $files_vhd

@@ -18,6 +18,8 @@ entity InstructionI32Const is
         nRst : in std_logic;
         Run : in std_logic;
         Busy : out std_logic;
+        WasmFpgaInvocation_WasmFpgaInstruction : in T_WasmFpgaInvocation_WasmFpgaInstruction;
+        WasmFpgaInstruction_WasmFpgaInvocation : out T_WasmFpgaInstruction_WasmFpgaInvocation;
         WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction;
         WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
         WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
@@ -40,6 +42,8 @@ begin
 
     Rst <= not nRst;
 
+    WasmFpgaInstruction_WasmFpgaInvocation.Address <= WasmFpgaInstruction_WasmFpgaModuleRam.Address;
+
     process (Clk, Rst) is
     begin
         if (Rst = '1') then
@@ -51,6 +55,8 @@ begin
           WasmFpgaInstruction_WasmFpgaModuleRam.Run <= '0';
           WasmFpgaInstruction_WasmFpgaModuleRam.Address <= (others => '0');
           Busy <= '1';
+          CurrentByte <= (others => '0');
+          DecodedValue <= (others => '0');
           ReadU32State <= StateIdle;
           ReadFromModuleRamState <= StateIdle;
           PushToStackState <= StateIdle;
@@ -60,6 +66,7 @@ begin
                 Busy <= '0';
                 if (Run = '1') then
                     Busy <= '1';
+                    WasmFpgaInstruction_WasmFpgaModuleRam.Address <= WasmFpgaInvocation_WasmFpgaInstruction.Address;
                     State <= State0;
                 end if;
             elsif (State = State0) then
@@ -71,6 +78,7 @@ begin
                         WasmFpgaInstruction_WasmFpgaModuleRam);
                 if(ReadU32State = StateEnd) then
                     State <= State1;
+                    WasmFpgaInstruction_WasmFpgaStack.LowValue <= DecodedValue;
                 end if;
             elsif (State = State1) then
                 PushToStack(PushToStackState,

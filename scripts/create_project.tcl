@@ -66,7 +66,9 @@ set files_vhd [list \
  [file normalize "${project_src_gen}/vhd_gen/wishbone/wasm_fpga_engine_wishbone.vhd" ]\
  [file normalize "${project_src}/instructions/End.vhd" ]\
  [file normalize "${project_src}/instructions/Nop.vhd" ]\
+ [file normalize "${project_src}/instructions/Drop.vhd" ]\
  [file normalize "${project_src}/instructions/I32Ctz.vhd" ]\
+ [file normalize "${project_src}/instructions/I32Clz.vhd" ]\
  [file normalize "${project_src}/instructions/I32Const.vhd" ]\
  [file normalize "${project_src}/instructions/I32And.vhd" ]\
  [file normalize "${project_src}/instructions/I32Or.vhd" ]\

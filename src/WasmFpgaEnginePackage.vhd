@@ -276,9 +276,9 @@ package WasmFpgaEnginePackage is
     end record;
 
 
-    function ctz(value: std_logic_vector) return std_logic_vector;
+    function i32_ctz(value: std_logic_vector) return std_logic_vector;
 
-    function clz(value: std_logic_vector) return std_logic_vector;
+    function i32_clz(value: std_logic_vector) return std_logic_vector;
 
     function i32_popcnt(value: std_logic_vector) return std_logic_vector;
 
@@ -482,7 +482,7 @@ package body WasmFpgaEnginePackage is
         end if;
     end;
 
-    function ctz(value: std_logic_vector)
+    function i32_ctz(value: std_logic_vector)
         return std_logic_vector
     is
         variable total : integer range 0 to value'length := 0;
@@ -497,7 +497,7 @@ package body WasmFpgaEnginePackage is
         return std_logic_vector(to_unsigned(total, value'length));
     end;
 
-    function clz(value: std_logic_vector)
+    function i32_clz(value: std_logic_vector)
         return std_logic_vector
     is
         variable total : integer range 0 to value'length := 0;

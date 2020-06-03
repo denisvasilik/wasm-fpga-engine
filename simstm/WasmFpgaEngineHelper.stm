@@ -23,6 +23,25 @@ BEGIN_SUB
     WAIT_NS 100
     SET_SIG $SIG_RST 0
 
+    CALL $PREPARE_STORE
+
+    RETURN_CALL
+END_SUB
+
+PREPARE_STORE:
+BEGIN_SUB
+    -- Prepare store to provide a start section entry
+    WRITE_RAM $WASM_STORE #x0 #x0 -- Module Instance UID
+    WRITE_RAM $WASM_STORE #x1 #x8 -- Section UID
+    WRITE_RAM $WASM_STORE #x2 #x0 -- Idx
+    WRITE_RAM $WASM_STORE #x3 #x13 -- Start Function Address
+
+    -- Prepare store to provide a start function address
+    WRITE_RAM $WASM_STORE #x4 #x0 -- Module Instance UID
+    WRITE_RAM $WASM_STORE #x5 #xA -- Code UID
+    WRITE_RAM $WASM_STORE #x6 #x0 -- Idx
+    WRITE_RAM $WASM_STORE #x7 #x18 -- Start Function Address
+
     RETURN_CALL
 END_SUB
 

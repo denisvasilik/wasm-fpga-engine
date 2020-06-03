@@ -176,6 +176,51 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
     );
   end component;
 
+  component InstructionI32And is
+      port (
+          Clk : in std_logic;
+          nRst : in std_logic;
+          Run : in std_logic;
+          Busy : out std_logic;
+          WasmFpgaInvocation_WasmFpgaInstruction : in T_WasmFpgaInvocation_WasmFpgaInstruction;
+          WasmFpgaInstruction_WasmFpgaInvocation : out T_WasmFpgaInstruction_WasmFpgaInvocation;
+          WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction;
+          WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
+          WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
+          WasmFpgaInstruction_WasmFpgaModuleRam : out T_WasmFpgaInstruction_WasmFpgaModuleRam
+      );
+  end component;
+
+  component InstructionI32Popcnt is
+      port (
+          Clk : in std_logic;
+          nRst : in std_logic;
+          Run : in std_logic;
+          Busy : out std_logic;
+          WasmFpgaInvocation_WasmFpgaInstruction : in T_WasmFpgaInvocation_WasmFpgaInstruction;
+          WasmFpgaInstruction_WasmFpgaInvocation : out T_WasmFpgaInstruction_WasmFpgaInvocation;
+          WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction;
+          WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
+          WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
+          WasmFpgaInstruction_WasmFpgaModuleRam : out T_WasmFpgaInstruction_WasmFpgaModuleRam
+      );
+  end component;
+
+  component InstructionI32Or is
+      port (
+          Clk : in std_logic;
+          nRst : in std_logic;
+          Run : in std_logic;
+          Busy : out std_logic;
+          WasmFpgaInvocation_WasmFpgaInstruction : in T_WasmFpgaInvocation_WasmFpgaInstruction;
+          WasmFpgaInstruction_WasmFpgaInvocation : out T_WasmFpgaInstruction_WasmFpgaInvocation;
+          WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction;
+          WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
+          WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
+          WasmFpgaInstruction_WasmFpgaModuleRam : out T_WasmFpgaInstruction_WasmFpgaModuleRam
+      );
+  end component;
+
   signal Rst : std_logic;
   signal Run : std_logic;
   signal Busy : std_logic;
@@ -316,6 +361,8 @@ begin
   Bus_StoreBlk.Ack <= Bus_Ack;
 
   InstantiationRun <= Run;
+
+  Busy <= InvocationBusy or InstantiationBusy;
 
   Instantiation : process (Clk, Rst) is
   begin
@@ -475,7 +522,6 @@ begin
     end if;
   end process;
 
-  Busy <= InvocationBusy or InstantiationBusy;
 
   Invocation : process (Clk, Rst) is
   begin
@@ -556,6 +602,11 @@ begin
         end loop;
         WasmFpgaModuleRam_WasmFpgaInstantiation.Busy <= '0';
         WasmFpgaModuleRam_WasmFpgaInstantiation.Data <= (others => '0');
+        ModuleRamRun <= '0';
+        ModuleRamAddress <= (others => '0');
+        WasmFpgaStack_WasmFpgaInstantiation.Busy <= '0';
+        WasmFpgaStack_WasmFpgaInstantiation.HighValue <= (others => '0');
+        WasmFpgaStack_WasmFpgaInstantiation.LowValue <= (others => '0');
     elsif rising_edge(Clk) then
         if (InstantiationBusy = '1') then
             -- Stack
@@ -739,4 +790,45 @@ begin
             WasmFpgaInstruction_WasmFpgaModuleRam => WasmFpgaInstruction_WasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_NOP)))
         );
 
+    InstructionI32And_i : InstructionI32And
+        port map (
+            Clk => Clk,
+            nRst => nRst,
+            Run => InstructionRun(to_integer(unsigned(WASM_OPCODE_I32_AND))),
+            Busy => InstructionBusy(to_integer(unsigned(WASM_OPCODE_I32_AND))),
+            WasmFpgaInvocation_WasmFpgaInstruction => WasmFpgaInvocation_WasmFpgaInstruction,
+            WasmFpgaInstruction_WasmFpgaInvocation => WasmFpgaInstruction_WasmFpgaInvocation(to_integer(unsigned(WASM_OPCODE_I32_AND))),
+            WasmFpgaStack_WasmFpgaInstruction => WasmFpgaStack_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_I32_AND))),
+            WasmFpgaInstruction_WasmFpgaStack => WasmFpgaInstruction_WasmFpgaStack(to_integer(unsigned(WASM_OPCODE_I32_AND))),
+            WasmFpgaModuleRam_WasmFpgaInstruction => WasmFpgaModuleRam_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_I32_AND))),
+            WasmFpgaInstruction_WasmFpgaModuleRam => WasmFpgaInstruction_WasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_I32_AND)))
+        );
+
+    InstructionI32Popcnt_i : InstructionI32Popcnt
+        port map (
+            Clk => Clk,
+            nRst => nRst,
+            Run => InstructionRun(to_integer(unsigned(WASM_OPCODE_I32_POPCNT))),
+            Busy => InstructionBusy(to_integer(unsigned(WASM_OPCODE_I32_POPCNT))),
+            WasmFpgaInvocation_WasmFpgaInstruction => WasmFpgaInvocation_WasmFpgaInstruction,
+            WasmFpgaInstruction_WasmFpgaInvocation => WasmFpgaInstruction_WasmFpgaInvocation(to_integer(unsigned(WASM_OPCODE_I32_POPCNT))),
+            WasmFpgaStack_WasmFpgaInstruction => WasmFpgaStack_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_I32_POPCNT))),
+            WasmFpgaInstruction_WasmFpgaStack => WasmFpgaInstruction_WasmFpgaStack(to_integer(unsigned(WASM_OPCODE_I32_POPCNT))),
+            WasmFpgaModuleRam_WasmFpgaInstruction => WasmFpgaModuleRam_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_I32_POPCNT))),
+            WasmFpgaInstruction_WasmFpgaModuleRam => WasmFpgaInstruction_WasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_I32_POPCNT)))
+        );
+
+    InstructionI32Or_i : InstructionI32Or
+        port map (
+            Clk => Clk,
+            nRst => nRst,
+            Run => InstructionRun(to_integer(unsigned(WASM_OPCODE_I32_OR))),
+            Busy => InstructionBusy(to_integer(unsigned(WASM_OPCODE_I32_OR))),
+            WasmFpgaInvocation_WasmFpgaInstruction => WasmFpgaInvocation_WasmFpgaInstruction,
+            WasmFpgaInstruction_WasmFpgaInvocation => WasmFpgaInstruction_WasmFpgaInvocation(to_integer(unsigned(WASM_OPCODE_I32_OR))),
+            WasmFpgaStack_WasmFpgaInstruction => WasmFpgaStack_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_I32_OR))),
+            WasmFpgaInstruction_WasmFpgaStack => WasmFpgaInstruction_WasmFpgaStack(to_integer(unsigned(WASM_OPCODE_I32_OR))),
+            WasmFpgaModuleRam_WasmFpgaInstruction => WasmFpgaModuleRam_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_I32_OR))),
+            WasmFpgaInstruction_WasmFpgaModuleRam => WasmFpgaInstruction_WasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_I32_OR)))
+        );
 end;

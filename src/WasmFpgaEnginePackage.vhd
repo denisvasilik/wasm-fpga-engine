@@ -280,9 +280,11 @@ package WasmFpgaEnginePackage is
 
     function clz(value: std_logic_vector) return std_logic_vector;
 
-    function popcnt(value: std_logic_vector) return std_logic_vector;
+    function i32_popcnt(value: std_logic_vector) return std_logic_vector;
 
     function i32_and(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
+
+    function i32_or(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
 
     procedure ReadFromModuleRam(signal State : inout std_logic_vector;
                                  signal CurrentByte : inout std_logic_vector;
@@ -510,7 +512,7 @@ package body WasmFpgaEnginePackage is
         return std_logic_vector(to_unsigned(total, value'length));
     end;
 
-    function popcnt(value: std_logic_vector)
+    function i32_popcnt(value: std_logic_vector)
         return std_logic_vector
     is
         variable total : integer range 0 to value'length := 0;
@@ -528,6 +530,13 @@ package body WasmFpgaEnginePackage is
     is
     begin
         return a and b;
+    end;
+
+    function i32_or(a: std_logic_vector; b: std_logic_vector)
+        return std_logic_vector
+    is
+    begin
+        return a or b;
     end;
 
 end;

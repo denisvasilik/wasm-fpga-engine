@@ -200,63 +200,26 @@ package WasmFpgaEnginePackage is
     constant WASM_OPCODE_F32_REINTERPRET_I32 : std_logic_vector(7 downto 0) := x"BE";
     constant WASM_OPCODE_F64_REINTERPRET_I64 : std_logic_vector(7 downto 0) := x"BF";
 
-    --
-    -- WebAssembly Engine States
-    --
-    constant EngineStateIdle : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"00";
-    constant EngineStateExec0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"01";
-    constant EngineStateDispatch0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"02";
-    constant EngineStateReadRam0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"03";
-    constant EngineStateReadRam1 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"04";
-    constant EngineStateReadRam2 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"05";
-    constant EngineStateStartFuncIdx0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"06";
-    constant EngineStateStartFuncIdx1 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"07";
-    constant EngineStateStartFuncIdx2 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"08";
-    constant EngineStateStartFuncIdx3 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"09";
-    constant EngineStateStartFuncIdx4 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"0A";
-    constant EngineStateStartFuncIdx5 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"0B";
-    constant EngineStateStartFuncIdx6 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"0C";
-    constant EngineStateStartFuncIdx7 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"0D";
-    constant EngineStateStartFuncIdx8 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"0E";
-    constant EngineStateActivationFrame0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"10";
-    constant EngineStateActivationFrame1 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"11";
-    constant EngineStateActivationFrame2 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"12";
-    constant EngineStateActivationFrame3 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"13";
-    constant EngineStatePush0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"20";
-    constant EngineStatePush1 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"21";
-    constant EngineStatePush2 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"22";
-    constant EngineStatePop0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"23";
-    constant EngineStatePop1 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"24";
-    constant EngineStatePop2 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"25";
-    constant EngineStateReadU32_0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"A0";
-    constant EngineStateReadU32_1 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"A1";
-    constant EngineStateReadU32_2 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"A2";
-    constant EngineStateReadU32_3 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"A3";
-    constant EngineStateReadU32_4 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"A4";
-    constant EngineStateReadU32_5 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"A5";
-    constant EngineStateTrap0 : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"FE";
-    constant EngineStateError : std_logic_vector(15 downto 0) := WASM_NO_OPCODE & x"FF";
-    constant EngineStateOpcodeUnreachable0 : std_logic_vector(15 downto 0) := WASM_OPCODE_UNREACHABLE & x"00";
-    constant EngineStateOpcodeNop0 : std_logic_vector(15 downto 0) := WASM_OPCODE_NOP & x"00";
-    constant EngineStateOpcodeEnd0 : std_logic_vector(15 downto 0) := WASM_OPCODE_END & x"00";
-    constant EngineStateI32Const0 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CONST & x"00";
-    constant EngineStateI32Const1 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CONST & x"01";
-    constant EngineStateI32Const2 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CONST & x"02";
-    constant EngineStateDrop0 : std_logic_vector(15 downto 0) := WASM_OPCODE_DROP & x"00";
-    constant EngineStateI32Ctz0 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CTZ & x"00";
-    constant EngineStateI32Ctz1 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CTZ & x"01";
-    constant EngineStateI32Ctz2 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CTZ & x"02";
-    constant EngineStateI32Clz0 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CLZ & x"00";
-    constant EngineStateI32Clz1 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CLZ & x"01";
-    constant EngineStateI32Clz2 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_CLZ & x"02";
-    constant EngineStateI32Popcnt0 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_POPCNT & x"00";
-    constant EngineStateI32Popcnt1 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_POPCNT & x"01";
-    constant EngineStateI32Popcnt2 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_POPCNT & x"02";
-    constant EngineStateI32And0 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_AND & x"00";
-    constant EngineStateI32And1 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_AND & x"01";
-    constant EngineStateI32And2 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_AND & x"02";
-    constant EngineStateI32And3 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_AND & x"03";
-    constant EngineStateI32And4 : std_logic_vector(15 downto 0) := WASM_OPCODE_I32_AND & x"04";
+    constant StateIdle : std_logic_vector(15 downto 0) := x"0000";
+    constant State0 : std_logic_vector(15 downto 0) := x"0001";
+    constant State1 : std_logic_vector(15 downto 0) := x"0002";
+    constant State2 : std_logic_vector(15 downto 0) := x"0003";
+    constant State3 : std_logic_vector(15 downto 0) := x"0004";
+    constant State4 : std_logic_vector(15 downto 0) := x"0005";
+    constant State5 : std_logic_vector(15 downto 0) := x"0006";
+    constant State6 : std_logic_vector(15 downto 0) := x"0007";
+    constant State7 : std_logic_vector(15 downto 0) := x"0008";
+    constant State8 : std_logic_vector(15 downto 0) := x"0009";
+    constant State9 : std_logic_vector(15 downto 0) := x"000A";
+    constant State10 : std_logic_vector(15 downto 0) := x"000B";
+    constant State11 : std_logic_vector(15 downto 0) := x"000C";
+    constant State12 : std_logic_vector(15 downto 0) := x"000D";
+    constant State13 : std_logic_vector(15 downto 0) := x"000E";
+    constant State14 : std_logic_vector(15 downto 0) := x"000F";
+    constant StateEnd : std_logic_vector(15 downto 0) := x"00F0";
+    constant StateTrapped : std_logic_vector(15 downto 0) := x"00FD";
+    constant StateNotSupported : std_logic_vector(15 downto 0) := x"00FE";
+    constant StateError : std_logic_vector(15 downto 0) := x"00FF";
 
     type T_WshBnUp is
     record
@@ -274,60 +237,74 @@ package WasmFpgaEnginePackage is
           Cyc : std_logic_vector(0 downto 0);
     end record;
 
-    type T_WasmFpgaStack is
+    type T_WasmFpgaModuleRam_WasmFpgaInstruction is
+    record
+        Busy : std_logic;
+        Data : std_logic_vector(31 downto 0);
+    end record;
+
+    type T_WasmFpgaInstruction_WasmFpgaModuleRam is
+    record
+        Run : std_logic;
+        Address : std_logic_vector(23 downto 0);
+    end record;
+
+    type T_WasmFpgaStack_WasmFpgaInstruction is
+    record
+        Busy : std_logic;
+        HighValue : std_logic_vector(31 downto 0);
+        LowValue : std_logic_vector(31 downto 0);
+    end record;
+
+    type T_WasmFpgaInstruction_WasmFpgaStack is
     record
         Run : std_logic;
         Action : std_logic;
-        Busy : std_logic;
+        ValueType : std_logic_vector(2 downto 0);
+        HighValue : std_logic_vector(31 downto 0);
+        LowValue : std_logic_vector(31 downto 0);
     end record;
 
-    type T_WasmFpgaModuleRam is
+    type T_WasmFpgaInstruction_WasmFpgaInvocation is
     record
-        Run : std_logic;
-        Busy : std_logic;
-        Data : std_logic_vector(31 downto 0);
-        CurrentByte : std_logic_vector(7 downto 0);
         Address : std_logic_vector(23 downto 0);
-        DecodedValue : std_logic_vector(31 downto 0);
     end record;
 
-    type T_WasmFpgaEngine is
+    type T_WasmFpgaInvocation_WasmFpgaInstruction is
     record
-        State : std_logic_vector(15 downto 0);
-        ReturnState : std_logic_vector(15 downto 0);
-        PushToStackState : std_logic_vector(3 downto 0);
-        PopFromStackState : std_logic_vector(3 downto 0);
-        ReadU32State : std_logic_vector(3 downto 0);
-        ReadFromModuleRamState : std_logic_vector(3 downto 0);
+        Address : std_logic_vector(23 downto 0);
     end record;
+
 
     function ctz(value: std_logic_vector) return std_logic_vector;
 
     function clz(value: std_logic_vector) return std_logic_vector;
 
-    function popcnt(value: std_logic_vector) return std_logic_vector;
+    function i32_popcnt(value: std_logic_vector) return std_logic_vector;
 
     function i32_and(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
 
-    procedure PopFromStack(signal State : out std_logic_vector;
-                           constant ReturnState : in std_logic_vector;
-                           signal Engine : inout T_WasmFpgaEngine;
-                           signal Stack : inout T_WasmFpgaStack);
+    function i32_or(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
 
-    procedure PushToStack(signal State : out std_logic_vector;
-                          constant ReturnState : in std_logic_vector;
-                          signal Engine : inout T_WasmFpgaEngine;
-                          signal Stack : inout T_WasmFpgaStack);
+    procedure ReadFromModuleRam(signal State : inout std_logic_vector;
+                                 signal CurrentByte : inout std_logic_vector;
+                                 signal WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
+                                 signal WasmFpgaInstruction_WasmFpgaModuleRam : out T_WasmFpgaInstruction_WasmFpgaModuleRam);
 
-    procedure ReadFromModuleRam(signal State : out std_logic_vector;
-                                constant ReturnState : in std_logic_vector;
-                                signal Engine : inout T_WasmFpgaEngine;
-                                signal ModuleRam : inout T_WasmFpgaModuleRam);
+    procedure ReadU32(signal State : inout std_logic_vector;
+                      signal ReadFromModuleRamState : inout std_logic_vector;
+                      signal DecodedValue : inout std_logic_vector;
+                      signal CurrentByte : inout std_logic_vector;
+                      signal WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
+                      signal WasmFpgaInstruction_WasmFpgaModuleRam : out T_WasmFpgaInstruction_WasmFpgaModuleRam);
 
-    procedure ReadU32(signal State : out std_logic_vector;
-                      constant ReturnState : in std_logic_vector;
-                      signal Engine : inout T_WasmFpgaEngine;
-                      signal ModuleRam : inout T_WasmFpgaModuleRam);
+    procedure PopFromStack(signal State : inout std_logic_vector;
+                           signal WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
+                           signal WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction);
+
+    procedure PushToStack(signal State : inout std_logic_vector;
+                          signal WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
+                          signal WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction);
 
 end;
 
@@ -336,165 +313,174 @@ package body WasmFpgaEnginePackage is
     --
     -- Read u32 (LEB128 encoded)
     --
-    procedure ReadU32(signal State : out std_logic_vector;
-                      constant ReturnState : in std_logic_vector;
-                      signal Engine : inout T_WasmFpgaEngine;
-                      signal ModuleRam : inout T_WasmFpgaModuleRam)
-    is
-        constant State0 : std_logic_vector(3 downto 0) := x"0";
-        constant State1 : std_logic_vector(3 downto 0) := x"1";
-        constant State2 : std_logic_vector(3 downto 0) := x"2";
-        constant State3 : std_logic_vector(3 downto 0) := x"3";
-        constant State4 : std_logic_vector(3 downto 0) := x"4";
+    procedure ReadU32(signal State : inout std_logic_vector;
+                      signal ReadFromModuleRamState : inout std_logic_vector;
+                      signal DecodedValue : inout std_logic_vector;
+                      signal CurrentByte : inout std_logic_vector;
+                      signal WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
+                      signal WasmFpgaInstruction_WasmFpgaModuleRam : out T_WasmFpgaInstruction_WasmFpgaModuleRam) is
     begin
-        if (Engine.ReadU32State = State0) then
-            ModuleRam.DecodedValue <= (others => '0');
-            ReadFromModuleRam(Engine.ReadU32State, State1, Engine, ModuleRam);
-        elsif (Engine.ReadU32State = State1) then
-            if ((ModuleRam.CurrentByte and x"80") = x"00") then
+        if (State = StateIdle) then
+            ReadFromModuleRam(ReadFromModuleRamState,
+                              CurrentByte,
+                              WasmFpgaModuleRam_WasmFpgaInstruction,
+                              WasmFpgaInstruction_WasmFpgaModuleRam);
+            if (ReadFromModuleRamState = StateEnd) then
+                State <= State0;
+            end if;
+        elsif (State = State0) then
+            if ((CurrentByte and x"80") = x"00") then
                 -- 1 byte
-                ModuleRam.DecodedValue(6 downto 0) <= ModuleRam.CurrentByte(6 downto 0);
-                Engine.ReadU32State <= (others => '0');
-                State <= ReturnState;
+                DecodedValue(6 downto 0) <= CurrentByte(6 downto 0);
+                State <= StateEnd;
             else
-                ReadFromModuleRam(Engine.ReadU32State, State2, Engine, ModuleRam);
+                ReadFromModuleRam(ReadFromModuleRamState,
+                                  CurrentByte,
+                                  WasmFpgaModuleRam_WasmFpgaInstruction,
+                                  WasmFpgaInstruction_WasmFpgaModuleRam);
+                if (ReadFromModuleRamState = StateEnd) then
+                    State <= State1;
+                end if;
             end if;
-        elsif (Engine.ReadU32State = State2) then
-            if ((ModuleRam.CurrentByte and x"80") = x"00") then
+        elsif (State = State1) then
+            if ((CurrentByte and x"80") = x"00") then
                 -- 2 byte
-                ModuleRam.DecodedValue(13 downto 7) <= ModuleRam.CurrentByte(6 downto 0);
-                Engine.ReadU32State <= (others => '0');
-                State <= ReturnState;
+                DecodedValue(13 downto 7) <= CurrentByte(6 downto 0);
+                State <= StateEnd;
             else
-                ReadFromModuleRam(Engine.ReadU32State, State3, Engine, ModuleRam);
+                ReadFromModuleRam(ReadFromModuleRamState,
+                                  CurrentByte,
+                                  WasmFpgaModuleRam_WasmFpgaInstruction,
+                                  WasmFpgaInstruction_WasmFpgaModuleRam);
+                if (ReadFromModuleRamState = StateEnd) then
+                    State <= State2;
+                end if;
             end if;
-        elsif (Engine.ReadU32State = State3) then
-            if ((ModuleRam.CurrentByte and x"80") = x"00") then
+        elsif (State = State2) then
+            if ((CurrentByte and x"80") = x"00") then
                 -- 3 byte
-                ModuleRam.DecodedValue(20 downto 14) <= ModuleRam.CurrentByte(6 downto 0);
-                Engine.ReadU32State <= (others => '0');
-                State <= ReturnState;
+                DecodedValue(20 downto 14) <= CurrentByte(6 downto 0);
+                State <= StateEnd;
             else
-                ReadFromModuleRam(Engine.ReadU32State, State4, Engine, ModuleRam);
+                ReadFromModuleRam(ReadFromModuleRamState,
+                                  CurrentByte,
+                                  WasmFpgaModuleRam_WasmFpgaInstruction,
+                                  WasmFpgaInstruction_WasmFpgaModuleRam);
+                if (ReadFromModuleRamState = StateEnd) then
+                    State <= State3;
+                end if;
             end if;
-        elsif (Engine.ReadU32State = State4) then
-            if ((ModuleRam.CurrentByte and x"80") = x"00") then
+        elsif (State = State3) then
+            if ((CurrentByte and x"80") = x"00") then
                 -- 4 byte
-                ModuleRam.DecodedValue(27 downto 21) <= ModuleRam.CurrentByte(6 downto 0);
-                Engine.ReadU32State <= (others => '0');
-                State <= ReturnState;
+                DecodedValue(27 downto 21) <= CurrentByte(6 downto 0);
+                State <= StateEnd;
             else
                 -- Greater than u32 not supported
-                State <= (others => '1');
+                DecodedValue <= (others => '0');
+                State <= StateNotSupported;
             end if;
+        elsif (State = StateEnd) then
+            State <= StateIdle;
         else
-            -- Error state by convention
-            State <= (others => '1');
+            State <= StateError;
         end if;
     end;
 
-    procedure ReadFromModuleRam(signal State : out std_logic_vector;
-                                constant ReturnState : in std_logic_vector;
-                                signal Engine : inout T_WasmFpgaEngine;
-                                signal ModuleRam : inout T_WasmFpgaModuleRam)
-    is
-        constant State0 : std_logic_vector(3 downto 0) := x"0";
-        constant State1 : std_logic_vector(3 downto 0) := x"1";
-        constant State2 : std_logic_vector(3 downto 0) := x"2";
-        constant State3 : std_logic_vector(3 downto 0) := x"3";
-        constant State4 : std_logic_vector(3 downto 0) := x"4";
+    procedure ReadFromModuleRam(signal State : inout std_logic_vector;
+                                signal CurrentByte : inout std_logic_vector;
+                                signal WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
+                                signal WasmFpgaInstruction_WasmFpgaModuleRam : out T_WasmFpgaInstruction_WasmFpgaModuleRam) is
     begin
-        if (Engine.ReadFromModuleRamState = State0) then
-            ModuleRam.Run <= '1';
-            Engine.ReadFromModuleRamState <= State1;
-        elsif (Engine.ReadFromModuleRamState = State1) then
-            Engine.ReadFromModuleRamState <= State2;
-        elsif (Engine.ReadFromModuleRamState = State2) then
-            ModuleRam.Run <= '0';
-            Engine.ReadFromModuleRamState <= State3;
-        elsif (Engine.ReadFromModuleRamState = State3) then
-            Engine.ReadFromModuleRamState <= State4;
-        elsif (Engine.ReadFromModuleRamState = State4) then
-            if (ModuleRam.Busy = '0') then
-                if ModuleRam.Address(1 downto 0) = "00" then
-                    ModuleRam.CurrentByte <= ModuleRam.Data(7 downto 0);
-                elsif ModuleRam.Address(1 downto 0) = "01" then
-                    ModuleRam.CurrentByte <= ModuleRam.Data(15 downto 8);
-                elsif ModuleRam.Address(1 downto 0) = "10" then
-                    ModuleRam.CurrentByte <= ModuleRam.Data(23 downto 16);
+        if (State = StateIdle) then
+            WasmFpgaInstruction_WasmFpgaModuleRam.Run <= '1';
+            State <= State0;
+        elsif (State = State0) then
+            WasmFpgaInstruction_WasmFpgaModuleRam.Run <= '0';
+            State <= State1;
+        elsif (State = State1) then
+            State <= State2;
+        elsif (State = State2) then
+            State <= State3;
+        elsif (State = State3) then
+            if (WasmFpgaModuleRam_WasmFpgaInstruction.Busy = '0') then
+                if WasmFpgaInstruction_WasmFpgaModuleRam.Address(1 downto 0) = "00" then
+                    CurrentByte <= WasmFpgaModuleRam_WasmFpgaInstruction.Data(7 downto 0);
+                elsif WasmFpgaInstruction_WasmFpgaModuleRam.Address(1 downto 0) = "01" then
+                    CurrentByte <= WasmFpgaModuleRam_WasmFpgaInstruction.Data(15 downto 8);
+                elsif WasmFpgaInstruction_WasmFpgaModuleRam.Address(1 downto 0) = "10" then
+                    CurrentByte <= WasmFpgaModuleRam_WasmFpgaInstruction.Data(23 downto 16);
                 else
-                    ModuleRam.CurrentByte <= ModuleRam.Data(31 downto 24);
+                    CurrentByte <= WasmFpgaModuleRam_WasmFpgaInstruction.Data(31 downto 24);
                 end if;
-                ModuleRam.Address <= std_logic_vector(unsigned(ModuleRam.Address) + 1);
-                Engine.ReadFromModuleRamState <= (others => '0');
-                State <= ReturnState;
+                WasmFpgaInstruction_WasmFpgaModuleRam.Address <= std_logic_vector(unsigned(WasmFpgaInstruction_WasmFpgaModuleRam.Address) + 1);
+                State <= StateEnd;
             end if;
+        elsif (State = StateEnd) then
+            State <= StateIdle;
+        else
+            State <= StateError;
+        end if;
+    end;
+
+    procedure PopFromStack(signal State : inout std_logic_vector;
+                           signal WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
+                           signal WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction) is
+    begin
+        if (State = StateIdle) then
+            WasmFpgaInstruction_WasmFpgaStack.Run <= '1';
+            WasmFpgaInstruction_WasmFpgaStack.Action <= WASMFPGASTACK_VAL_Pop;
+            State <= State0;
+        elsif (State = State0) then
+            WasmFpgaInstruction_WasmFpgaStack.Run <= '0';
+            State <= State1;
+        elsif (State = State1) then
+            State <= State2;
+        elsif (State = State2) then
+            State <= State3;
+        elsif (State = State3) then
+            State <= State4;
+        elsif (State = State4) then
+            State <= State5;
+        elsif (State = State5) then
+            if (WasmFpgaStack_WasmFpgaInstruction.Busy = '0') then
+                State <= StateEnd;
+            end if;
+        elsif (State = StateEnd) then
+            State <= StateIdle;
         else
             -- Error state by convention
             State <= (others => '1');
         end if;
     end;
 
-    procedure PopFromStack(signal State : out std_logic_vector;
-                           constant ReturnState : in std_logic_vector;
-                           signal Engine : inout T_WasmFpgaEngine;
-                           signal Stack : inout T_WasmFpgaStack)
-    is
-        constant StatePop0 : std_logic_vector(3 downto 0) := x"0";
-        constant StatePop1 : std_logic_vector(3 downto 0) := x"1";
-        constant StatePop2 : std_logic_vector(3 downto 0) := x"2";
-        constant StatePop3 : std_logic_vector(3 downto 0) := x"3";
+    procedure PushToStack(signal State : inout std_logic_vector;
+                          signal WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
+                          signal WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction) is
     begin
-        if (Engine.PopFromStackState = StatePop0) then
-            Stack.Run <= '1';
-            Stack.Action <= WASMFPGASTACK_VAL_Pop;
-            Engine.PopFromStackState <= StatePop1;
-        elsif (Engine.PopFromStackState = StatePop1) then
-            Stack.Run <= '0';
-            Engine.PopFromStackState <= StatePop2;
-        elsif (Engine.PopFromStackState = StatePop2) then
-            Engine.PopFromStackState <= StatePop3;
-        elsif (Engine.PopFromStackState = StatePop3) then
-            if (Stack.Busy = '0') then
-                Engine.PopFromStackState <= (others => '0');
-                Engine.State <= ReturnState;
+        if (State = StateIdle) then
+            WasmFpgaInstruction_WasmFpgaStack.Run <= '1';
+            WasmFpgaInstruction_WasmFpgaStack.Action <= WASMFPGASTACK_VAL_Push;
+            State <= State0;
+        elsif (State = State0) then
+            WasmFpgaInstruction_WasmFpgaStack.Run <= '0';
+            State <= State1;
+        elsif (State = State1) then
+            State <= State2;
+        elsif (State = State2) then
+            State <= State3;
+        elsif (State = State3) then
+            State <= State4;
+        elsif (State = State4) then
+            if (WasmFpgaStack_WasmFpgaInstruction.Busy = '0') then
+                State <= StateEnd;
             end if;
-        else
-            -- Error state by convention
-            State <= (others => '1');
-        end if;
-    end;
-
-
-    procedure PushToStack(signal State : out std_logic_vector;
-                          constant ReturnState : in std_logic_vector;
-                          signal Engine : inout T_WasmFpgaEngine;
-                          signal Stack : inout T_WasmFpgaStack)
-    is
-        constant StatePush0 : std_logic_vector(3 downto 0) := x"0";
-        constant StatePush1 : std_logic_vector(3 downto 0) := x"1";
-        constant StatePush2 : std_logic_vector(3 downto 0) := x"2";
-        constant StatePush3 : std_logic_vector(3 downto 0) := x"3";
-    begin
-        if (Engine.PushToStackState = StatePush0) then
-            Stack.Run <= '1';
-            Stack.Action <= WASMFPGASTACK_VAL_Push;
-            Engine.PushToStackState <= StatePush1;
-        elsif (Engine.PushToStackState = StatePush1) then
-            Stack.Run <= '0';
-            Engine.PushToStackState <= StatePush2;
-        elsif (Engine.PushToStackState = StatePush2) then
-            Engine.PushToStackState <= StatePush3;
-        elsif (Engine.PushToStackState = StatePush3) then
-            if (Stack.Busy = '0') then
-                Engine.PushToStackState <= (others => '0');
-                Engine.State <= ReturnState;
-            end if;
+        elsif (State = StateEnd) then
+            State <= StateIdle;
         else
             State <= (others => '1');
         end if;
     end;
-
 
     function ctz(value: std_logic_vector)
         return std_logic_vector
@@ -526,7 +512,7 @@ package body WasmFpgaEnginePackage is
         return std_logic_vector(to_unsigned(total, value'length));
     end;
 
-    function popcnt(value: std_logic_vector)
+    function i32_popcnt(value: std_logic_vector)
         return std_logic_vector
     is
         variable total : integer range 0 to value'length := 0;
@@ -544,6 +530,13 @@ package body WasmFpgaEnginePackage is
     is
     begin
         return a and b;
+    end;
+
+    function i32_or(a: std_logic_vector; b: std_logic_vector)
+        return std_logic_vector
+    is
+    begin
+        return a or b;
     end;
 
 end;

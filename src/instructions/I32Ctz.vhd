@@ -70,7 +70,7 @@ begin
                     State <= State1;
                 end if;
             elsif (State = State1) then
-                WasmFpgaInstruction_WasmFpgaStack.LowValue <= ctz(WasmFpgaStack_WasmFpgaInstruction.LowValue);
+                WasmFpgaInstruction_WasmFpgaStack.LowValue <= i32_ctz(WasmFpgaStack_WasmFpgaInstruction.LowValue);
                 State <= State2;
             elsif (State = State2) then
                 PushToStack(PushToStackState,

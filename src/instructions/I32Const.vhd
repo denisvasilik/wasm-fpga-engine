@@ -31,12 +31,13 @@ architecture InstructionI32ConstArchitecture of InstructionI32Const is
 
     signal Rst : std_logic;
     signal State : std_logic_vector(15 downto 0);
-    signal ReadU32State : std_logic_vector(15 downto 0);
+    signal ReadSignedLEB128State : std_logic_vector(15 downto 0);
     signal ReadFromModuleRamState : std_logic_vector(15 downto 0);
     signal PushToStackState : std_logic_vector(15 downto 0);
 
     signal CurrentByte : std_logic_vector(7 downto 0);
     signal DecodedValue : std_logic_vector(31 downto 0);
+    signal SignBits : std_logic_vector(31 downto 0);
 
 begin
 
@@ -57,7 +58,8 @@ begin
           Busy <= '1';
           CurrentByte <= (others => '0');
           DecodedValue <= (others => '0');
-          ReadU32State <= StateIdle;
+          SignBits <= (others => '0');
+          ReadSignedLEB128State <= StateIdle;
           ReadFromModuleRamState <= StateIdle;
           PushToStackState <= StateIdle;
           State <= StateIdle;
@@ -70,13 +72,14 @@ begin
                     State <= State0;
                 end if;
             elsif (State = State0) then
-                ReadU32(ReadU32State,
+                ReadSignedLEB128(ReadSignedLEB128State,
                         ReadFromModuleRamState,
                         DecodedValue,
                         CurrentByte,
+                        SignBits,
                         WasmFpgaModuleRam_WasmFpgaInstruction,
                         WasmFpgaInstruction_WasmFpgaModuleRam);
-                if(ReadU32State = StateEnd) then
+                if(ReadSignedLEB128State = StateEnd) then
                     State <= State1;
                     WasmFpgaInstruction_WasmFpgaStack.LowValue <= DecodedValue;
                 end if;

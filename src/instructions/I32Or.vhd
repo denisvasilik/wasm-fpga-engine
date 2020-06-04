@@ -69,7 +69,7 @@ begin
                              WasmFpgaInstruction_WasmFpgaStack,
                              WasmFpgaStack_WasmFpgaInstruction);
                 if(PopFromStackState = StateEnd) then
-                    OperandA <= WasmFpgaStack_WasmFpgaInstruction.LowValue;
+                    OperandB <= WasmFpgaStack_WasmFpgaInstruction.LowValue;
                     State <= State1;
                 end if;
             elsif (State = State1) then
@@ -77,7 +77,7 @@ begin
                              WasmFpgaInstruction_WasmFpgaStack,
                              WasmFpgaStack_WasmFpgaInstruction);
                 if(PopFromStackState = StateEnd) then
-                    OperandB <= WasmFpgaStack_WasmFpgaInstruction.LowValue;
+                    OperandA <= WasmFpgaStack_WasmFpgaInstruction.LowValue;
                     State <= State2;
                 end if;
             elsif (State = State2) then

@@ -1,5 +1,3 @@
-
-
 library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
@@ -8,11 +6,17 @@ library work;
   use work.WasmFpgaEnginePackage.all;
 
 --
--- i32.popcnt
+-- i32.shl
 --
--- Return the count of non-zero bits in i.
+-- Let k be i2​ modulo N.
 --
-entity InstructionI32Popcnt is
+-- Return the result of shifting i1​ left by k bits, modulo 2N.
+--
+-- Operation: https://www.w3.org/TR/wasm-core-1/#op-ishl
+-- Execution: https://www.w3.org/TR/wasm-core-1/#exec-binop
+-- Validation: https://www.w3.org/TR/wasm-core-1/#valid-binop
+--
+entity InstructionI32Shl is
     port (
         Clk : in std_logic;
         nRst : in std_logic;
@@ -27,12 +31,14 @@ entity InstructionI32Popcnt is
     );
 end entity;
 
-architecture InstructionI32PopcntArchitecture of InstructionI32Popcnt is
+architecture InstructionI32ShlArchitecture of InstructionI32Shl is
 
     signal Rst : std_logic;
     signal State : std_logic_vector(15 downto 0);
     signal PopFromStackState : std_logic_vector(15 downto 0);
     signal PushToStackState : std_logic_vector(15 downto 0);
+    signal OperandA : std_logic_vector(31 downto 0);
+    signal OperandB : std_logic_vector(31 downto 0);
 
 begin
 
@@ -50,6 +56,8 @@ begin
           WasmFpgaInstruction_WasmFpgaStack.LowValue <= (others => '0');
           WasmFpgaInstruction_WasmFpgaModuleRam.Run <= '0';
           WasmFpgaInstruction_WasmFpgaModuleRam.Address <= (others => '0');
+          OperandA <= (others => '0');
+          OperandB <= (others => '0');
           Busy <= '1';
           PopFromStackState <= (others => '0');
           PushToStackState <= (others => '0');
@@ -67,12 +75,21 @@ begin
                              WasmFpgaInstruction_WasmFpgaStack,
                              WasmFpgaStack_WasmFpgaInstruction);
                 if(PopFromStackState = StateEnd) then
+                    OperandB <= WasmFpgaStack_WasmFpgaInstruction.LowValue;
                     State <= State1;
                 end if;
             elsif (State = State1) then
-                WasmFpgaInstruction_WasmFpgaStack.LowValue <= i32_popcnt(WasmFpgaStack_WasmFpgaInstruction.LowValue);
-                State <= State2;
+                PopFromStack(PopFromStackState,
+                             WasmFpgaInstruction_WasmFpgaStack,
+                             WasmFpgaStack_WasmFpgaInstruction);
+                if(PopFromStackState = StateEnd) then
+                    OperandA <= WasmFpgaStack_WasmFpgaInstruction.LowValue;
+                    State <= State2;
+                end if;
             elsif (State = State2) then
+                WasmFpgaInstruction_WasmFpgaStack.LowValue <= i32_shl(OperandA, OperandB);
+                State <= State3;
+            elsif (State = State3) then
                 PushToStack(PushToStackState,
                             WasmFpgaInstruction_WasmFpgaStack,
                             WasmFpgaStack_WasmFpgaInstruction);

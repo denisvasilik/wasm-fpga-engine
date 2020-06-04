@@ -251,6 +251,96 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
       );
   end component;
 
+  component InstructionI32Xor is
+      port (
+          Clk : in std_logic;
+          nRst : in std_logic;
+          Run : in std_logic;
+          Busy : out std_logic;
+          WasmFpgaInvocation_WasmFpgaInstruction : in T_WasmFpgaInvocation_WasmFpgaInstruction;
+          WasmFpgaInstruction_WasmFpgaInvocation : out T_WasmFpgaInstruction_WasmFpgaInvocation;
+          WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction;
+          WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
+          WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
+          WasmFpgaInstruction_WasmFpgaModuleRam : out T_WasmFpgaInstruction_WasmFpgaModuleRam
+      );
+  end component;
+
+  component InstructionI32Rotl is
+      port (
+          Clk : in std_logic;
+          nRst : in std_logic;
+          Run : in std_logic;
+          Busy : out std_logic;
+          WasmFpgaInvocation_WasmFpgaInstruction : in T_WasmFpgaInvocation_WasmFpgaInstruction;
+          WasmFpgaInstruction_WasmFpgaInvocation : out T_WasmFpgaInstruction_WasmFpgaInvocation;
+          WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction;
+          WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
+          WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
+          WasmFpgaInstruction_WasmFpgaModuleRam : out T_WasmFpgaInstruction_WasmFpgaModuleRam
+      );
+  end component;
+
+  component InstructionI32Rotr is
+      port (
+          Clk : in std_logic;
+          nRst : in std_logic;
+          Run : in std_logic;
+          Busy : out std_logic;
+          WasmFpgaInvocation_WasmFpgaInstruction : in T_WasmFpgaInvocation_WasmFpgaInstruction;
+          WasmFpgaInstruction_WasmFpgaInvocation : out T_WasmFpgaInstruction_WasmFpgaInvocation;
+          WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction;
+          WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
+          WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
+          WasmFpgaInstruction_WasmFpgaModuleRam : out T_WasmFpgaInstruction_WasmFpgaModuleRam
+      );
+  end component;
+
+  component InstructionI32Shl is
+      port (
+          Clk : in std_logic;
+          nRst : in std_logic;
+          Run : in std_logic;
+          Busy : out std_logic;
+          WasmFpgaInvocation_WasmFpgaInstruction : in T_WasmFpgaInvocation_WasmFpgaInstruction;
+          WasmFpgaInstruction_WasmFpgaInvocation : out T_WasmFpgaInstruction_WasmFpgaInvocation;
+          WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction;
+          WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
+          WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
+          WasmFpgaInstruction_WasmFpgaModuleRam : out T_WasmFpgaInstruction_WasmFpgaModuleRam
+      );
+  end component;
+
+  component InstructionI32Shrs is
+      port (
+          Clk : in std_logic;
+          nRst : in std_logic;
+          Run : in std_logic;
+          Busy : out std_logic;
+          WasmFpgaInvocation_WasmFpgaInstruction : in T_WasmFpgaInvocation_WasmFpgaInstruction;
+          WasmFpgaInstruction_WasmFpgaInvocation : out T_WasmFpgaInstruction_WasmFpgaInvocation;
+          WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction;
+          WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
+          WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
+          WasmFpgaInstruction_WasmFpgaModuleRam : out T_WasmFpgaInstruction_WasmFpgaModuleRam
+      );
+  end component;
+
+  component InstructionI32Shru is
+      port (
+          Clk : in std_logic;
+          nRst : in std_logic;
+          Run : in std_logic;
+          Busy : out std_logic;
+          WasmFpgaInvocation_WasmFpgaInstruction : in T_WasmFpgaInvocation_WasmFpgaInstruction;
+          WasmFpgaInstruction_WasmFpgaInvocation : out T_WasmFpgaInstruction_WasmFpgaInvocation;
+          WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction;
+          WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
+          WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
+          WasmFpgaInstruction_WasmFpgaModuleRam : out T_WasmFpgaInstruction_WasmFpgaModuleRam
+      );
+  end component;
+
   signal Rst : std_logic;
   signal Run : std_logic;
   signal Busy : std_logic;
@@ -329,6 +419,7 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
 
   signal CurrentByte : std_logic_vector(7 downto 0);
   signal DecodedValue : std_logic_vector(31 downto 0);
+  signal SignBits : std_logic_vector(31 downto 0);
 
   signal InstantiationState : std_logic_vector(15 downto 0);
   signal PushToStackState : std_logic_vector(15 downto 0);
@@ -403,6 +494,7 @@ begin
       SectionUID <= SECTION_UID_START;
       Idx <= (others => '0');
       DecodedValue <= (others => '0');
+      SignBits <= (others => '0');
       CurrentByte <= (others => '0');
       InvocationRun <= '0';
       WasmFpgaInstantiation_WasmFpgaModuleRam.Run <= '0';
@@ -442,10 +534,11 @@ begin
             end if;
         elsif(InstantiationState = State3) then
             -- Read section size
-            ReadU32(Read32UState,
+            ReadSignedLEB128(Read32UState,
                     ReadFromModuleRamState,
                     DecodedValue,
                     CurrentByte,
+                    SignBits,
                     WasmFpgaModuleRam_WasmFpgaInstantiation,
                     WasmFpgaInstantiation_WasmFpgaModuleRam);
             if (Read32UState = StateEnd) then
@@ -454,10 +547,11 @@ begin
         elsif(InstantiationState = State4) then
             -- Ignore section size
             -- Read start funx idx
-            ReadU32(Read32UState,
+            ReadSignedLEB128(Read32UState,
                     ReadFromModuleRamState,
                     DecodedValue,
                     CurrentByte,
+                    SignBits,
                     WasmFpgaModuleRam_WasmFpgaInstantiation,
                     WasmFpgaInstantiation_WasmFpgaModuleRam);
             if (Read32UState = StateEnd) then
@@ -486,10 +580,11 @@ begin
             end if;
         elsif(InstantiationState = State8) then
             -- Read function body size
-            ReadU32(Read32UState,
+            ReadSignedLEB128(Read32UState,
                     ReadFromModuleRamState,
                     DecodedValue,
                     CurrentByte,
+                    SignBits,
                     WasmFpgaModuleRam_WasmFpgaInstantiation,
                     WasmFpgaInstantiation_WasmFpgaModuleRam);
             if (Read32UState = StateEnd) then
@@ -501,10 +596,11 @@ begin
         elsif(InstantiationState = State9) then
             -- Ignore function body size
             -- Read local decl count
-            ReadU32(Read32UState,
+            ReadSignedLEB128(Read32UState,
                     ReadFromModuleRamState,
                     DecodedValue,
                     CurrentByte,
+                    SignBits,
                     WasmFpgaModuleRam_WasmFpgaInstantiation,
                     WasmFpgaInstantiation_WasmFpgaModuleRam);
             if (Read32UState = StateEnd) then
@@ -888,6 +984,90 @@ begin
             WasmFpgaInstruction_WasmFpgaStack => WasmFpgaInstruction_WasmFpgaStack(to_integer(unsigned(WASM_OPCODE_I32_CLZ))),
             WasmFpgaModuleRam_WasmFpgaInstruction => WasmFpgaModuleRam_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_I32_CLZ))),
             WasmFpgaInstruction_WasmFpgaModuleRam => WasmFpgaInstruction_WasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_I32_CLZ)))
+        );
+
+    InstructionI32Xor_i : InstructionI32Xor
+        port map (
+            Clk => Clk,
+            nRst => nRst,
+            Run => InstructionRun(to_integer(unsigned(WASM_OPCODE_I32_XOR))),
+            Busy => InstructionBusy(to_integer(unsigned(WASM_OPCODE_I32_XOR))),
+            WasmFpgaInvocation_WasmFpgaInstruction => WasmFpgaInvocation_WasmFpgaInstruction,
+            WasmFpgaInstruction_WasmFpgaInvocation => WasmFpgaInstruction_WasmFpgaInvocation(to_integer(unsigned(WASM_OPCODE_I32_XOR))),
+            WasmFpgaStack_WasmFpgaInstruction => WasmFpgaStack_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_I32_XOR))),
+            WasmFpgaInstruction_WasmFpgaStack => WasmFpgaInstruction_WasmFpgaStack(to_integer(unsigned(WASM_OPCODE_I32_XOR))),
+            WasmFpgaModuleRam_WasmFpgaInstruction => WasmFpgaModuleRam_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_I32_XOR))),
+            WasmFpgaInstruction_WasmFpgaModuleRam => WasmFpgaInstruction_WasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_I32_XOR)))
+        );
+
+    InstructionI32Rotl_i : InstructionI32Rotl
+        port map (
+            Clk => Clk,
+            nRst => nRst,
+            Run => InstructionRun(to_integer(unsigned(WASM_OPCODE_I32_ROTL))),
+            Busy => InstructionBusy(to_integer(unsigned(WASM_OPCODE_I32_ROTL))),
+            WasmFpgaInvocation_WasmFpgaInstruction => WasmFpgaInvocation_WasmFpgaInstruction,
+            WasmFpgaInstruction_WasmFpgaInvocation => WasmFpgaInstruction_WasmFpgaInvocation(to_integer(unsigned(WASM_OPCODE_I32_ROTL))),
+            WasmFpgaStack_WasmFpgaInstruction => WasmFpgaStack_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_I32_ROTL))),
+            WasmFpgaInstruction_WasmFpgaStack => WasmFpgaInstruction_WasmFpgaStack(to_integer(unsigned(WASM_OPCODE_I32_ROTL))),
+            WasmFpgaModuleRam_WasmFpgaInstruction => WasmFpgaModuleRam_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_I32_ROTL))),
+            WasmFpgaInstruction_WasmFpgaModuleRam => WasmFpgaInstruction_WasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_I32_ROTL)))
+        );
+
+    InstructionI32Rotr_i : InstructionI32Rotr
+        port map (
+            Clk => Clk,
+            nRst => nRst,
+            Run => InstructionRun(to_integer(unsigned(WASM_OPCODE_I32_ROTR))),
+            Busy => InstructionBusy(to_integer(unsigned(WASM_OPCODE_I32_ROTR))),
+            WasmFpgaInvocation_WasmFpgaInstruction => WasmFpgaInvocation_WasmFpgaInstruction,
+            WasmFpgaInstruction_WasmFpgaInvocation => WasmFpgaInstruction_WasmFpgaInvocation(to_integer(unsigned(WASM_OPCODE_I32_ROTR))),
+            WasmFpgaStack_WasmFpgaInstruction => WasmFpgaStack_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_I32_ROTR))),
+            WasmFpgaInstruction_WasmFpgaStack => WasmFpgaInstruction_WasmFpgaStack(to_integer(unsigned(WASM_OPCODE_I32_ROTR))),
+            WasmFpgaModuleRam_WasmFpgaInstruction => WasmFpgaModuleRam_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_I32_ROTR))),
+            WasmFpgaInstruction_WasmFpgaModuleRam => WasmFpgaInstruction_WasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_I32_ROTR)))
+        );
+
+    InstructionI32Shl_i : InstructionI32Shl
+        port map (
+            Clk => Clk,
+            nRst => nRst,
+            Run => InstructionRun(to_integer(unsigned(WASM_OPCODE_I32_SHL))),
+            Busy => InstructionBusy(to_integer(unsigned(WASM_OPCODE_I32_SHL))),
+            WasmFpgaInvocation_WasmFpgaInstruction => WasmFpgaInvocation_WasmFpgaInstruction,
+            WasmFpgaInstruction_WasmFpgaInvocation => WasmFpgaInstruction_WasmFpgaInvocation(to_integer(unsigned(WASM_OPCODE_I32_SHL))),
+            WasmFpgaStack_WasmFpgaInstruction => WasmFpgaStack_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_I32_SHL))),
+            WasmFpgaInstruction_WasmFpgaStack => WasmFpgaInstruction_WasmFpgaStack(to_integer(unsigned(WASM_OPCODE_I32_SHL))),
+            WasmFpgaModuleRam_WasmFpgaInstruction => WasmFpgaModuleRam_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_I32_SHL))),
+            WasmFpgaInstruction_WasmFpgaModuleRam => WasmFpgaInstruction_WasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_I32_SHL)))
+        );
+
+    InstructionI32Shrs_i : InstructionI32Shrs
+        port map (
+            Clk => Clk,
+            nRst => nRst,
+            Run => InstructionRun(to_integer(unsigned(WASM_OPCODE_I32_SHR_S))),
+            Busy => InstructionBusy(to_integer(unsigned(WASM_OPCODE_I32_SHR_S))),
+            WasmFpgaInvocation_WasmFpgaInstruction => WasmFpgaInvocation_WasmFpgaInstruction,
+            WasmFpgaInstruction_WasmFpgaInvocation => WasmFpgaInstruction_WasmFpgaInvocation(to_integer(unsigned(WASM_OPCODE_I32_SHR_S))),
+            WasmFpgaStack_WasmFpgaInstruction => WasmFpgaStack_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_I32_SHR_S))),
+            WasmFpgaInstruction_WasmFpgaStack => WasmFpgaInstruction_WasmFpgaStack(to_integer(unsigned(WASM_OPCODE_I32_SHR_S))),
+            WasmFpgaModuleRam_WasmFpgaInstruction => WasmFpgaModuleRam_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_I32_SHR_S))),
+            WasmFpgaInstruction_WasmFpgaModuleRam => WasmFpgaInstruction_WasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_I32_SHR_S)))
+        );
+
+    InstructionI32Shru_i : InstructionI32Shru
+        port map (
+            Clk => Clk,
+            nRst => nRst,
+            Run => InstructionRun(to_integer(unsigned(WASM_OPCODE_I32_SHR_U))),
+            Busy => InstructionBusy(to_integer(unsigned(WASM_OPCODE_I32_SHR_U))),
+            WasmFpgaInvocation_WasmFpgaInstruction => WasmFpgaInvocation_WasmFpgaInstruction,
+            WasmFpgaInstruction_WasmFpgaInvocation => WasmFpgaInstruction_WasmFpgaInvocation(to_integer(unsigned(WASM_OPCODE_I32_SHR_U))),
+            WasmFpgaStack_WasmFpgaInstruction => WasmFpgaStack_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_I32_SHR_U))),
+            WasmFpgaInstruction_WasmFpgaStack => WasmFpgaInstruction_WasmFpgaStack(to_integer(unsigned(WASM_OPCODE_I32_SHR_U))),
+            WasmFpgaModuleRam_WasmFpgaInstruction => WasmFpgaModuleRam_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_I32_SHR_U))),
+            WasmFpgaInstruction_WasmFpgaModuleRam => WasmFpgaInstruction_WasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_I32_SHR_U)))
         );
 
 end;

@@ -286,15 +286,28 @@ package WasmFpgaEnginePackage is
 
     function i32_or(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
 
+    function i32_xor(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
+
+    function i32_rotl(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
+
+    function i32_rotr(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
+
+    function i32_shl(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
+
+    function i32_shr_s(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
+
+    function i32_shr_u(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
+
     procedure ReadFromModuleRam(signal State : inout std_logic_vector;
                                  signal CurrentByte : inout std_logic_vector;
                                  signal WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
                                  signal WasmFpgaInstruction_WasmFpgaModuleRam : out T_WasmFpgaInstruction_WasmFpgaModuleRam);
 
-    procedure ReadU32(signal State : inout std_logic_vector;
+    procedure ReadSignedLEB128(signal State : inout std_logic_vector;
                       signal ReadFromModuleRamState : inout std_logic_vector;
                       signal DecodedValue : inout std_logic_vector;
                       signal CurrentByte : inout std_logic_vector;
+                      signal SignBits : inout std_logic_vector;
                       signal WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
                       signal WasmFpgaInstruction_WasmFpgaModuleRam : out T_WasmFpgaInstruction_WasmFpgaModuleRam);
 
@@ -313,10 +326,11 @@ package body WasmFpgaEnginePackage is
     --
     -- Read u32 (LEB128 encoded)
     --
-    procedure ReadU32(signal State : inout std_logic_vector;
+    procedure ReadSignedLEB128(signal State : inout std_logic_vector;
                       signal ReadFromModuleRamState : inout std_logic_vector;
                       signal DecodedValue : inout std_logic_vector;
                       signal CurrentByte : inout std_logic_vector;
+                      signal SignBits : inout std_logic_vector;
                       signal WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
                       signal WasmFpgaInstruction_WasmFpgaModuleRam : out T_WasmFpgaInstruction_WasmFpgaModuleRam) is
     begin
@@ -326,60 +340,69 @@ package body WasmFpgaEnginePackage is
                               WasmFpgaModuleRam_WasmFpgaInstruction,
                               WasmFpgaInstruction_WasmFpgaModuleRam);
             if (ReadFromModuleRamState = StateEnd) then
+                DecodedValue <= (31 downto 7 => '0') & CurrentByte(6 downto 0);
                 State <= State0;
             end if;
         elsif (State = State0) then
             if ((CurrentByte and x"80") = x"00") then
                 -- 1 byte
-                DecodedValue(6 downto 0) <= CurrentByte(6 downto 0);
-                State <= StateEnd;
+                SignBits <= x"FFFFFFC0";
+                State <= State4;
             else
                 ReadFromModuleRam(ReadFromModuleRamState,
                                   CurrentByte,
                                   WasmFpgaModuleRam_WasmFpgaInstruction,
                                   WasmFpgaInstruction_WasmFpgaModuleRam);
                 if (ReadFromModuleRamState = StateEnd) then
+                    DecodedValue(13 downto 7) <= CurrentByte(6 downto 0);
                     State <= State1;
                 end if;
             end if;
         elsif (State = State1) then
             if ((CurrentByte and x"80") = x"00") then
                 -- 2 byte
-                DecodedValue(13 downto 7) <= CurrentByte(6 downto 0);
-                State <= StateEnd;
+                SignBits <= x"FFFFE000";
+                State <= State4;
             else
                 ReadFromModuleRam(ReadFromModuleRamState,
                                   CurrentByte,
                                   WasmFpgaModuleRam_WasmFpgaInstruction,
                                   WasmFpgaInstruction_WasmFpgaModuleRam);
                 if (ReadFromModuleRamState = StateEnd) then
+                    DecodedValue(20 downto 14) <= CurrentByte(6 downto 0);
                     State <= State2;
                 end if;
             end if;
         elsif (State = State2) then
             if ((CurrentByte and x"80") = x"00") then
                 -- 3 byte
-                DecodedValue(20 downto 14) <= CurrentByte(6 downto 0);
-                State <= StateEnd;
+                SignBits <= x"FFF00000";
+                State <= State4;
             else
                 ReadFromModuleRam(ReadFromModuleRamState,
                                   CurrentByte,
                                   WasmFpgaModuleRam_WasmFpgaInstruction,
                                   WasmFpgaInstruction_WasmFpgaModuleRam);
                 if (ReadFromModuleRamState = StateEnd) then
+                    DecodedValue(27 downto 21) <= CurrentByte(6 downto 0);
                     State <= State3;
                 end if;
             end if;
         elsif (State = State3) then
             if ((CurrentByte and x"80") = x"00") then
                 -- 4 byte
-                DecodedValue(27 downto 21) <= CurrentByte(6 downto 0);
-                State <= StateEnd;
+                SignBits <= x"F8000000";
+                State <= State4;
             else
                 -- Greater than u32 not supported
                 DecodedValue <= (others => '0');
                 State <= StateNotSupported;
             end if;
+        elsif (State = State4) then
+            if ((SignBits and DecodedValue) /= x"00000000") then
+                DecodedValue <= DecodedValue or SignBits;
+            end if;
+            State <= StateEnd;
         elsif (State = StateEnd) then
             State <= StateIdle;
         else
@@ -537,6 +560,48 @@ package body WasmFpgaEnginePackage is
     is
     begin
         return a or b;
+    end;
+
+    function i32_xor(a: std_logic_vector; b: std_logic_vector)
+        return std_logic_vector
+    is
+    begin
+        return a xor b;
+    end;
+
+    function i32_rotl(a: std_logic_vector; b: std_logic_vector)
+        return std_logic_vector
+    is
+    begin
+        return std_logic_vector(rotate_left(unsigned(a), to_integer(unsigned(b))));
+    end;
+
+    function i32_rotr(a: std_logic_vector; b: std_logic_vector)
+        return std_logic_vector
+    is
+    begin
+        return std_logic_vector(rotate_right(unsigned(a), to_integer(unsigned(b))));
+    end;
+
+    function i32_shl(a: std_logic_vector; b: std_logic_vector)
+        return std_logic_vector
+    is
+    begin
+        return std_logic_vector(shift_left(unsigned(a), to_integer(unsigned(b))));
+    end;
+
+    function i32_shr_s(a: std_logic_vector; b: std_logic_vector)
+        return std_logic_vector
+    is
+    begin
+        return std_logic_vector(shift_right(signed(a), to_integer(unsigned(b))));
+    end;
+
+    function i32_shr_u(a: std_logic_vector; b: std_logic_vector)
+        return std_logic_vector
+    is
+    begin
+        return std_logic_vector(shift_right(unsigned(a), to_integer(unsigned(b))));
     end;
 
 end;

@@ -72,6 +72,12 @@ set files_vhd [list \
  [file normalize "${project_src}/instructions/I32Const.vhd" ]\
  [file normalize "${project_src}/instructions/I32And.vhd" ]\
  [file normalize "${project_src}/instructions/I32Or.vhd" ]\
+ [file normalize "${project_src}/instructions/I32Xor.vhd" ]\
+ [file normalize "${project_src}/instructions/I32Rotl.vhd" ]\
+ [file normalize "${project_src}/instructions/I32Rotr.vhd" ]\
+ [file normalize "${project_src}/instructions/I32Shl.vhd" ]\
+ [file normalize "${project_src}/instructions/I32Shrs.vhd" ]\
+ [file normalize "${project_src}/instructions/I32Shru.vhd" ]\
  [file normalize "${project_src}/instructions/I32Popcnt.vhd" ]\
  [file normalize "${project_package}/component.xml" ]\
 ]

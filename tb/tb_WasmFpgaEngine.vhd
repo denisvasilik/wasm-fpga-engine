@@ -39,6 +39,12 @@ architecture behavioural of tb_WasmFpgaEngine is
     signal WasmFpgaBus_WasmFpgaStack : T_WasmFpgaBus_WasmFpgaStack;
     signal WasmFpgaStack_WasmFpgaBus : T_WasmFpgaStack_WasmFpgaBus;
 
+    signal WasmFpgaBus_WasmFpgaEngine : T_WasmFpgaBus_WasmFpgaEngine;
+    signal WasmFpgaEngine_WasmFpgaBus : T_WasmFpgaEngine_WasmFpgaBus;
+
+    signal WasmFpgaBus_FileIO : T_WasmFpgaBus_FileIO;
+    signal FileIO_WasmFpgaBus : T_FileIO_WasmFpgaBus;
+
     signal Module_Adr : std_logic_vector(23 downto 0);
     signal Module_Sel : std_logic_vector(3 downto 0);
     signal Module_We : std_logic;
@@ -113,6 +119,8 @@ architecture behavioural of tb_WasmFpgaEngine is
             nRst : out std_logic;
             WasmFpgaEngine_FileIO : in T_WasmFpgaEngine_FileIO;
             FileIO_WasmFpgaEngine : out T_FileIO_WasmFpgaEngine;
+            WasmFpgaBus_FileIO : in T_WasmFpgaBus_FileIO;
+            FileIO_WasmFpgaBus : out T_FileIO_WasmFpgaBus;
             ModuleMemory_FileIO : in T_ModuleMemory_FileIO;
             FileIO_ModuleMemory : out T_FileIO_ModuleMemory;
             StoreMemory_FileIO : in T_StoreMemory_FileIO;
@@ -277,6 +285,8 @@ begin
             nRst => nRst,
             WasmFpgaEngine_FileIO => WasmFpgaEngine_FileIO,
             FileIO_WasmFpgaEngine => FileIO_WasmFpgaEngine,
+            WasmFpgaBus_FileIO => WasmFpgaBus_FileIO,
+            FileIO_WasmFpgaBus => FileIO_WasmFpgaBus,
             ModuleMemory_FileIO => ModuleMemory_FileIO,
             FileIO_ModuleMemory => FileIO_ModuleMemory,
             StoreMemory_FileIO => StoreMemory_FileIO,
@@ -327,6 +337,20 @@ begin
     Store_DatOut <= StoreMemory_DatOut;
     Store_Ack <= StoreMemory_Ack;
 
+    -- File IO and WebAssembly engine can write to the bus
+    Bus_Adr <= FileIO_WasmFpgaBus.Adr when FileIO_WasmFpgaBus.Cyc = "1" else WasmFpgaEngine_WasmFpgaBus.Adr;
+    Bus_Sel <= FileIO_WasmFpgaBus.Sel when FileIO_WasmFpgaBus.Cyc = "1" else WasmFpgaEngine_WasmFpgaBus.Sel;
+    Bus_We <= FileIO_WasmFpgaBus.We when FileIO_WasmFpgaBus.Cyc = "1" else WasmFpgaEngine_WasmFpgaBus.We;
+    Bus_Stb <= FileIO_WasmFpgaBus.Stb when FileIO_WasmFpgaBus.Cyc = "1" else WasmFpgaEngine_WasmFpgaBus.Stb;
+    Bus_DatIn <= FileIO_WasmFpgaBus.DatIn when FileIO_WasmFpgaBus.Cyc = "1" else WasmFpgaEngine_WasmFpgaBus.DatIn;
+    Bus_Cyc <= FileIO_WasmFpgaBus.Cyc when FileIO_WasmFpgaBus.Cyc = "1" else WasmFpgaEngine_WasmFpgaBus.Cyc;
+
+    WasmFpgaBus_FileIO.Ack <= Bus_Ack;
+    WasmFpgaBus_FileIO.DatOut <= Bus_DatOut;
+
+    WasmFpgaBus_WasmFpgaEngine.DatOut <= Bus_DatOut;
+    WasmFpgaBus_WasmFpgaEngine.Ack <= Bus_Ack;
+
     WasmFpgaEngine_i : WasmFpgaEngine
         port map (
             Clk => Clk100M,
@@ -339,14 +363,14 @@ begin
             Cyc => FileIO_WasmFpgaEngine.Cyc,
             DatOut => WasmFpgaEngine_FileIO.DatOut,
             Ack => WasmFpgaEngine_FileIO.Ack,
-            Bus_Adr => Bus_Adr,
-            Bus_Sel => Bus_Sel,
-            Bus_We => Bus_We,
-            Bus_Stb => Bus_Stb,
-            Bus_DatOut => Bus_DatIn,
-            Bus_DatIn => Bus_DatOut,
-            Bus_Ack => Bus_Ack,
-            Bus_Cyc => Bus_Cyc,
+            Bus_Adr => WasmFpgaEngine_WasmFpgaBus.Adr,
+            Bus_Sel => WasmFpgaEngine_WasmFpgaBus.Sel,
+            Bus_We => WasmFpgaEngine_WasmFpgaBus.We,
+            Bus_Stb => WasmFpgaEngine_WasmFpgaBus.Stb,
+            Bus_DatOut => WasmFpgaEngine_WasmFpgaBus.DatIn,
+            Bus_DatIn => WasmFpgaBus_WasmFpgaEngine.DatOut,
+            Bus_Ack => WasmFpgaBus_WasmFpgaEngine.Ack,
+            Bus_Cyc => WasmFpgaEngine_WasmFpgaBus.Cyc,
             Trap => open
        );
 

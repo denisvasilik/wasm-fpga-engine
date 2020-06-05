@@ -297,6 +297,8 @@ package WasmFpgaEnginePackage is
 
     function i32_lt_s(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
 
+    function i32_lt_u(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
+
     function i32_xor(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
 
     function i32_rotl(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
@@ -649,6 +651,17 @@ package body WasmFpgaEnginePackage is
     end;
 
     function i32_lt_s(a: std_logic_vector; b: std_logic_vector)
+        return std_logic_vector
+    is
+    begin
+        if (a < b) then
+            return x"00000001";
+        else
+            return x"00000000";
+        end if;
+    end;
+
+    function i32_lt_u(a: std_logic_vector; b: std_logic_vector)
         return std_logic_vector
     is
     begin

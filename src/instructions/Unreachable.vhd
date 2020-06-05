@@ -7,11 +7,9 @@ library work;
   use work.WasmFpgaStackWshBn_Package.all;
 
 --
--- nop
+-- unreachable
 --
--- The nop instruction does nothing.
---
-entity InstructionNop is
+entity InstructionUnreachable is
     port (
         Clk : in std_logic;
         nRst : in std_logic;
@@ -24,7 +22,7 @@ entity InstructionNop is
     );
 end entity;
 
-architecture InstructionNopArchitecture of InstructionNop is
+architecture InstructionUnreachableArchitecture of InstructionUnreachable is
 
     signal Rst : std_logic;
     signal State : std_logic_vector(15 downto 0);
@@ -52,6 +50,7 @@ begin
                 WasmFpgaInstruction_WasmFpgaInvocation.Busy <= '0';
                 if (WasmFpgaInvocation_WasmFpgaInstruction.Run = '1') then
                     WasmFpgaInstruction_WasmFpgaInvocation.Busy <= '1';
+                    WasmFpgaInstruction_WasmFpgaInvocation.Trap <= '1';
                     WasmFpgaInstruction_WasmFpgaInvocation.Address <= WasmFpgaInvocation_WasmFpgaInstruction.Address;
                     State <= StateIdle;
                 end if;

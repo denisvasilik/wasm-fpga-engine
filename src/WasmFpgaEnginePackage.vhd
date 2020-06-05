@@ -267,11 +267,14 @@ package WasmFpgaEnginePackage is
 
     type T_WasmFpgaInstruction_WasmFpgaInvocation is
     record
+        Busy : std_logic;
+        Trap : std_logic;
         Address : std_logic_vector(23 downto 0);
     end record;
 
     type T_WasmFpgaInvocation_WasmFpgaInstruction is
     record
+        Run : std_logic;
         Address : std_logic_vector(23 downto 0);
     end record;
 
@@ -283,6 +286,10 @@ package WasmFpgaEnginePackage is
     function i32_popcnt(value: std_logic_vector) return std_logic_vector;
 
     function i32_and(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
+
+    function i32_eqz(a: std_logic_vector) return std_logic_vector;
+
+    function i32_eq(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
 
     function i32_or(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
 
@@ -604,4 +611,25 @@ package body WasmFpgaEnginePackage is
         return std_logic_vector(shift_right(unsigned(a), to_integer(unsigned(b))));
     end;
 
+    function i32_eqz(a: std_logic_vector)
+        return std_logic_vector
+    is
+    begin
+        if (a = x"00000000") then
+            return x"00000001";
+        else
+            return x"00000000";
+        end if;
+    end;
+
+    function i32_eq(a: std_logic_vector; b: std_logic_vector)
+        return std_logic_vector
+    is
+    begin
+        if (a = b) then
+            return x"00000001";
+        else
+            return x"00000000";
+        end if;
+    end;
 end;

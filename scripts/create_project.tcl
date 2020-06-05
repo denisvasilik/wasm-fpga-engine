@@ -67,6 +67,7 @@ set files_vhd [list \
  [file normalize "${project_src}/instructions/End.vhd" ]\
  [file normalize "${project_src}/instructions/Nop.vhd" ]\
  [file normalize "${project_src}/instructions/Drop.vhd" ]\
+ [file normalize "${project_src}/instructions/Unreachable.vhd" ]\
  [file normalize "${project_src}/instructions/I32Ctz.vhd" ]\
  [file normalize "${project_src}/instructions/I32Clz.vhd" ]\
  [file normalize "${project_src}/instructions/I32Const.vhd" ]\
@@ -79,6 +80,8 @@ set files_vhd [list \
  [file normalize "${project_src}/instructions/I32Shrs.vhd" ]\
  [file normalize "${project_src}/instructions/I32Shru.vhd" ]\
  [file normalize "${project_src}/instructions/I32Popcnt.vhd" ]\
+ [file normalize "${project_src}/instructions/I32Eqz.vhd" ]\
+ [file normalize "${project_src}/instructions/I32Eq.vhd" ]\
  [file normalize "${project_package}/component.xml" ]\
 ]
 add_files -norecurse -fileset $obj $files_vhd

@@ -14,8 +14,6 @@ entity InstructionI32Xor is
     port (
         Clk : in std_logic;
         nRst : in std_logic;
-        Run : in std_logic;
-        Busy : out std_logic;
         WasmFpgaInvocation_WasmFpgaInstruction : in T_WasmFpgaInvocation_WasmFpgaInstruction;
         WasmFpgaInstruction_WasmFpgaInvocation : out T_WasmFpgaInstruction_WasmFpgaInvocation;
         WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction;
@@ -38,8 +36,6 @@ begin
 
     Rst <= not nRst;
 
-    WasmFpgaInstruction_WasmFpgaInvocation.Address <= WasmFpgaInstruction_WasmFpgaModuleRam.Address;
-
     process (Clk, Rst) is
     begin
         if (Rst = '1') then
@@ -50,17 +46,19 @@ begin
           WasmFpgaInstruction_WasmFpgaStack.LowValue <= (others => '0');
           WasmFpgaInstruction_WasmFpgaModuleRam.Run <= '0';
           WasmFpgaInstruction_WasmFpgaModuleRam.Address <= (others => '0');
+          WasmFpgaInstruction_WasmFpgaInvocation.Address <= (others => '0');
+          WasmFpgaInstruction_WasmFpgaInvocation.Trap <= '0';
+          WasmFpgaInstruction_WasmFpgaInvocation.Busy <= '1';
           OperandA <= (others => '0');
           OperandB <= (others => '0');
-          Busy <= '1';
           PopFromStackState <= (others => '0');
           PushToStackState <= (others => '0');
           State <= StateIdle;
         elsif rising_edge(Clk) then
             if (State = StateIdle) then
-                Busy <= '0';
-                if (Run = '1') then
-                    Busy <= '1';
+                WasmFpgaInstruction_WasmFpgaInvocation.Busy <= '0';
+                if (WasmFpgaInvocation_WasmFpgaInstruction.Run = '1') then
+                    WasmFpgaInstruction_WasmFpgaInvocation.Busy <= '1';
                     WasmFpgaInstruction_WasmFpgaModuleRam.Address <= WasmFpgaInvocation_WasmFpgaInstruction.Address;
                     State <= State0;
                 end if;
@@ -88,8 +86,11 @@ begin
                             WasmFpgaInstruction_WasmFpgaStack,
                             WasmFpgaStack_WasmFpgaInstruction);
                 if(PushToStackState = StateEnd) then
-                    State <= StateIdle;
+                    State <= State4;
                 end if;
+            elsif (State = State4) then
+                WasmFpgaInstruction_WasmFpgaInvocation.Address <= WasmFpgaInstruction_WasmFpgaModuleRam.Address;
+                State <= StateIdle;
             end if;
         end if;
     end process;

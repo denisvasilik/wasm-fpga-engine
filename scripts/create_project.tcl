@@ -66,11 +66,31 @@ set files_vhd [list \
  [file normalize "${project_src_gen}/vhd_gen/wishbone/wasm_fpga_engine_wishbone.vhd" ]\
  [file normalize "${project_src}/instructions/End.vhd" ]\
  [file normalize "${project_src}/instructions/Nop.vhd" ]\
+ [file normalize "${project_src}/instructions/Drop.vhd" ]\
+ [file normalize "${project_src}/instructions/Unreachable.vhd" ]\
  [file normalize "${project_src}/instructions/I32Ctz.vhd" ]\
+ [file normalize "${project_src}/instructions/I32Clz.vhd" ]\
  [file normalize "${project_src}/instructions/I32Const.vhd" ]\
  [file normalize "${project_src}/instructions/I32And.vhd" ]\
  [file normalize "${project_src}/instructions/I32Or.vhd" ]\
+ [file normalize "${project_src}/instructions/I32Xor.vhd" ]\
+ [file normalize "${project_src}/instructions/I32Rotl.vhd" ]\
+ [file normalize "${project_src}/instructions/I32Rotr.vhd" ]\
+ [file normalize "${project_src}/instructions/I32Shl.vhd" ]\
+ [file normalize "${project_src}/instructions/I32Shrs.vhd" ]\
+ [file normalize "${project_src}/instructions/I32Shru.vhd" ]\
  [file normalize "${project_src}/instructions/I32Popcnt.vhd" ]\
+ [file normalize "${project_src}/instructions/I32Eqz.vhd" ]\
+ [file normalize "${project_src}/instructions/I32Eq.vhd" ]\
+ [file normalize "${project_src}/instructions/I32Ne.vhd" ]\
+ [file normalize "${project_src}/instructions/I32Lts.vhd" ]\
+ [file normalize "${project_src}/instructions/I32Ltu.vhd" ]\
+ [file normalize "${project_src}/instructions/I32Ges.vhd" ]\
+ [file normalize "${project_src}/instructions/I32Geu.vhd" ]\
+ [file normalize "${project_src}/instructions/I32Gts.vhd" ]\
+ [file normalize "${project_src}/instructions/I32Gtu.vhd" ]\
+ [file normalize "${project_src}/instructions/I32Les.vhd" ]\
+ [file normalize "${project_src}/instructions/I32Leu.vhd" ]\
  [file normalize "${project_package}/component.xml" ]\
 ]
 add_files -norecurse -fileset $obj $files_vhd

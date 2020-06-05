@@ -6,11 +6,13 @@ library work;
   use work.WasmFpgaEnginePackage.all;
 
 --
--- i32.and
+-- i32.le_u
 --
--- Return the bitwise conjunction of i1​ and i2​. .
+-- Operation: https://www.w3.org/TR/wasm-core-1/#op-ile-u
+-- Execution: https://www.w3.org/TR/wasm-core-1/#exec-relop
+-- Validation: https://www.w3.org/TR/wasm-core-1/#valid-relop
 --
-entity InstructionI32Or is
+entity InstructionI32Leu is
     port (
         Clk : in std_logic;
         nRst : in std_logic;
@@ -23,7 +25,7 @@ entity InstructionI32Or is
     );
 end entity;
 
-architecture InstructionI32OrArchitecture of InstructionI32Or is
+architecture InstructionI32LeuArchitecture of InstructionI32Leu is
 
     signal Rst : std_logic;
     signal State : std_logic_vector(15 downto 0);
@@ -79,7 +81,7 @@ begin
                     State <= State2;
                 end if;
             elsif (State = State2) then
-                WasmFpgaInstruction_WasmFpgaStack.LowValue <= i32_or(OperandA, OperandB);
+                WasmFpgaInstruction_WasmFpgaStack.LowValue <= i32_lt_u(OperandA, OperandB);
                 State <= State3;
             elsif (State = State3) then
                 PushToStack(PushToStackState,

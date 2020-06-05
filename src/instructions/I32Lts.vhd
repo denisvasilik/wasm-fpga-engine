@@ -6,11 +6,19 @@ library work;
   use work.WasmFpgaEnginePackage.all;
 
 --
--- i32.and
+-- i32.lt_s
 --
--- Return the bitwise conjunction of i1​ and i2​. .
+-- Let j1​ be the signed interpretation of i1​.
 --
-entity InstructionI32Or is
+-- Let j2​ be the signed interpretation of i2​.
+--
+-- Return 1 if j1​ is less than j2​, 0 otherwise.
+--
+-- Operation: https://www.w3.org/TR/wasm-core-1/#op-ilt-s
+-- Execution: https://www.w3.org/TR/wasm-core-1/#exec-relop
+-- Validation: https://www.w3.org/TR/wasm-core-1/#valid-relop
+--
+entity InstructionI32Lts is
     port (
         Clk : in std_logic;
         nRst : in std_logic;
@@ -23,7 +31,7 @@ entity InstructionI32Or is
     );
 end entity;
 
-architecture InstructionI32OrArchitecture of InstructionI32Or is
+architecture InstructionI32LtsArchitecture of InstructionI32Lts is
 
     signal Rst : std_logic;
     signal State : std_logic_vector(15 downto 0);
@@ -79,7 +87,7 @@ begin
                     State <= State2;
                 end if;
             elsif (State = State2) then
-                WasmFpgaInstruction_WasmFpgaStack.LowValue <= i32_or(OperandA, OperandB);
+                WasmFpgaInstruction_WasmFpgaStack.LowValue <= i32_lt_s(OperandA, OperandB);
                 State <= State3;
             elsif (State = State3) then
                 PushToStack(PushToStackState,

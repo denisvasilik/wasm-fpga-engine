@@ -24,6 +24,8 @@ entity tb_FileIo is
     nRst : out std_logic;
     WasmFpgaEngine_FileIO : in T_WasmFpgaEngine_FileIO;
     FileIO_WasmFpgaEngine : out T_FileIO_WasmFpgaEngine;
+    WasmFpgaBus_FileIO : in T_WasmFpgaBus_FileIO;
+    FileIO_WasmFpgaBus : out T_FileIO_WasmFpgaBus;
     ModuleMemory_FileIO : in T_ModuleMemory_FileIO;
     FileIO_ModuleMemory : out T_FileIO_ModuleMemory;
     StoreMemory_FileIO : in T_StoreMemory_FileIO;
@@ -257,6 +259,13 @@ begin
         FileIO_StackMemory.Cyc <= (others => '0');
         FileIO_StackMemory.We <= '0';
         FileIO_StackMemory.Stb <= '0';
+
+        FileIO_WasmFpgaBus.DatIn <= (others => '0');
+        FileIO_WasmFpgaBus.Adr <= (others => '0');
+        FileIO_WasmFpgaBus.Sel <= (others => '0');
+        FileIO_WasmFpgaBus.Cyc <= (others => '0');
+        FileIO_WasmFpgaBus.We <= '0';
+        FileIO_WasmFpgaBus.Stb <= '0';
 
         tempAddress <= (others => '0');
         tempValue <= (others => '0');
@@ -935,8 +944,19 @@ begin
             --  (par5  data read) mask data for verify ( (and read data) and (and expected) data with mask before compare)
 
             elsif (instruction(1 to len) = "GET_SIG" or instruction(1 to len) = "VERIFY_SIG" ) then
-                if (par1 = 0) then
-
+                if (par1 = 1) then
+                    -- Get Stack Size
+                    FileIO_WasmFpgaBus.Adr <= x"000108";
+                    FileIO_WasmFpgaBus.Sel <= x"F";
+                    FileIO_WasmFpgaBus.Cyc <= "1";
+                    FileIO_WasmFpgaBus.Stb <= '1';
+                    FileIO_WasmFpgaBus.We <= '0';
+                    wait until rising_edge(WasmFpgaBus_FileIO.Ack);
+                    temp_int := to_integer(unsigned(WasmFpgaBus_FileIO.DatOut(31 downto 0)));
+                    FileIO_WasmFpgaBus.Sel <= x"0";
+                    FileIO_WasmFpgaBus.Cyc <= "0";
+                    FileIO_WasmFpgaBus.Stb <= '0';
+                    FileIO_WasmFpgaBus.We <= '0';
                 else
                     assert (false)
                     report " Line " & (integer'image(file_line)) & ", " & instruction(1 to len) & ": Signal not defined"

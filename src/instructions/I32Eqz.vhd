@@ -8,9 +8,13 @@ library work;
 --
 -- i32.and
 --
--- Return the bitwise conjunction of i1​ and i2​. .
+-- Return 1 if i is zero, 0 otherwise.
 --
-entity InstructionI32Or is
+-- Operation: https://www.w3.org/TR/wasm-core-1/#op-ieqz
+-- Execution: https://www.w3.org/TR/wasm-core-1/#exec-testop
+-- Validation: https://www.w3.org/TR/wasm-core-1/#valid-testop
+--
+entity InstructionI32Eqz is
     port (
         Clk : in std_logic;
         nRst : in std_logic;
@@ -23,14 +27,13 @@ entity InstructionI32Or is
     );
 end entity;
 
-architecture InstructionI32OrArchitecture of InstructionI32Or is
+architecture InstructionI32EqzArchitecture of InstructionI32Eqz is
 
     signal Rst : std_logic;
     signal State : std_logic_vector(15 downto 0);
     signal PopFromStackState : std_logic_vector(15 downto 0);
     signal PushToStackState : std_logic_vector(15 downto 0);
     signal OperandA : std_logic_vector(31 downto 0);
-    signal OperandB : std_logic_vector(31 downto 0);
 
 begin
 
@@ -50,7 +53,6 @@ begin
           WasmFpgaInstruction_WasmFpgaInvocation.Trap <= '0';
           WasmFpgaInstruction_WasmFpgaInvocation.Busy <= '1';
           OperandA <= (others => '0');
-          OperandB <= (others => '0');
           PopFromStackState <= (others => '0');
           PushToStackState <= (others => '0');
           State <= StateIdle;
@@ -67,28 +69,20 @@ begin
                              WasmFpgaInstruction_WasmFpgaStack,
                              WasmFpgaStack_WasmFpgaInstruction);
                 if(PopFromStackState = StateEnd) then
-                    OperandB <= WasmFpgaStack_WasmFpgaInstruction.LowValue;
+                    OperandA <= WasmFpgaStack_WasmFpgaInstruction.LowValue;
                     State <= State1;
                 end if;
             elsif (State = State1) then
-                PopFromStack(PopFromStackState,
-                             WasmFpgaInstruction_WasmFpgaStack,
-                             WasmFpgaStack_WasmFpgaInstruction);
-                if(PopFromStackState = StateEnd) then
-                    OperandA <= WasmFpgaStack_WasmFpgaInstruction.LowValue;
-                    State <= State2;
-                end if;
+                WasmFpgaInstruction_WasmFpgaStack.LowValue <= i32_eqz(OperandA);
+                State <= State2;
             elsif (State = State2) then
-                WasmFpgaInstruction_WasmFpgaStack.LowValue <= i32_or(OperandA, OperandB);
-                State <= State3;
-            elsif (State = State3) then
                 PushToStack(PushToStackState,
                             WasmFpgaInstruction_WasmFpgaStack,
                             WasmFpgaStack_WasmFpgaInstruction);
                 if(PushToStackState = StateEnd) then
-                    State <= State4;
+                    State <= State3;
                 end if;
-            elsif (State = State4) then
+            elsif (State = State3) then
                 WasmFpgaInstruction_WasmFpgaInvocation.Address <= WasmFpgaInstruction_WasmFpgaModuleRam.Address;
                 State <= StateIdle;
             end if;

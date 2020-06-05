@@ -6,11 +6,17 @@ library work;
   use work.WasmFpgaEnginePackage.all;
 
 --
--- i32.and
+-- i32.rotl
 --
--- Return the bitwise conjunction of i1​ and i2​. .
+-- Let k be i2​ modulo N.
 --
-entity InstructionI32Or is
+-- Return the result of rotating i1​ left by k bits.
+--
+-- Operation: https://www.w3.org/TR/wasm-core-1/#op-irotl
+-- Execution: https://www.w3.org/TR/wasm-core-1/#exec-binop
+-- Validation: https://www.w3.org/TR/wasm-core-1/#valid-binop
+--
+entity InstructionI32Rotl is
     port (
         Clk : in std_logic;
         nRst : in std_logic;
@@ -23,7 +29,7 @@ entity InstructionI32Or is
     );
 end entity;
 
-architecture InstructionI32OrArchitecture of InstructionI32Or is
+architecture InstructionI32RotlArchitecture of InstructionI32Rotl is
 
     signal Rst : std_logic;
     signal State : std_logic_vector(15 downto 0);
@@ -79,7 +85,7 @@ begin
                     State <= State2;
                 end if;
             elsif (State = State2) then
-                WasmFpgaInstruction_WasmFpgaStack.LowValue <= i32_or(OperandA, OperandB);
+                WasmFpgaInstruction_WasmFpgaStack.LowValue <= i32_rotl(OperandA, OperandB);
                 State <= State3;
             elsif (State = State3) then
                 PushToStack(PushToStackState,

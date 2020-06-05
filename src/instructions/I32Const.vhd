@@ -16,8 +16,6 @@ entity InstructionI32Const is
     port (
         Clk : in std_logic;
         nRst : in std_logic;
-        Run : in std_logic;
-        Busy : out std_logic;
         WasmFpgaInvocation_WasmFpgaInstruction : in T_WasmFpgaInvocation_WasmFpgaInstruction;
         WasmFpgaInstruction_WasmFpgaInvocation : out T_WasmFpgaInstruction_WasmFpgaInvocation;
         WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction;
@@ -31,18 +29,17 @@ architecture InstructionI32ConstArchitecture of InstructionI32Const is
 
     signal Rst : std_logic;
     signal State : std_logic_vector(15 downto 0);
-    signal ReadU32State : std_logic_vector(15 downto 0);
+    signal ReadSignedLEB128State : std_logic_vector(15 downto 0);
     signal ReadFromModuleRamState : std_logic_vector(15 downto 0);
     signal PushToStackState : std_logic_vector(15 downto 0);
 
     signal CurrentByte : std_logic_vector(7 downto 0);
     signal DecodedValue : std_logic_vector(31 downto 0);
+    signal SignBits : std_logic_vector(31 downto 0);
 
 begin
 
     Rst <= not nRst;
-
-    WasmFpgaInstruction_WasmFpgaInvocation.Address <= WasmFpgaInstruction_WasmFpgaModuleRam.Address;
 
     process (Clk, Rst) is
     begin
@@ -54,29 +51,33 @@ begin
           WasmFpgaInstruction_WasmFpgaStack.LowValue <= (others => '0');
           WasmFpgaInstruction_WasmFpgaModuleRam.Run <= '0';
           WasmFpgaInstruction_WasmFpgaModuleRam.Address <= (others => '0');
-          Busy <= '1';
+          WasmFpgaInstruction_WasmFpgaInvocation.Address <= (others => '0');
+          WasmFpgaInstruction_WasmFpgaInvocation.Trap <= '0';
+          WasmFpgaInstruction_WasmFpgaInvocation.Busy <= '1';
           CurrentByte <= (others => '0');
           DecodedValue <= (others => '0');
-          ReadU32State <= StateIdle;
+          SignBits <= (others => '0');
+          ReadSignedLEB128State <= StateIdle;
           ReadFromModuleRamState <= StateIdle;
           PushToStackState <= StateIdle;
           State <= StateIdle;
         elsif rising_edge(Clk) then
             if (State = StateIdle) then
-                Busy <= '0';
-                if (Run = '1') then
-                    Busy <= '1';
+                WasmFpgaInstruction_WasmFpgaInvocation.Busy <= '0';
+                if (WasmFpgaInvocation_WasmFpgaInstruction.Run = '1') then
+                    WasmFpgaInstruction_WasmFpgaInvocation.Busy <= '1';
                     WasmFpgaInstruction_WasmFpgaModuleRam.Address <= WasmFpgaInvocation_WasmFpgaInstruction.Address;
                     State <= State0;
                 end if;
             elsif (State = State0) then
-                ReadU32(ReadU32State,
+                ReadSignedLEB128(ReadSignedLEB128State,
                         ReadFromModuleRamState,
                         DecodedValue,
                         CurrentByte,
+                        SignBits,
                         WasmFpgaModuleRam_WasmFpgaInstruction,
                         WasmFpgaInstruction_WasmFpgaModuleRam);
-                if(ReadU32State = StateEnd) then
+                if(ReadSignedLEB128State = StateEnd) then
                     State <= State1;
                     WasmFpgaInstruction_WasmFpgaStack.LowValue <= DecodedValue;
                 end if;
@@ -85,8 +86,11 @@ begin
                             WasmFpgaInstruction_WasmFpgaStack,
                             WasmFpgaStack_WasmFpgaInstruction);
                 if(PushToStackState = StateEnd) then
-                    State <= StateIdle;
+                    State <= State2;
                 end if;
+            elsif (State = State2) then
+                WasmFpgaInstruction_WasmFpgaInvocation.Address <= WasmFpgaInstruction_WasmFpgaModuleRam.Address;
+                State <= StateIdle;
             end if;
         end if;
     end process;

@@ -119,7 +119,20 @@ HwSwIf WasmFpgaEngine {
                 HwAckImmediate = 'Yes';
             }
             Bits {
-                BitFieldReserved ( 31 downto 1 );
+                BitFieldReserved ( 31 downto 2 );
+                BitFieldEnum Trap ( 1 ) 'R_RTrans' {
+                    BitFieldDescription {
+                        "";
+                    }
+                    ValueEntries {
+                        Value { 0b0 = IsNotTrapped ValueDescription { "Engine is not trapped."; } }
+                        Value { 0b1 = IsTrapped ValueDescription { "Engine is trapped."; } }
+                    }
+                    ResetValueEntry = 0b0;
+                    BlockResetsAffecting {
+                        Pwr = 'X' ;
+                    }
+                }
                 BitFieldEnum Busy ( 0 ) 'R_RTrans' {
                     BitFieldDescription {
                         "";

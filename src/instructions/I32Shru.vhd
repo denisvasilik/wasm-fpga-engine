@@ -6,11 +6,18 @@ library work;
   use work.WasmFpgaEnginePackage.all;
 
 --
--- i32.and
+-- i32.shr_u
 --
--- Return the bitwise conjunction of i1​ and i2​. .
+-- Let k be i2​ modulo N.
 --
-entity InstructionI32Or is
+-- Return the result of shifting i1​ right by k bits, extended with the most
+-- significant bit of the original value.
+--
+-- Operation: https://www.w3.org/TR/wasm-core-1/#op-ishr_u
+-- Execution: https://www.w3.org/TR/wasm-core-1/#exec-binop
+-- Validation: https://www.w3.org/TR/wasm-core-1/#valid-binop
+--
+entity InstructionI32Shru is
     port (
         Clk : in std_logic;
         nRst : in std_logic;
@@ -23,7 +30,7 @@ entity InstructionI32Or is
     );
 end entity;
 
-architecture InstructionI32OrArchitecture of InstructionI32Or is
+architecture InstructionI32ShruArchitecture of InstructionI32Shru is
 
     signal Rst : std_logic;
     signal State : std_logic_vector(15 downto 0);
@@ -79,7 +86,7 @@ begin
                     State <= State2;
                 end if;
             elsif (State = State2) then
-                WasmFpgaInstruction_WasmFpgaStack.LowValue <= i32_or(OperandA, OperandB);
+                WasmFpgaInstruction_WasmFpgaStack.LowValue <= i32_shr_u(OperandA, OperandB);
                 State <= State3;
             elsif (State = State3) then
                 PushToStack(PushToStackState,

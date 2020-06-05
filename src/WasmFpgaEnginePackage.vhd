@@ -291,6 +291,8 @@ package WasmFpgaEnginePackage is
 
     function i32_eq(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
 
+    function i32_ne(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
+
     function i32_or(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
 
     function i32_xor(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
@@ -632,4 +634,16 @@ package body WasmFpgaEnginePackage is
             return x"00000000";
         end if;
     end;
+
+    function i32_ne(a: std_logic_vector; b: std_logic_vector)
+        return std_logic_vector
+    is
+    begin
+        if (a = b) then
+            return x"00000000";
+        else
+            return x"00000001";
+        end if;
+    end;
+
 end;

@@ -6,15 +6,15 @@ library work;
   use work.WasmFpgaEnginePackage.all;
 
 --
--- i32.eq
+-- i32.ne
 --
--- Return 1 if i1​ equals i2​, 0 otherwise.
+-- Return 1 if i1​ does not equal i2​, 0 otherwise.
 --
--- Operation: https://www.w3.org/TR/wasm-core-1/#op-iqe
+-- Operation: https://www.w3.org/TR/wasm-core-1/#op-ine
 -- Execution: https://www.w3.org/TR/wasm-core-1/#exec-relop
 -- Validation: https://www.w3.org/TR/wasm-core-1/#valid-relop
 --
-entity InstructionI32Eq is
+entity InstructionI32Ne is
     port (
         Clk : in std_logic;
         nRst : in std_logic;
@@ -27,7 +27,7 @@ entity InstructionI32Eq is
     );
 end entity;
 
-architecture InstructionI32EqArchitecture of InstructionI32Eq is
+architecture InstructionI32NeArchitecture of InstructionI32Ne is
 
     signal Rst : std_logic;
     signal State : std_logic_vector(15 downto 0);
@@ -83,7 +83,7 @@ begin
                     State <= State2;
                 end if;
             elsif (State = State2) then
-                WasmFpgaInstruction_WasmFpgaStack.LowValue <= i32_eq(OperandA, OperandB);
+                WasmFpgaInstruction_WasmFpgaStack.LowValue <= i32_ne(OperandA, OperandB);
                 State <= State3;
             elsif (State = State3) then
                 PushToStack(PushToStackState,

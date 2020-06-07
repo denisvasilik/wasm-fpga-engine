@@ -16,3 +16,5 @@ INCLUDE "../hxs_gen/simstm_gen/indirect/wasm_fpga_engine_indirect.stm"
 INCLUDE "WasmFpgaEngineDefines.stm"
 INCLUDE "WasmFpgaEngineHelper.stm"
 INCLUDE "WasmFpgaEngineTests.stm"
+
+INCLUDE "instructions/Select.stm"

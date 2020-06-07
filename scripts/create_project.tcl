@@ -67,6 +67,7 @@ set files_vhd [list \
  [file normalize "${project_src}/instructions/End.vhd" ]\
  [file normalize "${project_src}/instructions/Nop.vhd" ]\
  [file normalize "${project_src}/instructions/Drop.vhd" ]\
+ [file normalize "${project_src}/instructions/Select.vhd" ]\
  [file normalize "${project_src}/instructions/Unreachable.vhd" ]\
  [file normalize "${project_src}/instructions/I32Ctz.vhd" ]\
  [file normalize "${project_src}/instructions/I32Clz.vhd" ]\

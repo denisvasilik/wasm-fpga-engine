@@ -328,6 +328,13 @@ package WasmFpgaEnginePackage is
                                  signal WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
                                  signal WasmFpgaInstruction_WasmFpgaModuleRam : out T_WasmFpgaInstruction_WasmFpgaModuleRam);
 
+    procedure ReadUnsignedLEB128(signal State : inout std_logic_vector;
+                      signal ReadFromModuleRamState : inout std_logic_vector;
+                      signal DecodedValue : inout std_logic_vector;
+                      signal CurrentByte : inout std_logic_vector;
+                      signal WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
+                      signal WasmFpgaInstruction_WasmFpgaModuleRam : out T_WasmFpgaInstruction_WasmFpgaModuleRam);
+
     procedure ReadSignedLEB128(signal State : inout std_logic_vector;
                       signal ReadFromModuleRamState : inout std_logic_vector;
                       signal DecodedValue : inout std_logic_vector;
@@ -350,6 +357,91 @@ package body WasmFpgaEnginePackage is
 
     --
     -- Read u32 (LEB128 encoded)
+    --
+    procedure ReadUnsignedLEB128(signal State : inout std_logic_vector;
+        signal ReadFromModuleRamState : inout std_logic_vector;
+        signal DecodedValue : inout std_logic_vector;
+        signal CurrentByte : inout std_logic_vector;
+        signal WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
+        signal WasmFpgaInstruction_WasmFpgaModuleRam : out T_WasmFpgaInstruction_WasmFpgaModuleRam) is
+    begin
+        if (State = StateIdle) then
+            ReadFromModuleRam(ReadFromModuleRamState,
+                              CurrentByte,
+                              WasmFpgaModuleRam_WasmFpgaInstruction,
+                              WasmFpgaInstruction_WasmFpgaModuleRam);
+            if (ReadFromModuleRamState = StateEnd) then
+                DecodedValue <= (31 downto 7 => '0') & CurrentByte(6 downto 0);
+                State <= State0;
+            end if;
+        elsif (State = State0) then
+            if ((CurrentByte and x"80") = x"00") then
+                -- 1 byte
+                State <= StateEnd;
+            else
+                ReadFromModuleRam(ReadFromModuleRamState,
+                                  CurrentByte,
+                                  WasmFpgaModuleRam_WasmFpgaInstruction,
+                                  WasmFpgaInstruction_WasmFpgaModuleRam);
+                if (ReadFromModuleRamState = StateEnd) then
+                    DecodedValue(13 downto 7) <= CurrentByte(6 downto 0);
+                    State <= State1;
+                end if;
+            end if;
+        elsif (State = State1) then
+            if ((CurrentByte and x"80") = x"00") then
+                -- 2 byte
+                State <= StateEnd;
+            else
+                ReadFromModuleRam(ReadFromModuleRamState,
+                                  CurrentByte,
+                                  WasmFpgaModuleRam_WasmFpgaInstruction,
+                                  WasmFpgaInstruction_WasmFpgaModuleRam);
+                if (ReadFromModuleRamState = StateEnd) then
+                    DecodedValue(20 downto 14) <= CurrentByte(6 downto 0);
+                    State <= State2;
+                end if;
+            end if;
+        elsif (State = State2) then
+            if ((CurrentByte and x"80") = x"00") then
+                -- 3 byte
+                State <= StateEnd;
+            else
+                ReadFromModuleRam(ReadFromModuleRamState,
+                                  CurrentByte,
+                                  WasmFpgaModuleRam_WasmFpgaInstruction,
+                                  WasmFpgaInstruction_WasmFpgaModuleRam);
+                if (ReadFromModuleRamState = StateEnd) then
+                    DecodedValue(27 downto 21) <= CurrentByte(6 downto 0);
+                    State <= State3;
+                end if;
+            end if;
+        elsif (State = State3) then
+            if ((CurrentByte and x"80") = x"00") then
+                -- 4 byte
+                State <= StateEnd;
+            else
+                -- Greater than u32 not supported
+                DecodedValue <= (others => '0');
+                State <= StateNotSupported;
+            end if;
+        elsif (State = StateEnd) then
+            State <= StateIdle;
+        else
+            State <= StateError;
+        end if;
+    end;
+
+    --
+    -- Read s32 (LEB128 encoded)
+    --
+    -- Reads in a sequence of LEB128 encoded bytes and returns a 32 bit value
+    -- in two's complement representation.
+    --
+    -- References:
+    --
+    --   * https://www.w3.org/TR/wasm-core-1/#concepts
+    --   * https://www.w3.org/TR/wasm-core-1/#sign-interpretation
     --
     procedure ReadSignedLEB128(signal State : inout std_logic_vector;
                       signal ReadFromModuleRamState : inout std_logic_vector;

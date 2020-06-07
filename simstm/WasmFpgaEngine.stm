@@ -13,6 +13,8 @@ BEGIN_SUB
 END_SUB
 
 INCLUDE "../hxs_gen/simstm_gen/indirect/wasm_fpga_engine_indirect.stm"
+INCLUDE "../../wasm-fpga-stack/hxs_gen/simstm_gen/indirect/wasm_fpga_stack_indirect.stm"
+
 INCLUDE "WasmFpgaEngineDefines.stm"
 INCLUDE "WasmFpgaEngineHelper.stm"
 INCLUDE "WasmFpgaEngineTests.stm"

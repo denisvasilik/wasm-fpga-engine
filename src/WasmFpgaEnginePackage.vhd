@@ -254,15 +254,16 @@ package WasmFpgaEnginePackage is
         Busy : std_logic;
         HighValue : std_logic_vector(31 downto 0);
         LowValue : std_logic_vector(31 downto 0);
+        TypeValue : std_logic_vector(2 downto 0);
     end record;
 
     type T_WasmFpgaInstruction_WasmFpgaStack is
     record
         Run : std_logic;
         Action : std_logic;
-        ValueType : std_logic_vector(2 downto 0);
         HighValue : std_logic_vector(31 downto 0);
         LowValue : std_logic_vector(31 downto 0);
+        TypeValue : std_logic_vector(2 downto 0);
     end record;
 
     type T_WasmFpgaInstruction_WasmFpgaInvocation is

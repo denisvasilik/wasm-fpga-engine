@@ -21,12 +21,13 @@ entity WasmFpgaEngine_StackBlk is
         Run : in std_logic;
         Busy : out std_logic;
         Action : in std_logic;
-        ValueType : in std_logic_vector(2 downto 0);
         SizeValue : out std_logic_vector(31 downto 0);
         HighValue_ToBeRead : out std_logic_vector(31 downto 0);
         HighValue_Written : in std_logic_vector(31 downto 0);
         LowValue_ToBeRead : out std_logic_vector(31 downto 0);
-        LowValue_Written : in std_logic_vector(31 downto 0)
+        LowValue_Written : in std_logic_vector(31 downto 0);
+        Type_ToBeRead : out std_logic_vector(2 downto 0);
+        Type_Written : in std_logic_vector(2 downto 0)
     );
 end entity;
 
@@ -49,16 +50,20 @@ begin
     constant WriteHighValueReg1 : std_logic_vector(7 downto 0) := x"02";
     constant WriteLowValueReg0 : std_logic_vector(7 downto 0) := x"03";
     constant WriteLowValueReg1 : std_logic_vector(7 downto 0) := x"04";
-    constant WriteControlReg0 : std_logic_vector(7 downto 0) := x"05";
-    constant WriteControlReg1 : std_logic_vector(7 downto 0) := x"06";
-    constant WriteControlReg2 : std_logic_vector(7 downto 0) := x"07";
-    constant WriteControlReg3 : std_logic_vector(7 downto 0) := x"08";
-    constant ReadStatusReg0 : std_logic_vector(7 downto 0) := x"09";
-    constant ReadStatusReg1 : std_logic_vector(7 downto 0) := x"0A";
-    constant ReadLowValueReg0 : std_logic_vector(7 downto 0) := x"0B";
-    constant ReadLowValueReg1 : std_logic_vector(7 downto 0) := x"0C";
-    constant ReadHighValueReg0 : std_logic_vector(7 downto 0) := x"0D";
-    constant ReadHighValueReg1 : std_logic_vector(7 downto 0) := x"0E";
+    constant WriteTypeReg0 : std_logic_vector(7 downto 0) := x"05";
+    constant WriteTypeReg1 : std_logic_vector(7 downto 0) := x"06";
+    constant WriteControlReg0 : std_logic_vector(7 downto 0) := x"07";
+    constant WriteControlReg1 : std_logic_vector(7 downto 0) := x"08";
+    constant WriteControlReg2 : std_logic_vector(7 downto 0) := x"09";
+    constant WriteControlReg3 : std_logic_vector(7 downto 0) := x"0A";
+    constant ReadStatusReg0 : std_logic_vector(7 downto 0) := x"0B";
+    constant ReadStatusReg1 : std_logic_vector(7 downto 0) := x"0C";
+    constant ReadLowValueReg0 : std_logic_vector(7 downto 0) := x"0D";
+    constant ReadLowValueReg1 : std_logic_vector(7 downto 0) := x"0E";
+    constant ReadHighValueReg0 : std_logic_vector(7 downto 0) := x"0F";
+    constant ReadHighValueReg1 : std_logic_vector(7 downto 0) := x"10";
+    constant ReadTypeReg0 : std_logic_vector(7 downto 0) := x"11";
+    constant ReadTypeReg1 : std_logic_vector(7 downto 0) := x"12";
   begin
     if (Rst = '1') then
       Busy <= '0';
@@ -70,6 +75,7 @@ begin
       DatIn <= (others => '0');
       HighValue_ToBeRead <= (others => '0');
       LowValue_ToBeRead <= (others => '0');
+      Type_ToBeRead <= (others => '0');
       State <= (others => '0');
     elsif rising_edge(Clk) then
       if( State = Idle ) then
@@ -110,6 +116,22 @@ begin
           Cyc <= "0";
           Stb <= '0';
           We <= '0';
+          State <= WriteTypeReg0;
+        end if;
+      elsif( State = WriteTypeReg0 ) then
+          Cyc <= "1";
+          Stb <= '1';
+          Sel <= (others => '1');
+          We <= '1';
+          Adr <= std_logic_vector(unsigned(WASMFPGABUS_ADR_BASE_StackArea) +
+                                  unsigned(WASMFPGASTACK_ADR_TypeReg));
+          DatIn <= (31 downto 3 => '0') & Type_Written;
+          State <= WriteTypeReg1;
+      elsif( State = WriteTypeReg1 ) then
+        if ( Ack = '1' ) then
+          Cyc <= "0";
+          Stb <= '0';
+          We <= '0';
           State <= WriteControlReg0;
         end if;
       elsif( State = WriteControlReg0 ) then
@@ -119,10 +141,9 @@ begin
           We <= '1';
           Adr <= std_logic_vector(unsigned(WASMFPGABUS_ADR_BASE_StackArea) +
                                   unsigned(WASMFPGASTACK_ADR_ControlReg));
-          DatIn <= (31 downto 5 => '0') &
+          DatIn <= (31 downto 2 => '0') &
                    WASMFPGASTACK_VAL_DoRun &
-                   Action &
-                   ValueType;
+                   Action;
           State <= WriteControlReg1;
       elsif( State = WriteControlReg1 ) then
         if ( Ack = '1' ) then
@@ -138,10 +159,9 @@ begin
           We <= '1';
           Adr <= std_logic_vector(unsigned(WASMFPGABUS_ADR_BASE_StackArea) +
                                   unsigned(WASMFPGASTACK_ADR_ControlReg));
-          DatIn <= (31 downto 5 => '0') &
+          DatIn <= (31 downto 2 => '0') &
                    WASMFPGASTACK_VAL_DoNotRun &
-                   Action &
-                   ValueType;
+                   Action;
           State <= WriteControlReg3;
       elsif( State = WriteControlReg3 ) then
         if ( Ack = '1' ) then
@@ -196,6 +216,21 @@ begin
           Cyc <= "0";
           Stb <= '0';
           HighValue_ToBeRead <= DatOut;
+          State <= ReadTypeReg0;
+        end if;
+      elsif( State = ReadTypeReg0 ) then
+          Cyc <= "1";
+          Stb <= '1';
+          Sel <= (others => '1');
+          We <= '0';
+          Adr <= std_logic_vector(unsigned(WASMFPGABUS_ADR_BASE_StackArea) +
+                                  unsigned(WASMFPGASTACK_ADR_TypeReg));
+          State <= ReadTypeReg1;
+      elsif( State = ReadTypeReg1 ) then
+        if ( Ack = '1' ) then
+          Cyc <= "0";
+          Stb <= '0';
+          Type_ToBeRead <= DatOut(2 downto 0);
           State <= Idle;
         end if;
       end if;

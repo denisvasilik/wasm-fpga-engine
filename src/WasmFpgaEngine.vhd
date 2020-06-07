@@ -108,12 +108,13 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
       Run : in std_logic;
       Busy : out std_logic;
       Action : in std_logic;
-      ValueType : in std_logic_vector(2 downto 0);
       SizeValue : out std_logic_vector(31 downto 0);
       HighValue_ToBeRead : out std_logic_vector(31 downto 0);
       HighValue_Written : in std_logic_vector(31 downto 0);
       LowValue_ToBeRead : out std_logic_vector(31 downto 0);
-      LowValue_Written : in std_logic_vector(31 downto 0)
+      LowValue_Written : in std_logic_vector(31 downto 0);
+      Type_ToBeRead : out std_logic_vector(2 downto 0);
+      Type_Written : in std_logic_vector(2 downto 0)
     );
   end component;
 
@@ -532,11 +533,12 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   signal StackAction : std_logic;
   signal StackBusy : std_logic;
   signal StackSizeValue : std_logic_vector(31 downto 0);
-  signal StackValueType : std_logic_vector(2 downto 0);
   signal StackHighValue_ToBeRead : std_logic_vector(31 downto 0);
   signal StackHighValue_Written : std_logic_vector(31 downto 0);
   signal StackLowValue_ToBeRead : std_logic_vector(31 downto 0);
   signal StackLowValue_Written : std_logic_vector(31 downto 0);
+  signal StackType_ToBeRead : std_logic_vector(2 downto 0);
+  signal StackType_Written : std_logic_vector(2 downto 0);
 
   signal Bus_ModuleBlk : T_WshBnUp;
   signal ModuleBlk_Bus : T_WshBnDown;
@@ -640,6 +642,9 @@ begin
       InvocationRun <= '0';
       WasmFpgaInstantiation_WasmFpgaModuleRam.Run <= '0';
       WasmFpgaInstantiation_WasmFpgaModuleRam.Address <= (others => '0');
+      WasmFpgaInstantiation_WasmFpgaStack.TypeValue <= (others => '0');
+      WasmFpgaInstantiation_WasmFpgaStack.HighValue <= (others => '0');
+      WasmFpgaInstantiation_WasmFpgaStack.LowValue <= (others => '0');
       ReadFromModuleRamState <= StateIdle;
       Read32UState <= StateIdle;
       PushToStackState <= StateIdle;
@@ -753,7 +758,7 @@ begin
             InstantiationState <= State11;
         elsif(InstantiationState = State11) then
             if (LocalDeclCountIteration = unsigned(LocalDeclCount)) then
-                WasmFpgaInstantiation_WasmFpgaStack.ValueType <= WASMFPGASTACK_VAL_Activation;
+                WasmFpgaInstantiation_WasmFpgaStack.TypeValue <= WASMFPGASTACK_VAL_Activation;
                 WasmFpgaInstantiation_WasmFpgaStack.HighValue <= (others => '0');
                 WasmFpgaInstantiation_WasmFpgaStack.LowValue <= ModuleInstanceUID;
                 InstantiationState <= State12;
@@ -761,7 +766,7 @@ begin
                 -- Reserve stack space for local variable
                 --
                 -- FIX ME: Where to get type information for local decl count?
-                WasmFpgaInstantiation_WasmFpgaStack.ValueType <= WASMFPGASTACK_VAL_i32;
+                WasmFpgaInstantiation_WasmFpgaStack.TypeValue <= WASMFPGASTACK_VAL_i32;
                 WasmFpgaInstantiation_WasmFpgaStack.HighValue <= (others => '0');
                 WasmFpgaInstantiation_WasmFpgaStack.LowValue <= (others => '0');
                 LocalDeclCountIteration <= LocalDeclCountIteration + 1;
@@ -864,13 +869,14 @@ begin
         StackRun <= '0';
         StackAction <= '0';
         StackBusy <= '0';
-        StackValueType <= (others => '0');
         StackHighValue_Written <= (others => '0');
         StackLowValue_Written <= (others => '0');
+        StackType_Written <= (others => '0');
         for i in WasmFpgaStack_WasmFpgaInstruction'RANGE loop
             WasmFpgaStack_WasmFpgaInstruction(i).Busy <= '1';
             WasmFpgaStack_WasmFpgaInstruction(i).HighValue <= (others => '0');
             WasmFpgaStack_WasmFpgaInstruction(i).LowValue <= (others => '0');
+            WasmFpgaStack_WasmFpgaInstruction(i).TypeValue <= (others => '0');
         end loop;
         WasmFpgaModuleRam_WasmFpgaInstantiation.Busy <= '0';
         WasmFpgaModuleRam_WasmFpgaInstantiation.Data <= (others => '0');
@@ -885,10 +891,11 @@ begin
             WasmFpgaStack_WasmFpgaInstantiation.Busy <= StackBusy;
             WasmFpgaStack_WasmFpgaInstantiation.HighValue <= StackHighValue_ToBeRead;
             WasmFpgaStack_WasmFpgaInstantiation.LowValue <= StackLowValue_ToBeRead;
+            WasmFpgaStack_WasmFpgaInstantiation.TypeValue <= StackType_ToBeRead;
             StackRun <= WasmFpgaInstantiation_WasmFpgaStack.Run;
             StackAction <= WasmFpgaInstantiation_WasmFpgaStack.Action;
-            StackValueType <= WasmFpgaInstantiation_WasmFpgaStack.ValueType;
             StackLowValue_Written <= WasmFpgaInstantiation_WasmFpgaStack.LowValue;
+            StackType_Written <= WasmFpgaInstantiation_WasmFpgaStack.TypeValue;
 
             -- Module RAM
             WasmFpgaModuleRam_WasmFpgaInstantiation.Busy <= ModuleRamBusy;
@@ -904,10 +911,11 @@ begin
             end loop;
             WasmFpgaStack_WasmFpgaInstruction(CurrentInstruction).HighValue <= StackHighValue_ToBeRead;
             WasmFpgaStack_WasmFpgaInstruction(CurrentInstruction).LowValue <= StackLowValue_ToBeRead;
+            WasmFpgaStack_WasmFpgaInstruction(CurrentInstruction).TypeValue <= StackType_ToBeRead;
             StackRun <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).Run;
             StackAction <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).Action;
-            StackValueType <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).ValueType;
             StackLowValue_Written <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).LowValue;
+            StackType_Written <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).TypeValue;
 
             if (WasmFpgaInstruction_WasmFpgaInvocation(CurrentInstruction).Busy = '1') then
                 -- Module RAM
@@ -941,12 +949,13 @@ begin
       Run =>  StackRun,
       Busy => StackBusy,
       Action => StackAction,
-      ValueType => StackValueType,
       SizeValue => StackSizeValue,
       HighValue_ToBeRead => StackHighValue_ToBeRead,
       HighValue_Written => StackHighValue_Written,
       LowValue_ToBeRead => StackLowValue_ToBeRead,
-      LowValue_Written => StackLowValue_Written
+      LowValue_Written => StackLowValue_Written,
+      Type_ToBeRead => StackType_ToBeRead,
+      Type_Written => StackType_Written
     );
 
   EngineBlk_WasmFpgaEngine_i : EngineBlk_WasmFpgaEngine

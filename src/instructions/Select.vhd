@@ -36,6 +36,8 @@ architecture InstructionSelectArchitecture of InstructionSelect is
     signal OperandA : std_logic_vector(63 downto 0);
     signal OperandB : std_logic_vector(63 downto 0);
     signal OperandC: std_logic_vector(31 downto 0);
+    signal OperandAType : std_logic_vector(2 downto 0);
+    signal OperandBType : std_logic_vector(2 downto 0);
 
 begin
 
@@ -46,7 +48,7 @@ begin
         if (Rst = '1') then
           WasmFpgaInstruction_WasmFpgaStack.Run <= '0';
           WasmFpgaInstruction_WasmFpgaStack.Action <= '0';
-          WasmFpgaInstruction_WasmFpgaStack.ValueType <= (others => '0');
+          WasmFpgaInstruction_WasmFpgaStack.TypeValue <= (others => '0');
           WasmFpgaInstruction_WasmFpgaStack.HighValue <= (others => '0');
           WasmFpgaInstruction_WasmFpgaStack.LowValue <= (others => '0');
           WasmFpgaInstruction_WasmFpgaModuleRam.Run <= '0';
@@ -55,7 +57,9 @@ begin
           WasmFpgaInstruction_WasmFpgaInvocation.Trap <= '0';
           WasmFpgaInstruction_WasmFpgaInvocation.Busy <= '1';
           OperandA <= (others => '0');
+          OperandAType <= (others => '0');
           OperandB <= (others => '0');
+          OperandBType <= (others => '0');
           OperandC <= (others => '0');
           PopFromStackState <= (others => '0');
           PushToStackState <= (others => '0');
@@ -83,6 +87,7 @@ begin
                 if(PopFromStackState = StateEnd) then
                     OperandB(31 downto 0) <= WasmFpgaStack_WasmFpgaInstruction.LowValue;
                     OperandB(63 downto 32) <= WasmFpgaStack_WasmFpgaInstruction.HighValue;
+                    OperandBType <= WasmFpgaStack_WasmFpgaInstruction.TypeValue;
                     State <= State2;
                 end if;
             elsif (State = State2) then
@@ -92,19 +97,21 @@ begin
                 if(PopFromStackState = StateEnd) then
                     OperandA(31 downto 0) <= WasmFpgaStack_WasmFpgaInstruction.LowValue;
                     OperandA(63 downto 32) <= WasmFpgaStack_WasmFpgaInstruction.HighValue;
+                    OperandAType <= WasmFpgaStack_WasmFpgaInstruction.TypeValue;
                     State <= State3;
                 end if;
             elsif (State = State3) then
                 if (OperandC = x"00000000") then
                     WasmFpgaInstruction_WasmFpgaStack.LowValue <= OperandB(31 downto 0);
                     WasmFpgaInstruction_WasmFpgaStack.HighValue <= OperandB(63 downto 32);
+                    WasmFpgaInstruction_WasmFpgaStack.TypeValue <= OperandBType;
                 else
                     WasmFpgaInstruction_WasmFpgaStack.LowValue <= OperandA(31 downto 0);
                     WasmFpgaInstruction_WasmFpgaStack.HighValue <= OperandA(63 downto 32);
+                    WasmFpgaInstruction_WasmFpgaStack.TypeValue <= OperandAType;
                 end if;
                 State <= State4;
             elsif (State = State4) then
-                -- TODO: Distinguish between 32 and 64 bit types.
                 PushToStack(PushToStackState,
                             WasmFpgaInstruction_WasmFpgaStack,
                             WasmFpgaStack_WasmFpgaInstruction);

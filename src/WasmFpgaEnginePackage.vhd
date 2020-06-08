@@ -328,6 +328,8 @@ package WasmFpgaEnginePackage is
 
     function i32_sub(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
 
+    function i32_mul(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
+
     procedure ReadFromModuleRam(signal State : inout std_logic_vector;
                                  signal CurrentByte : inout std_logic_vector;
                                  signal WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
@@ -737,7 +739,14 @@ package body WasmFpgaEnginePackage is
         return std_logic_vector
     is
     begin
-        return std_logic_vector(unsigned(a) + unsigned(b));
+        return std_logic_vector(unsigned(a) - unsigned(b));
+    end;
+
+    function i32_mul(a: std_logic_vector; b: std_logic_vector)
+        return std_logic_vector
+    is
+    begin
+        return std_logic_vector(resize(unsigned(a) * unsigned(b), 32));
     end;
 
     function i32_eqz(a: std_logic_vector)

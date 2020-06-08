@@ -914,4 +914,16 @@ begin
             WasmFpgaInstruction_WasmFpgaModuleRam => WasmFpgaInstruction_WasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_I32_ADD)))
         );
 
+    InstructionI32Sub_i : entity work.InstructionI32Sub
+        port map (
+            Clk => Clk,
+            nRst => nRst,
+            WasmFpgaInvocation_WasmFpgaInstruction => WasmFpgaInvocation_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_I32_SUB))),
+            WasmFpgaInstruction_WasmFpgaInvocation => WasmFpgaInstruction_WasmFpgaInvocation(to_integer(unsigned(WASM_OPCODE_I32_SUB))),
+            WasmFpgaStack_WasmFpgaInstruction => WasmFpgaStack_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_I32_SUB))),
+            WasmFpgaInstruction_WasmFpgaStack => WasmFpgaInstruction_WasmFpgaStack(to_integer(unsigned(WASM_OPCODE_I32_SUB))),
+            WasmFpgaModuleRam_WasmFpgaInstruction => WasmFpgaModuleRam_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_I32_SUB))),
+            WasmFpgaInstruction_WasmFpgaModuleRam => WasmFpgaInstruction_WasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_I32_SUB)))
+        );
+
 end;

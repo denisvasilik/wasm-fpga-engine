@@ -75,6 +75,7 @@ set files_vhd [list \
  [file normalize "${project_src}/instructions/I32Add.vhd" ]\
  [file normalize "${project_src}/instructions/I32Sub.vhd" ]\
  [file normalize "${project_src}/instructions/I32And.vhd" ]\
+ [file normalize "${project_src}/instructions/I32Mul.vhd" ]\
  [file normalize "${project_src}/instructions/I32Or.vhd" ]\
  [file normalize "${project_src}/instructions/I32Xor.vhd" ]\
  [file normalize "${project_src}/instructions/I32Rotl.vhd" ]\

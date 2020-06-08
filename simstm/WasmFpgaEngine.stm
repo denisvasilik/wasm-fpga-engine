@@ -21,3 +21,5 @@ INCLUDE "WasmFpgaEngineTests.stm"
 
 INCLUDE "instructions/Select.stm"
 INCLUDE "instructions/I32Add.stm"
+INCLUDE "instructions/I32Sub.stm"
+INCLUDE "instructions/I32Mul.stm"

@@ -60,10 +60,16 @@ set files_vhd [list \
  [file normalize "${project_src}/WasmFpgaEngine.vhd" ]\
  [file normalize "${project_src}/WasmFpgaEnginePackage.vhd" ]\
  [file normalize "${project_src}/WasmFpgaModule.vhd" ]\
- [file normalize "${project_src}/WasmFpgaStore.vhd" ]\
- [file normalize "${project_src}/WasmFpgaStack.vhd" ]\
+ [file normalize "${project_src}/WasmFpgaStoreProxy.vhd" ]\
+ [file normalize "${project_src}/WasmFpgaStackProxy.vhd" ]\
  [file normalize "${project_src_gen}/vhd_gen/header/wasm_fpga_engine_header.vhd" ]\
  [file normalize "${project_src_gen}/vhd_gen/wishbone/wasm_fpga_engine_wishbone.vhd" ]\
+ [file normalize "${project_src}/../resources/wasm_fpga_store_header.vhd" ]\
+ [file normalize "${project_src}/../resources/wasm_fpga_store_wishbone.vhd" ]\
+ [file normalize "${project_src}/../resources/wasm_fpga_stack_header.vhd" ]\
+ [file normalize "${project_src}/../resources/wasm_fpga_stack_wishbone.vhd" ]\
+ [file normalize "${project_src}/../resources/wasm_fpga_bus_header.vhd" ]\
+ [file normalize "${project_src}/../resources/wasm_fpga_bus_wishbone.vhd" ]\
  [file normalize "${project_src}/instructions/End.vhd" ]\
  [file normalize "${project_src}/instructions/Nop.vhd" ]\
  [file normalize "${project_src}/instructions/Drop.vhd" ]\
@@ -105,7 +111,7 @@ add_files -norecurse -fileset $obj $files_vhd
 
 foreach i $files_vhd {
     set file_obj [get_files -of_objects [get_filesets sources_1] [file tail [list $i]]]
-    set_property -name "file_type" -value "VHDL 2008" -objects $file_obj
+    set_property -name "file_type" -value "VHDL" -objects $file_obj
 }
 
 set file "${project_package}/component.xml"
@@ -136,12 +142,6 @@ set files [list \
  "[file normalize "${project_tb}/tb_std_logic_1164_additions.vhd"]"\
  "[file normalize "${project_tb}/tb_Types.vhd"]"\
  "[file normalize "${project_tb}/tb_WbRam.vhd"]"\
- "[file normalize "${project_src}/../resources/wasm_fpga_store_header.vhd" ]"\
- "[file normalize "${project_src}/../resources/wasm_fpga_store_wishbone.vhd" ]"\
- "[file normalize "${project_src}/../resources/wasm_fpga_stack_header.vhd" ]"\
- "[file normalize "${project_src}/../resources/wasm_fpga_stack_wishbone.vhd" ]"\
- "[file normalize "${project_src}/../resources/wasm_fpga_bus_header.vhd" ]"\
- "[file normalize "${project_src}/../resources/wasm_fpga_bus_wishbone.vhd" ]"\
  "[file normalize "${project_origin}/wasm-fpga-store/src/WasmFpgaStore.vhd"]"\
  "[file normalize "${project_origin}/wasm-fpga-stack/src/WasmFpgaStack.vhd"]"\
  "[file normalize "${project_origin}/wasm-fpga-bus/src/WasmFpgaBus.vhd"]"\

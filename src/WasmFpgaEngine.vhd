@@ -118,6 +118,8 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   signal ReadFromModuleRamState : std_logic_vector(15 downto 0);
 
   signal InstantiationRun : std_logic;
+  signal InstantiationPreviousRun : std_logic;
+  signal InstantiationRunTrigger : std_logic;
   signal InstantiationBusy : std_logic;
 
   signal InvocationRun : std_logic;
@@ -178,6 +180,20 @@ begin
 
   Busy <= InvocationBusy or InstantiationBusy;
 
+  RunTriggerGenerator: process (Clk, Rst) is
+  begin
+    if(Rst = '1') then
+      InstantiationPreviousRun <= '0';
+      InstantiationRunTrigger <= '0';
+    elsif rising_edge(Clk) then
+      InstantiationRunTrigger <= '0';
+      InstantiationPreviousRun <= Run;
+      if(InstantiationRun = '1' and InstantiationRun /= InstantiationPreviousRun) then
+        InstantiationRunTrigger <= '1';
+      end if;
+    end if;
+  end process;
+
   Instantiation : process (Clk, Rst) is
   begin
     if (Rst = '1') then
@@ -190,6 +206,7 @@ begin
       SignBits <= (others => '0');
       CurrentByte <= (others => '0');
       InvocationRun <= '0';
+      StoreRun <= '0';
       WasmFpgaInstantiation_WasmFpgaModuleRam.Run <= '0';
       WasmFpgaInstantiation_WasmFpgaModuleRam.Address <= (others => '0');
       WasmFpgaInstantiation_WasmFpgaStack.TypeValue <= (others => '0');
@@ -203,7 +220,7 @@ begin
         if (InstantiationState = StateIdle) then
             InstantiationBusy <= '0';
             InvocationRun <= '0';
-            if (InstantiationRun = '1') then
+            if (InstantiationRunTrigger = '1') then
                 InstantiationBusy <= '1';
                 InstantiationState <= State0;
             end if;
@@ -230,11 +247,10 @@ begin
             end if;
         elsif(InstantiationState = State3) then
             -- Read section size
-            ReadSignedLEB128(Read32UState,
+            ReadUnsignedLEB128(Read32UState,
                     ReadFromModuleRamState,
                     DecodedValue,
                     CurrentByte,
-                    SignBits,
                     WasmFpgaModuleRam_WasmFpgaInstantiation,
                     WasmFpgaInstantiation_WasmFpgaModuleRam);
             if (Read32UState = StateEnd) then
@@ -243,11 +259,10 @@ begin
         elsif(InstantiationState = State4) then
             -- Ignore section size
             -- Read start funx idx
-            ReadSignedLEB128(Read32UState,
+            ReadUnsignedLEB128(Read32UState,
                     ReadFromModuleRamState,
                     DecodedValue,
                     CurrentByte,
-                    SignBits,
                     WasmFpgaModuleRam_WasmFpgaInstantiation,
                     WasmFpgaInstantiation_WasmFpgaModuleRam);
             if (Read32UState = StateEnd) then
@@ -276,11 +291,10 @@ begin
             end if;
         elsif(InstantiationState = State8) then
             -- Read function body size
-            ReadSignedLEB128(Read32UState,
+            ReadUnsignedLEB128(Read32UState,
                     ReadFromModuleRamState,
                     DecodedValue,
                     CurrentByte,
-                    SignBits,
                     WasmFpgaModuleRam_WasmFpgaInstantiation,
                     WasmFpgaInstantiation_WasmFpgaModuleRam);
             if (Read32UState = StateEnd) then
@@ -292,11 +306,10 @@ begin
         elsif(InstantiationState = State9) then
             -- Ignore function body size
             -- Read local decl count
-            ReadSignedLEB128(Read32UState,
+            ReadUnsignedLEB128(Read32UState,
                     ReadFromModuleRamState,
                     DecodedValue,
                     CurrentByte,
-                    SignBits,
                     WasmFpgaModuleRam_WasmFpgaInstantiation,
                     WasmFpgaInstantiation_WasmFpgaModuleRam);
             if (Read32UState = StateEnd) then
@@ -339,7 +352,14 @@ begin
             end if;
         elsif (InstantiationState = State14) then
             InvocationRun <= '1';
-            InstantiationState <= StateIdle;
+            InstantiationState <= State15;
+        elsif (InstantiationState = State15) then
+            InvocationRun <= '0';
+            InstantiationState <= State16;
+        elsif (InstantiationState = State16) then
+            if (InvocationBusy = '0') then
+                InstantiationState <= StateIdle;
+            end if;
         end if;
     end if;
   end process;

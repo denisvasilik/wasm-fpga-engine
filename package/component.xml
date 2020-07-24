@@ -257,7 +257,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>255aa65d</spirit:value>
+            <spirit:value>5a9e5150</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -278,7 +278,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>6770d4bc</spirit:value>
+            <spirit:value>b2a2b5ed</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -299,7 +299,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>6770d4bc</spirit:value>
+            <spirit:value>b2a2b5ed</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -614,6 +614,24 @@
     <spirit:fileSet>
       <spirit:name>xilinx_testbench_view_fileset</spirit:name>
       <spirit:file>
+        <spirit:name>../../wasm-fpga-bus/src/WasmFpgaBus.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+        <spirit:userFileType>USED_IN_simulation</spirit:userFileType>
+        <spirit:userFileType>USED_IN_synthesis</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../../wasm-fpga-stack/src/WasmFpgaStack.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+        <spirit:userFileType>USED_IN_simulation</spirit:userFileType>
+        <spirit:userFileType>USED_IN_synthesis</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../../wasm-fpga-store/src/WasmFpgaStore.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+        <spirit:userFileType>USED_IN_simulation</spirit:userFileType>
+        <spirit:userFileType>USED_IN_synthesis</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
         <spirit:name>../tb/tb_std_logic_1164_additions.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
         <spirit:userFileType>USED_IN_simulation</spirit:userFileType>
@@ -659,7 +677,159 @@
     <spirit:fileSet>
       <spirit:name>xilinx_anylanguagesynthesis_view_fileset</spirit:name>
       <spirit:file>
+        <spirit:name>../resources/wasm_fpga_stack_header.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
         <spirit:name>../src/WasmFpgaEnginePackage.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/Drop.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/End.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Add.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32And.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Clz.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Const.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Ctz.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Divs.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Divu.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Eq.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Eqz.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Ges.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Geu.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Gts.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Gtu.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Les.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Leu.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Lts.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Ltu.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Mul.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Ne.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Or.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Popcnt.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Rems.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Remu.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Rotl.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Rotr.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Shl.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Shrs.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Shru.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Sub.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Xor.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/Nop.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/Select.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/Unreachable.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../resources/wasm_fpga_bus_header.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/WasmFpgaStackProxy.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
@@ -671,13 +841,25 @@
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
+        <spirit:name>../src/WasmFpgaModule.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../resources/wasm_fpga_store_header.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/WasmFpgaStoreProxy.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
         <spirit:name>../resources/debug.coe</spirit:name>
         <spirit:userFileType>coe</spirit:userFileType>
       </spirit:file>
       <spirit:file>
         <spirit:name>../src/WasmFpgaEngine.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
-        <spirit:userFileType>CHECKSUM_8a896392</spirit:userFileType>
+        <spirit:userFileType>CHECKSUM_4298348a</spirit:userFileType>
       </spirit:file>
     </spirit:fileSet>
     <spirit:fileSet>
@@ -703,7 +885,159 @@
     <spirit:fileSet>
       <spirit:name>xilinx_anylanguagebehavioralsimulation_view_fileset</spirit:name>
       <spirit:file>
+        <spirit:name>../resources/wasm_fpga_stack_header.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
         <spirit:name>../src/WasmFpgaEnginePackage.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/Drop.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/End.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Add.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32And.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Clz.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Const.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Ctz.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Divs.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Divu.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Eq.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Eqz.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Ges.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Geu.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Gts.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Gtu.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Les.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Leu.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Lts.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Ltu.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Mul.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Ne.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Or.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Popcnt.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Rems.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Remu.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Rotl.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Rotr.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Shl.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Shrs.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Shru.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Sub.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/I32Xor.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/Nop.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/Select.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/instructions/Unreachable.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../resources/wasm_fpga_bus_header.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/WasmFpgaStackProxy.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
@@ -712,6 +1046,18 @@
       </spirit:file>
       <spirit:file>
         <spirit:name>../hxs_gen/vhd_gen/wishbone/wasm_fpga_engine_wishbone.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/WasmFpgaModule.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../resources/wasm_fpga_store_header.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/WasmFpgaStoreProxy.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
@@ -761,17 +1107,79 @@
         <xilinx:taxonomy>AXI_Peripheral</xilinx:taxonomy>
       </xilinx:taxonomies>
       <xilinx:displayName>WebAssembly Engine IP</xilinx:displayName>
-      <xilinx:coreRevision>19</xilinx:coreRevision>
-      <xilinx:coreCreationDateTime>2020-02-19T22:05:25Z</xilinx:coreCreationDateTime>
+      <xilinx:coreRevision>25</xilinx:coreRevision>
+      <xilinx:coreCreationDateTime>2020-07-22T19:40:37Z</xilinx:coreCreationDateTime>
       <xilinx:tags>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@221ea801_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5db1bb32_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3325df86_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3bc8cc8_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5cb06683_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1306b01b_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@610bd657_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6a350225_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2050d19c_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@62301618_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7761e8ec_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3b763441_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1de4c71b_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@66ac6bf8_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6aaede7f_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5f75a148_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5cb24952_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@19068de8_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4124d3f6_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@17177702_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7459ca8d_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@348bc979_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@143665e8_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@147fa85f_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@55736f35_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@cdad80b_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5fe60f29_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@551c61a9_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@494a1d57_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@36226739_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7cc726bb_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@22d76670_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4f39631d_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@106e4e9b_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@755ec7af_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@d63c97c_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@19fa0bdd_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@f878a04_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5a95faa7_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2f474448_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3098dc34_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@183e9909_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7c4130d0_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3dd05783_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6f4c8352_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@41841c28_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1ca71821_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3c74b67_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3b077724_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5440b482_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@68def820_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@414b7f9f_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@e2e629e_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@56540ec_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5e9511c8_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@74b3b86c_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2d9e09fc_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@15548a41_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@541c08cd_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@496a89b7_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2d1349bc_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@ef1ea17_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
       </xilinx:tags>
     </xilinx:coreExtensions>
     <xilinx:packagingInfo>
       <xilinx:xilinxVersion>2019.2</xilinx:xilinxVersion>
       <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="0b8ad43f"/>
-      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="ca6febe6"/>
+      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="d78cb64e"/>
       <xilinx:checksum xilinx:scope="ports" xilinx:value="6c97b595"/>
-      <xilinx:checksum xilinx:scope="parameters" xilinx:value="89681c72"/>
+      <xilinx:checksum xilinx:scope="parameters" xilinx:value="aa5d5893"/>
     </xilinx:packagingInfo>
   </spirit:vendorExtensions>
 </spirit:component>

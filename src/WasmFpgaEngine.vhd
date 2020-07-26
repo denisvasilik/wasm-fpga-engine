@@ -438,7 +438,6 @@ begin
     if (Rst = '1') then
         StackRun <= '0';
         StackAction <= '0';
-        StackBusy <= '0';
         StackHighValue_Written <= (others => '0');
         StackLowValue_Written <= (others => '0');
         StackType_Written <= (others => '0');

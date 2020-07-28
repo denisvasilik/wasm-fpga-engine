@@ -204,7 +204,15 @@ architecture behavioural of tb_WasmFpgaEngine is
         StoreArea_DatOut : out std_logic_vector(31 downto 0);
         StoreArea_DatIn: in std_logic_vector(31 downto 0);
         StoreArea_Ack : in std_logic;
-        StoreArea_Cyc : out std_logic
+        StoreArea_Cyc : out std_logic;
+        MemoryArea_Adr : out std_logic_vector(23 downto 0);
+        MemoryArea_Sel : out std_logic_vector(3 downto 0);
+        MemoryArea_We : out std_logic;
+        MemoryArea_Stb : out std_logic;
+        MemoryArea_DatOut : out std_logic_vector(31 downto 0);
+        MemoryArea_DatIn: in std_logic_vector(31 downto 0);
+        MemoryArea_Ack : in std_logic;
+        MemoryArea_Cyc : out std_logic
       );
     end component;
 
@@ -409,7 +417,15 @@ begin
             StoreArea_DatOut => WasmFpgaBus_WasmFpgaStore.DatIn,
             StoreArea_DatIn => WasmFpgaStore_WasmFpgaBus.DatOut,
             StoreArea_Ack => WasmFpgaStore_WasmFpgaBus.Ack,
-            StoreArea_Cyc => WasmFpgaBus_WasmFpgaStore.Cyc(0)
+            StoreArea_Cyc => WasmFpgaBus_WasmFpgaStore.Cyc(0),
+            MemoryArea_Adr => open,
+            MemoryArea_Sel => open,
+            MemoryArea_We => open,
+            MemoryArea_Stb => open,
+            MemoryArea_DatOut => open,
+            MemoryArea_DatIn => (others => '0'),
+            MemoryArea_Ack => '0',
+            MemoryArea_Cyc => open
        );
 
     WasmFpgaStack_i : WasmFpgaStack

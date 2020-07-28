@@ -124,6 +124,7 @@ printMessage "Add IP cores needed by synthesis..."
 
 set files [list \
  "[file normalize "${project_ip}/WasmFpgaMultiplier32Bit/WasmFpgaMultiplier32Bit.xci"]"\
+ "[file normalize "${project_ip}/WasmFpgaDivider32Bit/WasmFpgaDivider32Bit.xci"]"\
 ]
 add_files -fileset sources_1 $files
 

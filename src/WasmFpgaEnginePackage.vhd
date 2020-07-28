@@ -742,49 +742,56 @@ package body WasmFpgaEnginePackage is
         return std_logic_vector
     is
     begin
-        return std_logic_vector(unsigned(a) + unsigned(b));
+        -- return std_logic_vector(unsigned(a) + unsigned(b));
+        return std_logic_vector(resize(unsigned(a), 32));
     end;
 
     function i32_sub(a: std_logic_vector; b: std_logic_vector)
         return std_logic_vector
     is
     begin
-        return std_logic_vector(unsigned(a) - unsigned(b));
+        -- return std_logic_vector(unsigned(a) - unsigned(b));
+        return std_logic_vector(resize(unsigned(a), 32));
     end;
 
     function i32_mul(a: std_logic_vector; b: std_logic_vector)
         return std_logic_vector
     is
     begin
-        return std_logic_vector(resize(unsigned(a) * unsigned(b), 32));
+        -- return std_logic_vector(resize(unsigned(a) * unsigned(b), 32));
+        return std_logic_vector(resize(unsigned(a), 32));
     end;
 
     function i32_div_u(a: std_logic_vector; b: std_logic_vector)
         return std_logic_vector
     is
     begin
-        return std_logic_vector(resize(unsigned(a) / unsigned(b), 32));
+        -- return std_logic_vector(resize(unsigned(a) / unsigned(b), 32));
+        return std_logic_vector(resize(unsigned(a), 32));
     end;
 
     function i32_div_s(a: std_logic_vector; b: std_logic_vector)
         return std_logic_vector
     is
     begin
-        return std_logic_vector(resize(signed(a) / signed(b), 32));
+        -- return std_logic_vector(resize(signed(a) / signed(b), 32));
+        return std_logic_vector(resize(signed(a), 32));
     end;
 
     function i32_rem_u(a: std_logic_vector; b: std_logic_vector)
         return std_logic_vector
     is
     begin
-        return std_logic_vector(resize(unsigned(a) rem unsigned(b), 32));
+        -- return std_logic_vector(resize(unsigned(a) rem unsigned(b), 32));
+        return std_logic_vector(resize(unsigned(a), 32));
     end;
 
     function i32_rem_s(a: std_logic_vector; b: std_logic_vector)
         return std_logic_vector
     is
     begin
-        return std_logic_vector(resize(signed(a) rem signed(b), 32));
+        -- return std_logic_vector(resize(signed(a) rem signed(b), 32));
+        return std_logic_vector(resize(signed(a), 32));
     end;
 
     function i32_eqz(a: std_logic_vector)

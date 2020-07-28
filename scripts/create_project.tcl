@@ -119,6 +119,14 @@ set file [file normalize $file]
 set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
 set_property -name "file_type" -value "IP-XACT" -objects $file_obj
 
+#------------------------------------------------------------------------
+printMessage "Add IP cores needed by synthesis..."
+
+set files [list \
+ "[file normalize "${project_ip}/WasmFpgaMultiplier32Bit/WasmFpgaMultiplier32Bit.xci"]"\
+]
+add_files -fileset sources_1 $files
+
 set obj [get_filesets sources_1]
 set_property -name "top" -value "WasmFpgaEngine" -objects $obj
 set_property -name "top_auto_set" -value "0" -objects $obj
@@ -154,8 +162,7 @@ foreach i $files {
 }
 
 #------------------------------------------------------------------------
-# Block design and other IP inclusion
-printMessage "Adding IP cores..."
+printMessage "Add IP cores needed by simulation..."
 
 set files [list \
  "[file normalize "${project_ip}/WasmFpgaTestBenchRam/WasmFpgaTestBenchRam.xci"]"\

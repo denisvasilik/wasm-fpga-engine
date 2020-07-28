@@ -35,6 +35,18 @@ architecture InstructionI32MulArchitecture of InstructionI32Mul is
     signal PushToStackState : std_logic_vector(15 downto 0);
     signal OperandA : std_logic_vector(31 downto 0);
     signal OperandB : std_logic_vector(31 downto 0);
+    signal Result : std_logic_vector(31 downto 0);
+    signal PipelineStages : unsigned(3 downto 0);
+    signal PipelineCount : unsigned(3 downto 0);
+
+    component WasmFpgaMultiplier32Bit is
+        port (
+            CLK : in STD_LOGIC;
+            A : in STD_LOGIC_VECTOR ( 31 downto 0 );
+            B : in STD_LOGIC_VECTOR ( 31 downto 0 );
+            P : out STD_LOGIC_VECTOR ( 31 downto 0 )
+        );
+    end component;
 
 begin
 
@@ -53,6 +65,8 @@ begin
           WasmFpgaInstruction_WasmFpgaInvocation.Address <= (others => '0');
           WasmFpgaInstruction_WasmFpgaInvocation.Trap <= '0';
           WasmFpgaInstruction_WasmFpgaInvocation.Busy <= '1';
+          PipelineStages <= x"7";
+          PipelineCount <= (others => '0');
           OperandA <= (others => '0');
           OperandB <= (others => '0');
           PopFromStackState <= (others => '0');
@@ -60,6 +74,7 @@ begin
           State <= StateIdle;
         elsif rising_edge(Clk) then
             if (State = StateIdle) then
+                PipelineCount <= x"0";
                 WasmFpgaInstruction_WasmFpgaInvocation.Busy <= '0';
                 if (WasmFpgaInvocation_WasmFpgaInstruction.Run = '1') then
                     WasmFpgaInstruction_WasmFpgaInvocation.Busy <= '1';
@@ -83,8 +98,12 @@ begin
                     State <= State2;
                 end if;
             elsif (State = State2) then
-                WasmFpgaInstruction_WasmFpgaStack.LowValue <= i32_mul(OperandA, OperandB);
-                State <= State3;
+                if (PipelineCount = PipelineStages) then
+                    WasmFpgaInstruction_WasmFpgaStack.LowValue <= Result;
+                    State <= State3;
+                else
+                    PipelineCount <= PipelineCount + 1;
+                end if;
             elsif (State = State3) then
                 PushToStack(PushToStackState,
                             WasmFpgaInstruction_WasmFpgaStack,
@@ -98,5 +117,13 @@ begin
             end if;
         end if;
     end process;
+
+    WasmFpgaMultiplier32Bit_i : WasmFpgaMultiplier32Bit
+        port map (
+                CLK => Clk,
+                A => OperandA,
+                B => OperandB,
+                P => Result
+        );
 
 end architecture;

@@ -6,7 +6,7 @@
   <spirit:version>1.0</spirit:version>
   <spirit:componentInstances>
     <spirit:componentInstance>
-      <spirit:instanceName>WasmFpgaDivider32Bit</spirit:instanceName>
+      <spirit:instanceName>WasmFpgaDivider32BitSigned</spirit:instanceName>
       <spirit:componentRef spirit:vendor="xilinx.com" spirit:library="ip" spirit:name="div_gen" spirit:version="5.1"/>
       <spirit:configurableElementValues>
         <spirit:configurableElementValue spirit:referenceId="BUSIFPARAM_VALUE.ACLK_INTF.CLK_DOMAIN"/>
@@ -61,7 +61,7 @@
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_HAS_S_AXIS_DIVIDEND_TUSER">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_HAS_S_AXIS_DIVISOR_TLAST">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_HAS_S_AXIS_DIVISOR_TUSER">0</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_LATENCY">35</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_LATENCY">37</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_M_AXIS_DOUT_TDATA_WIDTH">64</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_M_AXIS_DOUT_TUSER_WIDTH">1</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_S_AXIS_DIVIDEND_TDATA_WIDTH">32</spirit:configurableElementValue>
@@ -76,10 +76,10 @@
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.DIVISOR_WIDTH">32</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.FRACTIONAL_B">0</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.FRACTIONAL_WIDTH">32</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.SIGNED_B">0</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.SIGNED_B">1</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.ACLKEN">false</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.ARESETN">false</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.Component_Name">WasmFpgaDivider32Bit</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.Component_Name">WasmFpgaDivider32BitSigned</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.FlowControl">NonBlocking</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.OptimizeGoal">Performance</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.OutTLASTBehv">Null</spirit:configurableElementValue>
@@ -96,9 +96,9 @@
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.divisor_tuser_width">1</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.divisor_width">32</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.fractional_width">32</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.latency">35</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.latency">37</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.latency_configuration">Automatic</spirit:configurableElementValue>
-        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.operand_sign">Unsigned</spirit:configurableElementValue>
+        <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.operand_sign">Signed</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.remainder_type">Remainder</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.ARCHITECTURE">artix7</spirit:configurableElementValue>
         <spirit:configurableElementValue spirit:referenceId="PROJECT_PARAM.BASE_BOARD_PART"/>

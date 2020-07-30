@@ -30,7 +30,7 @@ end entity;
 
 architecture InstructionI32DivuArchitecture of InstructionI32Divu is
 
-    component WasmFpgaDivider32Bit is
+    component WasmFpgaDivider32BitUnsigned is
       port (
         aclk : in std_logic;
         s_axis_divisor_tvalid : in std_logic;
@@ -126,7 +126,7 @@ begin
         end if;
     end process;
 
-    WasmFpgaDivider32Bit_i : WasmFpgaDivider32Bit
+    WasmFpgaDivider32BitUnsigned_i : WasmFpgaDivider32BitUnsigned
       port map (
         aclk => Clk,
         s_axis_divisor_tvalid => OperandBValid,

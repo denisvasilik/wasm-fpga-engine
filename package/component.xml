@@ -257,7 +257,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>5a9e5150</spirit:value>
+            <spirit:value>3f7261d3</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -273,12 +273,18 @@
           <spirit:localName>xilinx_anylanguagesynthesis_xilinx_com_ip_proc_sys_reset_5_0__ref_view_fileset</spirit:localName>
         </spirit:fileSetRef>
         <spirit:fileSetRef>
+          <spirit:localName>xilinx_anylanguagesynthesis_xilinx_com_ip_div_gen_5_1__ref_view_fileset</spirit:localName>
+        </spirit:fileSetRef>
+        <spirit:fileSetRef>
+          <spirit:localName>xilinx_anylanguagesynthesis_xilinx_com_ip_mult_gen_12_0__ref_view_fileset</spirit:localName>
+        </spirit:fileSetRef>
+        <spirit:fileSetRef>
           <spirit:localName>xilinx_anylanguagesynthesis_view_fileset</spirit:localName>
         </spirit:fileSetRef>
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>b2a2b5ed</spirit:value>
+            <spirit:value>c26f496f</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -294,12 +300,18 @@
           <spirit:localName>xilinx_anylanguagebehavioralsimulation_xilinx_com_ip_proc_sys_reset_5_0__ref_view_fileset</spirit:localName>
         </spirit:fileSetRef>
         <spirit:fileSetRef>
+          <spirit:localName>xilinx_anylanguagebehavioralsimulation_xilinx_com_ip_div_gen_5_1__ref_view_fileset</spirit:localName>
+        </spirit:fileSetRef>
+        <spirit:fileSetRef>
+          <spirit:localName>xilinx_anylanguagebehavioralsimulation_xilinx_com_ip_mult_gen_12_0__ref_view_fileset</spirit:localName>
+        </spirit:fileSetRef>
+        <spirit:fileSetRef>
           <spirit:localName>xilinx_anylanguagebehavioralsimulation_view_fileset</spirit:localName>
         </spirit:fileSetRef>
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>b2a2b5ed</spirit:value>
+            <spirit:value>c26f496f</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -677,6 +689,18 @@
     <spirit:fileSet>
       <spirit:name>xilinx_anylanguagesynthesis_view_fileset</spirit:name>
       <spirit:file>
+        <spirit:name>../ip/WasmFpgaDivider32BitUnsigned/WasmFpgaDivider32BitUnsigned.xci</spirit:name>
+        <spirit:userFileType>xci</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../ip/WasmFpgaDivider32BitSigned/WasmFpgaDivider32BitSigned.xci</spirit:name>
+        <spirit:userFileType>xci</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../ip/WasmFpgaMultiplier32Bit/WasmFpgaMultiplier32Bit.xci</spirit:name>
+        <spirit:userFileType>xci</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
         <spirit:name>../resources/wasm_fpga_stack_header.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
@@ -859,7 +883,7 @@
       <spirit:file>
         <spirit:name>../src/WasmFpgaEngine.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
-        <spirit:userFileType>CHECKSUM_4298348a</spirit:userFileType>
+        <spirit:userFileType>CHECKSUM_ff9ad8ef</spirit:userFileType>
       </spirit:file>
     </spirit:fileSet>
     <spirit:fileSet>
@@ -883,7 +907,39 @@
       </spirit:vendorExtensions>
     </spirit:fileSet>
     <spirit:fileSet>
+      <spirit:name>xilinx_anylanguagesynthesis_xilinx_com_ip_div_gen_5_1__ref_view_fileset</spirit:name>
+      <spirit:vendorExtensions>
+        <xilinx:subCoreRef>
+          <xilinx:componentRef xilinx:vendor="xilinx.com" xilinx:library="ip" xilinx:name="div_gen" xilinx:version="5.1">
+            <xilinx:mode xilinx:name="create_mode"/>
+          </xilinx:componentRef>
+        </xilinx:subCoreRef>
+      </spirit:vendorExtensions>
+    </spirit:fileSet>
+    <spirit:fileSet>
+      <spirit:name>xilinx_anylanguagesynthesis_xilinx_com_ip_mult_gen_12_0__ref_view_fileset</spirit:name>
+      <spirit:vendorExtensions>
+        <xilinx:subCoreRef>
+          <xilinx:componentRef xilinx:vendor="xilinx.com" xilinx:library="ip" xilinx:name="mult_gen" xilinx:version="12.0">
+            <xilinx:mode xilinx:name="create_mode"/>
+          </xilinx:componentRef>
+        </xilinx:subCoreRef>
+      </spirit:vendorExtensions>
+    </spirit:fileSet>
+    <spirit:fileSet>
       <spirit:name>xilinx_anylanguagebehavioralsimulation_view_fileset</spirit:name>
+      <spirit:file>
+        <spirit:name>../ip/WasmFpgaDivider32BitUnsigned/WasmFpgaDivider32BitUnsigned.xci</spirit:name>
+        <spirit:userFileType>xci</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../ip/WasmFpgaDivider32BitSigned/WasmFpgaDivider32BitSigned.xci</spirit:name>
+        <spirit:userFileType>xci</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../ip/WasmFpgaMultiplier32Bit/WasmFpgaMultiplier32Bit.xci</spirit:name>
+        <spirit:userFileType>xci</spirit:userFileType>
+      </spirit:file>
       <spirit:file>
         <spirit:name>../resources/wasm_fpga_stack_header.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
@@ -1089,6 +1145,26 @@
         </xilinx:subCoreRef>
       </spirit:vendorExtensions>
     </spirit:fileSet>
+    <spirit:fileSet>
+      <spirit:name>xilinx_anylanguagebehavioralsimulation_xilinx_com_ip_div_gen_5_1__ref_view_fileset</spirit:name>
+      <spirit:vendorExtensions>
+        <xilinx:subCoreRef>
+          <xilinx:componentRef xilinx:vendor="xilinx.com" xilinx:library="ip" xilinx:name="div_gen" xilinx:version="5.1">
+            <xilinx:mode xilinx:name="create_mode"/>
+          </xilinx:componentRef>
+        </xilinx:subCoreRef>
+      </spirit:vendorExtensions>
+    </spirit:fileSet>
+    <spirit:fileSet>
+      <spirit:name>xilinx_anylanguagebehavioralsimulation_xilinx_com_ip_mult_gen_12_0__ref_view_fileset</spirit:name>
+      <spirit:vendorExtensions>
+        <xilinx:subCoreRef>
+          <xilinx:componentRef xilinx:vendor="xilinx.com" xilinx:library="ip" xilinx:name="mult_gen" xilinx:version="12.0">
+            <xilinx:mode xilinx:name="create_mode"/>
+          </xilinx:componentRef>
+        </xilinx:subCoreRef>
+      </spirit:vendorExtensions>
+    </spirit:fileSet>
   </spirit:fileSets>
   <spirit:description>WebAssembly Engine IP</spirit:description>
   <spirit:parameters>
@@ -1107,8 +1183,8 @@
         <xilinx:taxonomy>AXI_Peripheral</xilinx:taxonomy>
       </xilinx:taxonomies>
       <xilinx:displayName>WebAssembly Engine IP</xilinx:displayName>
-      <xilinx:coreRevision>25</xilinx:coreRevision>
-      <xilinx:coreCreationDateTime>2020-07-22T19:40:37Z</xilinx:coreCreationDateTime>
+      <xilinx:coreRevision>27</xilinx:coreRevision>
+      <xilinx:coreCreationDateTime>2020-07-28T21:55:57Z</xilinx:coreCreationDateTime>
       <xilinx:tags>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@221ea801_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@5db1bb32_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
@@ -1172,12 +1248,37 @@
         <xilinx:tag xilinx:name="ui.data.coregen.dd@496a89b7_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@2d1349bc_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@ef1ea17_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@568ce211_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@43360e96_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5615f189_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3d46288c_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@686038ef_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1cbfe120_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@53c87c0_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@417f9201_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2336427b_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@688b7c9_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@45583a16_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@190c6a0c_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2ce51002_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6b95ee78_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1115a6f4_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@26378aa1_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7aa858b2_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1e9aeaf3_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4dad2ab1_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@63e3b1a5_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@73b0ce9b_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7710f7ad_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@ea4a1e6_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3029b5f0_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4eef8e56_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
       </xilinx:tags>
     </xilinx:coreExtensions>
     <xilinx:packagingInfo>
       <xilinx:xilinxVersion>2019.2</xilinx:xilinxVersion>
       <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="0b8ad43f"/>
-      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="d78cb64e"/>
+      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="a095c0d4"/>
       <xilinx:checksum xilinx:scope="ports" xilinx:value="6c97b595"/>
       <xilinx:checksum xilinx:scope="parameters" xilinx:value="aa5d5893"/>
     </xilinx:packagingInfo>

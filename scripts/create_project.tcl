@@ -59,9 +59,10 @@ set obj [get_filesets sources_1]
 set files_vhd [list \
  [file normalize "${project_src}/WasmFpgaEngine.vhd" ]\
  [file normalize "${project_src}/WasmFpgaEnginePackage.vhd" ]\
- [file normalize "${project_src}/WasmFpgaModule.vhd" ]\
+ [file normalize "${project_src}/WasmFpgaModuleProxy.vhd" ]\
  [file normalize "${project_src}/WasmFpgaStoreProxy.vhd" ]\
  [file normalize "${project_src}/WasmFpgaStackProxy.vhd" ]\
+ [file normalize "${project_src}/WasmFpgaMemoryProxy.vhd" ]\
  [file normalize "${project_src_gen}/vhd_gen/header/wasm_fpga_engine_header.vhd" ]\
  [file normalize "${project_src_gen}/vhd_gen/wishbone/wasm_fpga_engine_wishbone.vhd" ]\
  [file normalize "${project_src}/../resources/wasm_fpga_store_header.vhd" ]\
@@ -75,6 +76,8 @@ set files_vhd [list \
  [file normalize "${project_src}/instructions/Drop.vhd" ]\
  [file normalize "${project_src}/instructions/Select.vhd" ]\
  [file normalize "${project_src}/instructions/Unreachable.vhd" ]\
+ [file normalize "${project_src}/instructions/I32Load.vhd" ]\
+ [file normalize "${project_src}/instructions/I32Store.vhd" ]\
  [file normalize "${project_src}/instructions/I32Ctz.vhd" ]\
  [file normalize "${project_src}/instructions/I32Clz.vhd" ]\
  [file normalize "${project_src}/instructions/I32Const.vhd" ]\
@@ -124,7 +127,8 @@ printMessage "Add IP cores needed by synthesis..."
 
 set files [list \
  "[file normalize "${project_ip}/WasmFpgaMultiplier32Bit/WasmFpgaMultiplier32Bit.xci"]"\
- "[file normalize "${project_ip}/WasmFpgaDivider32Bit/WasmFpgaDivider32Bit.xci"]"\
+ "[file normalize "${project_ip}/WasmFpgaDivider32BitUnsigned/WasmFpgaDivider32BitUnsigned.xci"]"\
+ "[file normalize "${project_ip}/WasmFpgaDivider32BitSigned/WasmFpgaDivider32BitSigned.xci"]"\
 ]
 add_files -fileset sources_1 $files
 

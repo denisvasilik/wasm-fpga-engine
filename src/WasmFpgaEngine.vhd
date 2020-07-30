@@ -43,8 +43,14 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   type T_WasmFpgaModuleRam_WasmFpgaInstruction_Array is array (127 downto 0) of T_WasmFpgaModuleRam_WasmFpgaInstruction;
   type T_WasmFpgaInstruction_WasmFpgaModuleRam_Array is array (127 downto 0) of T_WasmFpgaInstruction_WasmFpgaModuleRam;
 
+  type T_WasmFpgaMemory_WasmFpgaInstruction_Array is array (127 downto 0) of T_WasmFpgaMemory_WasmFpgaInstruction;
+  type T_WasmFpgaInstruction_WasmFpgaMemory_Array is array (127 downto 0) of T_WasmFpgaInstruction_WasmFpgaMemory;
+
   signal WasmFpgaStack_WasmFpgaInstruction : T_WasmFpgaStack_WasmFpgaInstruction_Array;
   signal WasmFpgaInstruction_WasmFpgaStack : T_WasmFpgaInstruction_WasmFpgaStack_Array;
+
+  signal WasmFpgaMemory_WasmFpgaInstruction : T_WasmFpgaMemory_WasmFpgaInstruction_Array;
+  signal WasmFpgaInstruction_WasmFpgaMemory : T_WasmFpgaInstruction_WasmFpgaMemory_Array;
 
   signal WasmFpgaModuleRam_WasmFpgaInstruction : T_WasmFpgaModuleRam_WasmFpgaInstruction_Array;
   signal WasmFpgaInstruction_WasmFpgaModuleRam : T_WasmFpgaInstruction_WasmFpgaModuleRam_Array;
@@ -99,6 +105,9 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   signal Bus_StackBlk : T_WshBnUp;
   signal StackBlk_Bus : T_WshBnDown;
 
+  signal Bus_MemoryBlk : T_WshBnUp;
+  signal MemoryBlk_Bus : T_WshBnDown;
+
   signal InvocationState : std_logic_vector(15 downto 0);
 
   signal CurrentInstruction : integer range 0 to 256;
@@ -107,6 +116,13 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   signal ModuleRamBusy : std_logic;
   signal ModuleRamAddress : std_logic_vector(23 downto 0);
   signal ModuleRamData : std_logic_vector(31 downto 0);
+
+  signal MemoryRun : std_logic;
+  signal MemoryBusy : std_logic;
+  signal MemoryAddress : std_logic_vector(23 downto 0);
+  signal MemoryReadData : std_logic_vector(31 downto 0);
+  signal MemoryWriteData : std_logic_vector(31 downto 0);
+  signal MemoryWriteEnable : std_logic;
 
   signal CurrentByte : std_logic_vector(7 downto 0);
   signal DecodedValue : std_logic_vector(31 downto 0);
@@ -140,32 +156,41 @@ begin
   Bus_Adr <= ModuleBlk_Bus.Adr when ModuleBlk_Bus.Cyc = "1" else
              StackBlk_Bus.Adr when StackBlk_Bus.Cyc = "1" else
              StoreBlk_Bus.Adr when StoreBlk_Bus.Cyc = "1" else
+             MemoryBlk_Bus.Adr when MemoryBlk_Bus.Cyc = "1" else
              (others => '0');
 
   Bus_Sel <= ModuleBlk_Bus.Sel when ModuleBlk_Bus.Cyc = "1" else
              StackBlk_Bus.Sel when StackBlk_Bus.Cyc = "1" else
              StoreBlk_Bus.Sel when StoreBlk_Bus.Cyc = "1" else
+             MemoryBlk_Bus.Sel when MemoryBlk_Bus.Cyc = "1" else
              (others => '0');
 
   Bus_DatOut <= ModuleBlk_Bus.DatIn when ModuleBlk_Bus.Cyc = "1" else
                 StackBlk_Bus.DatIn when StackBlk_Bus.Cyc = "1" else
                 StoreBlk_Bus.DatIn when StoreBlk_Bus.Cyc = "1" else
+                MemoryBlk_Bus.DatIn when MemoryBlk_Bus.Cyc = "1" else
                 (others => '0');
 
   Bus_We <= ModuleBlk_Bus.We when ModuleBlk_Bus.Cyc = "1" else
             StackBlk_Bus.We when StackBlk_Bus.Cyc = "1" else
             StoreBlk_Bus.We when StoreBlk_Bus.Cyc = "1" else
+            MemoryBlk_Bus.We when MemoryBlk_Bus.Cyc = "1" else
             '0';
 
   Bus_Stb <= ModuleBlk_Bus.Stb when ModuleBlk_Bus.Cyc = "1" else
              StackBlk_Bus.Stb when StackBlk_Bus.Cyc = "1" else
              StoreBlk_Bus.Stb when StoreBlk_Bus.Cyc = "1" else
+             MemoryBlk_Bus.Stb when MemoryBlk_Bus.Cyc = "1" else
              '0';
 
   Bus_Cyc <= ModuleBlk_Bus.Cyc when ModuleBlk_Bus.Cyc = "1" else
              StackBlk_Bus.Cyc when StackBlk_Bus.Cyc = "1" else
              StoreBlk_Bus.Cyc when StoreBlk_Bus.Cyc = "1" else
+             MemoryBlk_Bus.Cyc when MemoryBlk_Bus.Cyc = "1" else
              "0";
+
+  Bus_MemoryBlk.DatOut <= Bus_DatIn;
+  Bus_MemoryBlk.Ack <= Bus_Ack;
 
   Bus_ModuleBlk.DatOut <= Bus_DatIn;
   Bus_ModuleBlk.Ack <= Bus_Ack;
@@ -436,6 +461,7 @@ begin
   Arbiter : process (Clk, Rst) is
   begin
     if (Rst = '1') then
+        -- Stack
         StackRun <= '0';
         StackAction <= '0';
         StackHighValue_Written <= (others => '0');
@@ -447,10 +473,24 @@ begin
             WasmFpgaStack_WasmFpgaInstruction(i).LowValue <= (others => '0');
             WasmFpgaStack_WasmFpgaInstruction(i).TypeValue <= (others => '0');
         end loop;
-        WasmFpgaModuleRam_WasmFpgaInstantiation.Busy <= '0';
-        WasmFpgaModuleRam_WasmFpgaInstantiation.Data <= (others => '0');
+        -- Memory
+        MemoryRun <= '0';
+        MemoryAddress <= (others => '0');
+        MemoryWriteEnable <= '0';
+        MemoryWriteData <= (others => '0');
+        for i in WasmFpgaMemory_WasmFpgaInstruction'RANGE loop
+            WasmFpgaMemory_WasmFpgaInstruction(i).Busy <= '1';
+            WasmFpgaMemory_WasmFpgaInstruction(i).ReadData <= (others => '0');
+        end loop;
+        -- Module
         ModuleRamRun <= '0';
         ModuleRamAddress <= (others => '0');
+        WasmFpgaModuleRam_WasmFpgaInstantiation.Busy <= '0';
+        WasmFpgaModuleRam_WasmFpgaInstantiation.ReadData <= (others => '0');
+        for i in WasmFpgaModuleRam_WasmFpgaInstruction'RANGE loop
+            WasmFpgaModuleRam_WasmFpgaInstruction(i).Busy <= '1';
+            WasmFpgaModuleRam_WasmFpgaInstruction(i).ReadData <= (others => '0');
+        end loop;
         WasmFpgaStack_WasmFpgaInstantiation.Busy <= '0';
         WasmFpgaStack_WasmFpgaInstantiation.HighValue <= (others => '0');
         WasmFpgaStack_WasmFpgaInstantiation.LowValue <= (others => '0');
@@ -466,18 +506,16 @@ begin
             StackLowValue_Written <= WasmFpgaInstantiation_WasmFpgaStack.LowValue;
             StackType_Written <= WasmFpgaInstantiation_WasmFpgaStack.TypeValue;
 
-            -- Module RAM
+            -- Module
             WasmFpgaModuleRam_WasmFpgaInstantiation.Busy <= ModuleRamBusy;
-            WasmFpgaModuleRam_WasmFpgaInstantiation.Data <= ModuleRamData;
+            WasmFpgaModuleRam_WasmFpgaInstantiation.ReadData <= ModuleRamData;
             ModuleRamRun <= WasmFpgaInstantiation_WasmFpgaModuleRam.Run;
             ModuleRamAddress <= WasmFpgaInstantiation_WasmFpgaModuleRam.Address;
         end if;
 
         if (InvocationBusy = '1') then
             -- Stack
-            for i in WasmFpgaStack_WasmFpgaInstruction'RANGE loop
-                WasmFpgaStack_WasmFpgaInstruction(i).Busy <= StackBusy;
-            end loop;
+            WasmFpgaStack_WasmFpgaInstruction(CurrentInstruction).Busy <= StackBusy;
             WasmFpgaStack_WasmFpgaInstruction(CurrentInstruction).HighValue <= StackHighValue_ToBeRead;
             WasmFpgaStack_WasmFpgaInstruction(CurrentInstruction).LowValue <= StackLowValue_ToBeRead;
             WasmFpgaStack_WasmFpgaInstruction(CurrentInstruction).TypeValue <= StackType_ToBeRead;
@@ -486,16 +524,25 @@ begin
             StackLowValue_Written <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).LowValue;
             StackType_Written <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).TypeValue;
 
+            -- Memory
+            WasmFpgaMemory_WasmFpgaInstruction(CurrentInstruction).Busy <= MemoryBusy;
+            WasmFpgaMemory_WasmFpgaInstruction(CurrentInstruction).ReadData <= MemoryReadData;
+            MemoryRun <= WasmFpgaInstruction_WasmFpgaMemory(CurrentInstruction).Run;
+            MemoryAddress <= WasmFpgaInstruction_WasmFpgaMemory(CurrentInstruction).Address;
+            MemoryWriteEnable <= WasmFpgaInstruction_WasmFpgaMemory(CurrentInstruction).WriteEnable;
+            MemoryWriteData <= WasmFpgaInstruction_WasmFpgaMemory(CurrentInstruction).WriteData;
+
+            -- Module
             if (WasmFpgaInstruction_WasmFpgaInvocation(CurrentInstruction).Busy = '1') then
-                -- Module RAM
+                -- Instruction uses access to Module RAM
                 WasmFpgaModuleRam_WasmFpgaInstruction(CurrentInstruction).Busy <= ModuleRamBusy;
-                WasmFpgaModuleRam_WasmFpgaInstruction(CurrentInstruction).Data <= ModuleRamData;
+                WasmFpgaModuleRam_WasmFpgaInstruction(CurrentInstruction).ReadData <= ModuleRamData;
                 ModuleRamRun <= WasmFpgaInstruction_WasmFpgaModuleRam(CurrentInstruction).Run;
                 ModuleRamAddress <= WasmFpgaInstruction_WasmFpgaModuleRam(CurrentInstruction).Address;
             else
-                -- Module RAM
+                -- Invocation process accesses Module RAM for next instruction
                 WasmFpgaModuleRam_WasmFpgaInvocation.Busy <= ModuleRamBusy;
-                WasmFpgaModuleRam_WasmFpgaInvocation.Data <= ModuleRamData;
+                WasmFpgaModuleRam_WasmFpgaInvocation.ReadData <= ModuleRamData;
                 ModuleRamRun <= WasmFpgaInvocation_WasmFpgaModuleRam.Run;
                 ModuleRamAddress <= WasmFpgaInvocation_WasmFpgaModuleRam.Address;
             end if;
@@ -561,6 +608,26 @@ begin
         Busy => ModuleRamBusy,
         Address => ModuleRamAddress,
         Data => ModuleRamData
+      );
+
+    WasmFpgaEngine_MemoryBlk_i : entity work.WasmFpgaEngine_MemoryBlk
+      port map (
+        Clk => Clk,
+        Rst => Rst,
+        Adr => MemoryBlk_Bus.Adr,
+        Sel => MemoryBlk_Bus.Sel,
+        DatIn => MemoryBlk_Bus.DatIn,
+        We => MemoryBlk_Bus.We,
+        Stb => MemoryBlk_Bus.Stb,
+        Cyc => MemoryBlk_Bus.Cyc,
+        MemoryBlk_DatOut => Bus_MemoryBlk.DatOut,
+        MemoryBlk_Ack => Bus_MemoryBlk.Ack,
+        Run => MemoryRun,
+        WriteEnable => MemoryWriteEnable,
+        Busy => MemoryBusy,
+        Address => MemoryAddress,
+        ReadData => MemoryReadData,
+        WriteData => MemoryWriteData
       );
 
   WasmFpgaEngine_StoreBlk_i : entity work.WasmFpgaEngine_StoreBlk
@@ -774,7 +841,9 @@ begin
             WasmFpgaStack_WasmFpgaInstruction => WasmFpgaStack_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_UNREACHABLE))),
             WasmFpgaInstruction_WasmFpgaStack => WasmFpgaInstruction_WasmFpgaStack(to_integer(unsigned(WASM_OPCODE_UNREACHABLE))),
             WasmFpgaModuleRam_WasmFpgaInstruction => WasmFpgaModuleRam_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_UNREACHABLE))),
-            WasmFpgaInstruction_WasmFpgaModuleRam => WasmFpgaInstruction_WasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_UNREACHABLE)))
+            WasmFpgaInstruction_WasmFpgaModuleRam => WasmFpgaInstruction_WasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_UNREACHABLE))),
+            WasmFpgaMemory_WasmFpgaInstruction => WasmFpgaMemory_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_UNREACHABLE))),
+            WasmFpgaInstruction_WasmFpgaMemory => WasmFpgaInstruction_WasmFpgaMemory(to_integer(unsigned(WASM_OPCODE_UNREACHABLE)))
         );
 
     InstructionI32Eqz_i : entity work.InstructionI32Eqz
@@ -1003,6 +1072,34 @@ begin
             WasmFpgaInstruction_WasmFpgaStack => WasmFpgaInstruction_WasmFpgaStack(to_integer(unsigned(WASM_OPCODE_I32_REM_U))),
             WasmFpgaModuleRam_WasmFpgaInstruction => WasmFpgaModuleRam_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_I32_REM_U))),
             WasmFpgaInstruction_WasmFpgaModuleRam => WasmFpgaInstruction_WasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_I32_REM_U)))
+        );
+
+    InstructionI32Store_i : entity work.InstructionI32Store
+        port map (
+            Clk => Clk,
+            nRst => nRst,
+            WasmFpgaInvocation_WasmFpgaInstruction => WasmFpgaInvocation_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_I32_STORE))),
+            WasmFpgaInstruction_WasmFpgaInvocation => WasmFpgaInstruction_WasmFpgaInvocation(to_integer(unsigned(WASM_OPCODE_I32_STORE))),
+            WasmFpgaStack_WasmFpgaInstruction => WasmFpgaStack_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_I32_STORE))),
+            WasmFpgaInstruction_WasmFpgaStack => WasmFpgaInstruction_WasmFpgaStack(to_integer(unsigned(WASM_OPCODE_I32_STORE))),
+            WasmFpgaModuleRam_WasmFpgaInstruction => WasmFpgaModuleRam_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_I32_STORE))),
+            WasmFpgaInstruction_WasmFpgaModuleRam => WasmFpgaInstruction_WasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_I32_STORE))),
+            WasmFpgaMemory_WasmFpgaInstruction => WasmFpgaMemory_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_I32_STORE))),
+            WasmFpgaInstruction_WasmFpgaMemory => WasmFpgaInstruction_WasmFpgaMemory(to_integer(unsigned(WASM_OPCODE_I32_STORE)))
+        );
+
+    InstructionI32Load_i : entity work.InstructionI32Load
+        port map (
+            Clk => Clk,
+            nRst => nRst,
+            WasmFpgaInvocation_WasmFpgaInstruction => WasmFpgaInvocation_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_I32_LOAD))),
+            WasmFpgaInstruction_WasmFpgaInvocation => WasmFpgaInstruction_WasmFpgaInvocation(to_integer(unsigned(WASM_OPCODE_I32_LOAD))),
+            WasmFpgaStack_WasmFpgaInstruction => WasmFpgaStack_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_I32_LOAD))),
+            WasmFpgaInstruction_WasmFpgaStack => WasmFpgaInstruction_WasmFpgaStack(to_integer(unsigned(WASM_OPCODE_I32_LOAD))),
+            WasmFpgaModuleRam_WasmFpgaInstruction => WasmFpgaModuleRam_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_I32_LOAD))),
+            WasmFpgaInstruction_WasmFpgaModuleRam => WasmFpgaInstruction_WasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_I32_LOAD))),
+            WasmFpgaMemory_WasmFpgaInstruction => WasmFpgaMemory_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_I32_LOAD))),
+            WasmFpgaInstruction_WasmFpgaMemory => WasmFpgaInstruction_WasmFpgaMemory(to_integer(unsigned(WASM_OPCODE_I32_LOAD)))
         );
 
 end;

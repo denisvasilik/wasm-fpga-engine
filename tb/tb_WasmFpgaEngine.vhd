@@ -33,6 +33,9 @@ architecture behavioural of tb_WasmFpgaEngine is
     signal StackMemory_FileIO : T_StackMemory_FileIO;
     signal FileIO_StackMemory : T_FileIO_StackMemory;
 
+    signal Memory_FileIO : T_Memory_FileIO;
+    signal FileIO_Memory : T_FileIO_Memory;
+
     signal WasmFpgaBus_WasmFpgaStore : T_WasmFpgaBus_WasmFpgaStore;
     signal WasmFpgaStore_WasmFpgaBus : T_WasmFpgaStore_WasmFpgaBus;
 
@@ -41,6 +44,9 @@ architecture behavioural of tb_WasmFpgaEngine is
 
     signal WasmFpgaBus_WasmFpgaEngine : T_WasmFpgaBus_WasmFpgaEngine;
     signal WasmFpgaEngine_WasmFpgaBus : T_WasmFpgaEngine_WasmFpgaBus;
+
+    signal WasmFpgaBus_WasmFpgaMemory : T_WasmFpgaBus_WasmFpgaMemory;
+    signal WasmFpgaMemory_WasmFpgaBus : T_WasmFpgaMemory_WasmFpgaBus;
 
     signal WasmFpgaBus_FileIO : T_WasmFpgaBus_FileIO;
     signal FileIO_WasmFpgaBus : T_FileIO_WasmFpgaBus;
@@ -80,6 +86,15 @@ architecture behavioural of tb_WasmFpgaEngine is
     signal Store_DatIn: std_logic_vector(31 downto 0);
     signal Store_Ack : std_logic;
     signal Store_Cyc : std_logic_vector(0 downto 0);
+
+    signal Memory_Adr : std_logic_vector(23 downto 0);
+    signal Memory_Sel : std_logic_vector(3 downto 0);
+    signal Memory_We : std_logic;
+    signal Memory_Stb : std_logic;
+    signal Memory_DatOut : std_logic_vector(31 downto 0);
+    signal Memory_DatIn: std_logic_vector(31 downto 0);
+    signal Memory_Ack : std_logic;
+    signal Memory_Cyc : std_logic_vector(0 downto 0);
 
     signal StoreMemory_Adr : std_logic_vector(23 downto 0);
     signal StoreMemory_Sel : std_logic_vector(3 downto 0);
@@ -126,7 +141,9 @@ architecture behavioural of tb_WasmFpgaEngine is
             StoreMemory_FileIO : in T_StoreMemory_FileIO;
             FileIO_StoreMemory : out T_FileIO_StoreMemory;
             StackMemory_FileIO : in T_StackMemory_FileIO;
-            FileIO_StackMemory : out T_FileIO_StackMemory
+            FileIO_StackMemory : out T_FileIO_StackMemory;
+            Memory_FileIO : in T_Memory_FileIO;
+            FileIO_Memory : out T_FileIO_Memory
         );
     end component;
 
@@ -300,7 +317,9 @@ begin
             StoreMemory_FileIO => StoreMemory_FileIO,
             FileIO_StoreMemory => FileIO_StoreMemory,
             StackMemory_FileIO => StackMemory_FileIO,
-            FileIO_StackMemory => FileIO_StackMemory
+            FileIO_StackMemory => FileIO_StackMemory,
+            Memory_FileIO => Memory_FileIO,
+            FileIO_Memory => FileIO_Memory
         );
 
     -- File IO and WebAssembly engine can write to store memory
@@ -358,6 +377,20 @@ begin
 
     WasmFpgaBus_WasmFpgaEngine.DatOut <= Bus_DatOut;
     WasmFpgaBus_WasmFpgaEngine.Ack <= Bus_Ack;
+
+    -- File IO and WebAssembly engine can write to memory
+    Memory_Adr <= FileIO_Memory.Adr when FileIO_Memory.Cyc = "1" else WasmFpgaBus_WasmFpgaMemory.Adr;
+    Memory_Sel <= FileIO_Memory.Sel when FileIO_Memory.Cyc = "1" else WasmFpgaBus_WasmFpgaMemory.Sel;
+    Memory_We <= FileIO_Memory.We when FileIO_Memory.Cyc = "1" else WasmFpgaBus_WasmFpgaMemory.We;
+    Memory_Stb <= FileIO_Memory.Stb when FileIO_Memory.Cyc = "1" else WasmFpgaBus_WasmFpgaMemory.Stb;
+    Memory_DatIn <= FileIO_Memory.DatIn when FileIO_Memory.Cyc = "1" else WasmFpgaBus_WasmFpgaMemory.DatIn;
+    Memory_Cyc <= FileIO_Memory.Cyc when FileIO_Memory.Cyc = "1" else WasmFpgaBus_WasmFpgaMemory.Cyc;
+
+    Memory_FileIO.Ack <= Memory_Ack;
+    Memory_FileIO.DatOut <= Memory_DatOut;
+
+    WasmFpgaMemory_WasmFpgaBus.DatOut <= Memory_DatOut;
+    WasmFpgaMemory_WasmFpgaBus.Ack <= Memory_Ack;
 
     WasmFpgaEngine_i : WasmFpgaEngine
         port map (
@@ -418,14 +451,14 @@ begin
             StoreArea_DatIn => WasmFpgaStore_WasmFpgaBus.DatOut,
             StoreArea_Ack => WasmFpgaStore_WasmFpgaBus.Ack,
             StoreArea_Cyc => WasmFpgaBus_WasmFpgaStore.Cyc(0),
-            MemoryArea_Adr => open,
-            MemoryArea_Sel => open,
-            MemoryArea_We => open,
-            MemoryArea_Stb => open,
-            MemoryArea_DatOut => open,
-            MemoryArea_DatIn => (others => '0'),
-            MemoryArea_Ack => '0',
-            MemoryArea_Cyc => open
+            MemoryArea_Adr => WasmFpgaBus_WasmFpgaMemory.Adr,
+            MemoryArea_Sel => WasmFpgaBus_WasmFpgaMemory.Sel,
+            MemoryArea_We => WasmFpgaBus_WasmFpgaMemory.We,
+            MemoryArea_Stb => WasmFpgaBus_WasmFpgaMemory.Stb,
+            MemoryArea_DatOut => WasmFpgaBus_WasmFpgaMemory.DatIn,
+            MemoryArea_DatIn => WasmFpgaMemory_WasmFpgaBus.DatOut,
+            MemoryArea_Ack => WasmFpgaMemory_WasmFpgaBus.Ack,
+            MemoryArea_Cyc => WasmFpgaBus_WasmFpgaMemory.Cyc(0)
        );
 
     WasmFpgaStack_i : WasmFpgaStack
@@ -516,6 +549,20 @@ begin
             Cyc => StackMemory_Cyc,
             DatOut => StackMemory_DatOut,
             Ack => StackMemory_Ack
+        );
+
+    Memory_i : WbRam
+        port map (
+            Clk => Clk100M,
+            nRst => nRst,
+            Adr => Memory_Adr,
+            Sel => Memory_Sel,
+            DatIn => Memory_DatIn,
+            We => Memory_We,
+            Stb => Memory_Stb,
+            Cyc => Memory_Cyc,
+            DatOut => Memory_DatOut,
+            Ack => Memory_Ack
         );
 
 end;

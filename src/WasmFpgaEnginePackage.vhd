@@ -239,10 +239,24 @@ package WasmFpgaEnginePackage is
           Cyc : std_logic_vector(0 downto 0);
     end record;
 
+    type T_WasmFpgaMemory_WasmFpgaInstruction is
+    record
+        Busy : std_logic;
+        ReadData : std_logic_vector(31 downto 0);
+    end record;
+
+    type T_WasmFpgaInstruction_WasmFpgaMemory is
+    record
+        Run : std_logic;
+        Address : std_logic_vector(23 downto 0);
+        WriteData : std_logic_vector(31 downto 0);
+        WriteEnable : std_logic;
+    end record;
+
     type T_WasmFpgaModuleRam_WasmFpgaInstruction is
     record
         Busy : std_logic;
-        Data : std_logic_vector(31 downto 0);
+        ReadData : std_logic_vector(31 downto 0);
     end record;
 
     type T_WasmFpgaInstruction_WasmFpgaModuleRam is
@@ -329,16 +343,6 @@ package WasmFpgaEnginePackage is
     function i32_add(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
 
     function i32_sub(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
-
-    function i32_mul(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
-
-    function i32_div_u(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
-
-    function i32_div_s(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
-
-    function i32_rem_u(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
-
-    function i32_rem_s(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
 
     procedure ReadFromModuleRam(signal State : inout std_logic_vector;
                                  signal CurrentByte : inout std_logic_vector;
@@ -562,13 +566,13 @@ package body WasmFpgaEnginePackage is
         elsif (State = State3) then
             if (WasmFpgaModuleRam_WasmFpgaInstruction.Busy = '0') then
                 if WasmFpgaInstruction_WasmFpgaModuleRam.Address(1 downto 0) = "00" then
-                    CurrentByte <= WasmFpgaModuleRam_WasmFpgaInstruction.Data(7 downto 0);
+                    CurrentByte <= WasmFpgaModuleRam_WasmFpgaInstruction.ReadData(7 downto 0);
                 elsif WasmFpgaInstruction_WasmFpgaModuleRam.Address(1 downto 0) = "01" then
-                    CurrentByte <= WasmFpgaModuleRam_WasmFpgaInstruction.Data(15 downto 8);
+                    CurrentByte <= WasmFpgaModuleRam_WasmFpgaInstruction.ReadData(15 downto 8);
                 elsif WasmFpgaInstruction_WasmFpgaModuleRam.Address(1 downto 0) = "10" then
-                    CurrentByte <= WasmFpgaModuleRam_WasmFpgaInstruction.Data(23 downto 16);
+                    CurrentByte <= WasmFpgaModuleRam_WasmFpgaInstruction.ReadData(23 downto 16);
                 else
-                    CurrentByte <= WasmFpgaModuleRam_WasmFpgaInstruction.Data(31 downto 24);
+                    CurrentByte <= WasmFpgaModuleRam_WasmFpgaInstruction.ReadData(31 downto 24);
                 end if;
                 WasmFpgaInstruction_WasmFpgaModuleRam.Address <= std_logic_vector(unsigned(WasmFpgaInstruction_WasmFpgaModuleRam.Address) + 1);
                 State <= StateEnd;
@@ -742,56 +746,14 @@ package body WasmFpgaEnginePackage is
         return std_logic_vector
     is
     begin
-        -- return std_logic_vector(unsigned(a) + unsigned(b));
-        return std_logic_vector(resize(unsigned(a), 32));
+        return std_logic_vector(unsigned(a) + unsigned(b));
     end;
 
     function i32_sub(a: std_logic_vector; b: std_logic_vector)
         return std_logic_vector
     is
     begin
-        -- return std_logic_vector(unsigned(a) - unsigned(b));
-        return std_logic_vector(resize(unsigned(a), 32));
-    end;
-
-    function i32_mul(a: std_logic_vector; b: std_logic_vector)
-        return std_logic_vector
-    is
-    begin
-        -- return std_logic_vector(resize(unsigned(a) * unsigned(b), 32));
-        return std_logic_vector(resize(unsigned(a), 32));
-    end;
-
-    function i32_div_u(a: std_logic_vector; b: std_logic_vector)
-        return std_logic_vector
-    is
-    begin
-        -- return std_logic_vector(resize(unsigned(a) / unsigned(b), 32));
-        return std_logic_vector(resize(unsigned(a), 32));
-    end;
-
-    function i32_div_s(a: std_logic_vector; b: std_logic_vector)
-        return std_logic_vector
-    is
-    begin
-        -- return std_logic_vector(resize(signed(a) / signed(b), 32));
-        return std_logic_vector(resize(signed(a), 32));
-    end;
-
-    function i32_rem_u(a: std_logic_vector; b: std_logic_vector)
-        return std_logic_vector
-    is
-    begin
-        -- return std_logic_vector(resize(unsigned(a) rem unsigned(b), 32));
-        return std_logic_vector(resize(unsigned(a), 32));
-    end;
-
-    function i32_rem_s(a: std_logic_vector; b: std_logic_vector)
-        return std_logic_vector
-    is
-    begin
-        -- return std_logic_vector(resize(signed(a) rem signed(b), 32));
-        return std_logic_vector(resize(signed(a), 32));
+        return std_logic_vector(unsigned(a) - unsigned(b));
     end;
 
     function i32_eqz(a: std_logic_vector)

@@ -31,7 +31,9 @@ entity tb_FileIo is
     StoreMemory_FileIO : in T_StoreMemory_FileIO;
     FileIO_StoreMemory : out T_FileIO_StoreMemory;
     StackMemory_FileIO : in T_StackMemory_FileIO;
-    FileIO_StackMemory : out T_FileIO_StackMemory
+    FileIO_StackMemory : out T_FileIO_StackMemory;
+    Memory_FileIO : in T_Memory_FileIO;
+    FileIO_Memory : out T_FileIO_Memory
   );
 end tb_FileIo;
 
@@ -259,6 +261,13 @@ begin
         FileIO_StackMemory.Cyc <= (others => '0');
         FileIO_StackMemory.We <= '0';
         FileIO_StackMemory.Stb <= '0';
+
+        FileIO_Memory.DatIn <= (others => '0');
+        FileIO_Memory.Adr <= (others => '0');
+        FileIO_Memory.Sel <= (others => '0');
+        FileIO_Memory.Cyc <= (others => '0');
+        FileIO_Memory.We <= '0';
+        FileIO_Memory.Stb <= '0';
 
         FileIO_WasmFpgaBus.DatIn <= (others => '0');
         FileIO_WasmFpgaBus.Adr <= (others => '0');
@@ -1046,6 +1055,21 @@ begin
                     FileIO_StackMemory.Cyc <= "0";
                     FileIO_StackMemory.Stb <= '0';
                     FileIO_StackMemory.We <= '0';
+                elsif (par1 = 3) then
+                    --
+                    -- Read from Memory 4 byte-wise
+                    --
+                    FileIO_Memory.Adr <= std_logic_vector(to_unsigned(par2, FileIO_Memory.Adr'LENGTH));
+                    FileIO_Memory.Sel <= x"F";
+                    FileIO_Memory.Cyc <= "1";
+                    FileIO_Memory.Stb <= '1';
+                    FileIO_Memory.We <= '0';
+                    wait until rising_edge(Memory_FileIO.Ack);
+                    temp_int := to_integer(unsigned(Memory_FileIO.DatOut(31 downto 0)));
+                    FileIO_Memory.Sel <= x"0";
+                    FileIO_Memory.Cyc <= "0";
+                    FileIO_Memory.Stb <= '0';
+                    FileIO_Memory.We <= '0';
                 else
                     assert (false)
                     report " Line " & (integer'image(file_line)) & ", " & instruction(1 to len) & ": wrong data width or unaligned address."

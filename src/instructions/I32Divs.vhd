@@ -27,7 +27,9 @@ entity InstructionI32Divs is
         WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction;
         WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
         WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
-        WasmFpgaInstruction_WasmFpgaModuleRam : buffer T_WasmFpgaInstruction_WasmFpgaModuleRam
+        WasmFpgaInstruction_WasmFpgaModuleRam : buffer T_WasmFpgaInstruction_WasmFpgaModuleRam;
+        WasmFpgaMemory_WasmFpgaInstruction : in T_WasmFpgaMemory_WasmFpgaInstruction;
+        WasmFpgaInstruction_WasmFpgaMemory : out T_WasmFpgaInstruction_WasmFpgaMemory
     );
 end entity;
 
@@ -61,6 +63,11 @@ architecture InstructionI32DivsArchitecture of InstructionI32Divs is
 begin
 
     Rst <= not nRst;
+
+    WasmFpgaInstruction_WasmFpgaMemory.Run <= '0';
+    WasmFpgaInstruction_WasmFpgaMemory.Address <= (others => '0');
+    WasmFpgaInstruction_WasmFpgaMemory.WriteData <= (others => '0');
+    WasmFpgaInstruction_WasmFpgaMemory.WriteEnable <= '0';
 
     process (Clk, Rst) is
     begin

@@ -257,7 +257,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>3f7261d3</spirit:value>
+            <spirit:value>305d147a</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -284,7 +284,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>c26f496f</spirit:value>
+            <spirit:value>230e8075</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -311,7 +311,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>c26f496f</spirit:value>
+            <spirit:value>230e8075</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -777,6 +777,10 @@
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
+        <spirit:name>../src/instructions/I32Load.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
         <spirit:name>../src/instructions/I32Lts.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
@@ -829,6 +833,10 @@
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
+        <spirit:name>../src/instructions/I32Store.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
         <spirit:name>../src/instructions/I32Sub.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
@@ -865,7 +873,11 @@
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../src/WasmFpgaModule.vhd</spirit:name>
+        <spirit:name>../src/WasmFpgaModuleProxy.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/WasmFpgaMemoryProxy.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
@@ -883,7 +895,7 @@
       <spirit:file>
         <spirit:name>../src/WasmFpgaEngine.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
-        <spirit:userFileType>CHECKSUM_ff9ad8ef</spirit:userFileType>
+        <spirit:userFileType>CHECKSUM_5191977d</spirit:userFileType>
       </spirit:file>
     </spirit:fileSet>
     <spirit:fileSet>
@@ -1017,6 +1029,10 @@
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
+        <spirit:name>../src/instructions/I32Load.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
         <spirit:name>../src/instructions/I32Lts.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
@@ -1069,6 +1085,10 @@
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
+        <spirit:name>../src/instructions/I32Store.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
         <spirit:name>../src/instructions/I32Sub.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
@@ -1105,7 +1125,11 @@
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>../src/WasmFpgaModule.vhd</spirit:name>
+        <spirit:name>../src/WasmFpgaModuleProxy.vhd</spirit:name>
+        <spirit:fileType>vhdlSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../src/WasmFpgaMemoryProxy.vhd</spirit:name>
         <spirit:fileType>vhdlSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
@@ -1183,8 +1207,8 @@
         <xilinx:taxonomy>AXI_Peripheral</xilinx:taxonomy>
       </xilinx:taxonomies>
       <xilinx:displayName>WebAssembly Engine IP</xilinx:displayName>
-      <xilinx:coreRevision>27</xilinx:coreRevision>
-      <xilinx:coreCreationDateTime>2020-07-28T21:55:57Z</xilinx:coreCreationDateTime>
+      <xilinx:coreRevision>28</xilinx:coreRevision>
+      <xilinx:coreCreationDateTime>2020-07-30T18:54:00Z</xilinx:coreCreationDateTime>
       <xilinx:tags>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@221ea801_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@5db1bb32_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
@@ -1273,12 +1297,28 @@
         <xilinx:tag xilinx:name="ui.data.coregen.dd@ea4a1e6_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@3029b5f0_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@4eef8e56_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@61f13ca0_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@46cb1d06_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1bead284_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1c7fb50_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@368b0c9_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2bd5ff24_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@65dd756c_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5073d538_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5eb10fd8_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2e26c806_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@337da6b3_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@bc66ea8_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@e938766_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@b1731f0_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@67436764_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6fd932d_ARCHIVE_LOCATION">/home/ubuntu-dev/git/webassembly/wasm-fpga-engine/package</xilinx:tag>
       </xilinx:tags>
     </xilinx:coreExtensions>
     <xilinx:packagingInfo>
       <xilinx:xilinxVersion>2019.2</xilinx:xilinxVersion>
       <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="0b8ad43f"/>
-      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="a095c0d4"/>
+      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="fd2a7abf"/>
       <xilinx:checksum xilinx:scope="ports" xilinx:value="6c97b595"/>
       <xilinx:checksum xilinx:scope="parameters" xilinx:value="aa5d5893"/>
     </xilinx:packagingInfo>

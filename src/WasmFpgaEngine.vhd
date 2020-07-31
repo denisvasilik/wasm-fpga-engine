@@ -36,6 +36,7 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   signal Run : std_logic;
   signal Busy : std_logic;
   signal InvocationTrap : std_logic;
+  signal InstantiationTrap : std_logic;
 
   type T_WasmFpgaStack_WasmFpgaInstruction_Array is array (127 downto 0) of T_WasmFpgaStack_WasmFpgaInstruction;
   type T_WasmFpgaInstruction_WasmFpgaStack_Array is array (127 downto 0) of T_WasmFpgaInstruction_WasmFpgaStack;
@@ -75,7 +76,6 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   signal EngineBlk_Unoccupied_Ack : std_logic;
 
   signal LocalDeclCount : std_logic_vector(31 downto 0);
-  signal LocalDeclCountIteration : unsigned(31 downto 0);
 
   signal ModuleInstanceUID : std_logic_vector(31 downto 0);
   signal SectionUID : std_logic_vector(31 downto 0);
@@ -148,7 +148,7 @@ begin
 
   Rst <= not nRst;
 
-  Trap <= InvocationTrap;
+  Trap <= InvocationTrap or InstantiationTrap;
 
   Ack <= EngineBlk_Ack;
   DatOut <= EngineBlk_DatOut;
@@ -223,8 +223,8 @@ begin
   begin
     if (Rst = '1') then
       LocalDeclCount <= (others => '0');
-      LocalDeclCountIteration <= (others => '0');
       ModuleInstanceUID <= (others => '0');
+      InstantiationTrap <= '0';
       SectionUID <= SECTION_UID_START;
       Idx <= (others => '0');
       DecodedValue <= (others => '0');
@@ -282,7 +282,6 @@ begin
                 InstantiationState <= State4;
             end if;
         elsif(InstantiationState = State4) then
-            -- Ignore section size
             -- Read start funx idx
             ReadUnsignedLEB128(Read32UState,
                     ReadFromModuleRamState,
@@ -341,47 +340,30 @@ begin
                 InstantiationState <= State10;
             end if;
         elsif(InstantiationState = State10) then
-            LocalDeclCount <= DecodedValue;
-            LocalDeclCountIteration <= (others => '0');
-            InstantiationState <= State11;
-        elsif(InstantiationState = State11) then
-            if (LocalDeclCountIteration = unsigned(LocalDeclCount)) then
+            if (DecodedValue = x"00000000") then
                 WasmFpgaInstantiation_WasmFpgaStack.TypeValue <= WASMFPGASTACK_VAL_Activation;
                 WasmFpgaInstantiation_WasmFpgaStack.HighValue <= (others => '0');
                 WasmFpgaInstantiation_WasmFpgaStack.LowValue <= ModuleInstanceUID;
-                InstantiationState <= State12;
+                InstantiationState <= State11;
             else
-                -- Reserve stack space for local variable
-                --
-                -- FIX ME: Where to get type information for local decl count?
-                WasmFpgaInstantiation_WasmFpgaStack.TypeValue <= WASMFPGASTACK_VAL_i32;
-                WasmFpgaInstantiation_WasmFpgaStack.HighValue <= (others => '0');
-                WasmFpgaInstantiation_WasmFpgaStack.LowValue <= (others => '0');
-                LocalDeclCountIteration <= LocalDeclCountIteration + 1;
-                InstantiationState <= State13;
+                -- The start function type must be [] -> []
+                InstantiationTrap <= '1';
             end if;
-        elsif (InstantiationState = State13) then
-            PushToStack(PushToStackState,
-                        WasmFpgaInstantiation_WasmFpgaStack,
-                        WasmFpgaStack_WasmFpgaInstantiation);
-            if (PushToStackState = StateEnd) then
-               InstantiationState <= State11;
-            end if;
-        elsif (InstantiationState = State12) then
+        elsif (InstantiationState = State11) then
             -- Push ModuleInstanceUid
             PushToStack(PushToStackState,
                         WasmFpgaInstantiation_WasmFpgaStack,
                         WasmFpgaStack_WasmFpgaInstantiation);
             if (PushToStackState = StateEnd) then
-               InstantiationState <= State14;
+               InstantiationState <= State12;
             end if;
-        elsif (InstantiationState = State14) then
+        elsif (InstantiationState = State12) then
             InvocationRun <= '1';
-            InstantiationState <= State15;
-        elsif (InstantiationState = State15) then
+            InstantiationState <= State13;
+        elsif (InstantiationState = State13) then
             InvocationRun <= '0';
-            InstantiationState <= State16;
-        elsif (InstantiationState = State16) then
+            InstantiationState <= State14;
+        elsif (InstantiationState = State14) then
             if (InvocationBusy = '0') then
                 InstantiationState <= StateIdle;
             end if;

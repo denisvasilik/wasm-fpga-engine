@@ -6,17 +6,12 @@ library work;
   use work.WasmFpgaEnginePackage.all;
 
 --
--- i32.rotr
+-- local.get
 --
--- Let k be i2​ modulo N.
+-- Execution: https://www.w3.org/TR/wasm-core-1/#exec-local-get
+-- Validation: https://www.w3.org/TR/wasm-core-1/#valid-local-get
 --
--- Return the result of rotating i1​ right by k bits.
---
--- Operation: https://www.w3.org/TR/wasm-core-1/#op-irotr
--- Execution: https://www.w3.org/TR/wasm-core-1/#exec-binop
--- Validation: https://www.w3.org/TR/wasm-core-1/#valid-binop
---
-entity InstructionI32Rotr is
+entity InstructionLocalGet is
     port (
         Clk : in std_logic;
         nRst : in std_logic;
@@ -31,19 +26,18 @@ entity InstructionI32Rotr is
     );
 end entity;
 
-architecture InstructionI32RotrArchitecture of InstructionI32Rotr is
+architecture InstructionLocalGetArchitecture of InstructionLocalGet is
 
     signal Rst : std_logic;
     signal State : std_logic_vector(15 downto 0);
-    signal PopFromStackState : std_logic_vector(15 downto 0);
+    signal GetLocalFromStackState : std_logic_vector(15 downto 0);
     signal PushToStackState : std_logic_vector(15 downto 0);
-    signal OperandA : std_logic_vector(31 downto 0);
-    signal OperandB : std_logic_vector(31 downto 0);
 
 begin
 
     Rst <= not nRst;
 
+    -- Memory
     WasmFpgaInstruction_WasmFpgaMemory.Run <= '0';
     WasmFpgaInstruction_WasmFpgaMemory.Address <= (others => '0');
     WasmFpgaInstruction_WasmFpgaMemory.WriteData <= (others => '0');
@@ -52,19 +46,21 @@ begin
     process (Clk, Rst) is
     begin
         if (Rst = '1') then
+          -- Invocation
+          WasmFpgaInstruction_WasmFpgaInvocation.Address <= (others => '0');
+          WasmFpgaInstruction_WasmFpgaInvocation.Trap <= '0';
+          WasmFpgaInstruction_WasmFpgaInvocation.Busy <= '1';
+          -- Stack
           WasmFpgaInstruction_WasmFpgaStack.Run <= '0';
           WasmFpgaInstruction_WasmFpgaStack.Action <= (others => '0');
           WasmFpgaInstruction_WasmFpgaStack.TypeValue <= (others => '0');
           WasmFpgaInstruction_WasmFpgaStack.HighValue <= (others => '0');
           WasmFpgaInstruction_WasmFpgaStack.LowValue <= (others => '0');
+          -- Module
           WasmFpgaInstruction_WasmFpgaModuleRam.Run <= '0';
           WasmFpgaInstruction_WasmFpgaModuleRam.Address <= (others => '0');
-          WasmFpgaInstruction_WasmFpgaInvocation.Address <= (others => '0');
-          WasmFpgaInstruction_WasmFpgaInvocation.Trap <= '0';
-          WasmFpgaInstruction_WasmFpgaInvocation.Busy <= '1';
-          OperandA <= (others => '0');
-          OperandB <= (others => '0');
-          PopFromStackState <= (others => '0');
+          -- FSM States
+          GetLocalFromStackState <= (others => '0');
           PushToStackState <= (others => '0');
           State <= StateIdle;
         elsif rising_edge(Clk) then
@@ -76,25 +72,16 @@ begin
                     State <= State0;
                 end if;
             elsif (State = State0) then
-                PopFromStack(PopFromStackState,
-                             WasmFpgaInstruction_WasmFpgaStack,
-                             WasmFpgaStack_WasmFpgaInstruction);
-                if(PopFromStackState = StateEnd) then
-                    OperandB <= WasmFpgaStack_WasmFpgaInstruction.LowValue;
+                GetLocalFromStack(GetLocalFromStackState,
+                                  WasmFpgaInstruction_WasmFpgaStack,
+                                  WasmFpgaStack_WasmFpgaInstruction);
+                if(GetLocalFromStackState = StateEnd) then
+                    WasmFpgaInstruction_WasmFpgaStack.LowValue <= WasmFpgaStack_WasmFpgaInstruction.LowValue;
+                    WasmFpgaInstruction_WasmFpgaStack.HighValue <= WasmFpgaStack_WasmFpgaInstruction.HighValue;
+                    WasmFpgaInstruction_WasmFpgaStack.TypeValue <= WasmFpgaStack_WasmFpgaInstruction.TypeValue;
                     State <= State1;
                 end if;
             elsif (State = State1) then
-                PopFromStack(PopFromStackState,
-                             WasmFpgaInstruction_WasmFpgaStack,
-                             WasmFpgaStack_WasmFpgaInstruction);
-                if(PopFromStackState = StateEnd) then
-                    OperandA <= WasmFpgaStack_WasmFpgaInstruction.LowValue;
-                    State <= State2;
-                end if;
-            elsif (State = State2) then
-                WasmFpgaInstruction_WasmFpgaStack.LowValue <= i32_rotr(OperandA, OperandB);
-                State <= State3;
-            elsif (State = State3) then
                 PushToStack(PushToStackState,
                             WasmFpgaInstruction_WasmFpgaStack,
                             WasmFpgaStack_WasmFpgaInstruction);

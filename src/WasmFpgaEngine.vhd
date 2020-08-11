@@ -86,7 +86,7 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   signal StoreBusy : std_logic;
 
   signal StackRun : std_logic;
-  signal StackAction : std_logic;
+  signal StackAction : std_logic_vector(1 downto 0);
   signal StackBusy : std_logic;
   signal StackSizeValue : std_logic_vector(31 downto 0);
   signal StackHighValue_ToBeRead : std_logic_vector(31 downto 0);
@@ -445,7 +445,7 @@ begin
     if (Rst = '1') then
         -- Stack
         StackRun <= '0';
-        StackAction <= '0';
+        StackAction <= (others => '0');
         StackHighValue_Written <= (others => '0');
         StackLowValue_Written <= (others => '0');
         StackType_Written <= (others => '0');

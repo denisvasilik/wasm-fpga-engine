@@ -42,7 +42,7 @@ begin
 
     -- Stack not used
     WasmFpgaInstruction_WasmFpgaStack.Run <= '0';
-    WasmFpgaInstruction_WasmFpgaStack.Action <= '0';
+    WasmFpgaInstruction_WasmFpgaStack.Action <= (others => '0');
     WasmFpgaInstruction_WasmFpgaStack.TypeValue <= WASMFPGASTACK_VAL_i32;
     WasmFpgaInstruction_WasmFpgaStack.HighValue <= (others => '0');
     WasmFpgaInstruction_WasmFpgaStack.LowValue <= (others => '0');

@@ -252,7 +252,8 @@ architecture behavioural of tb_WasmFpgaEngine is
             Stack_DatOut : out std_logic_vector(31 downto 0);
             Stack_DatIn: in std_logic_vector(31 downto 0);
             Stack_Ack : in std_logic;
-            Stack_Cyc : out std_logic_vector(0 downto 0)
+            Stack_Cyc : out std_logic_vector(0 downto 0);
+            Trap : out std_logic
         );
     end component;
 
@@ -480,7 +481,8 @@ begin
             Stack_DatOut => Stack_DatIn,
             Stack_DatIn => Stack_DatOut,
             Stack_Ack => Stack_Ack,
-            Stack_Cyc => Stack_Cyc
+            Stack_Cyc => Stack_Cyc,
+            Trap => open
        );
 
     WasmFpgaStore_i : WasmFpgaStore

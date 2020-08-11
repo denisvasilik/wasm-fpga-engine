@@ -55,7 +55,7 @@ begin
     begin
         if (Rst = '1') then
           WasmFpgaInstruction_WasmFpgaStack.Run <= '0';
-          WasmFpgaInstruction_WasmFpgaStack.Action <= '0';
+          WasmFpgaInstruction_WasmFpgaStack.Action <= (others => '0');
           WasmFpgaInstruction_WasmFpgaStack.TypeValue <= (others => '0');
           WasmFpgaInstruction_WasmFpgaStack.HighValue <= (others => '0');
           WasmFpgaInstruction_WasmFpgaStack.LowValue <= (others => '0');

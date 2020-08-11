@@ -276,7 +276,7 @@ package WasmFpgaEnginePackage is
     type T_WasmFpgaInstruction_WasmFpgaStack is
     record
         Run : std_logic;
-        Action : std_logic;
+        Action : std_logic_vector(1 downto 0);
         HighValue : std_logic_vector(31 downto 0);
         LowValue : std_logic_vector(31 downto 0);
         TypeValue : std_logic_vector(2 downto 0);
@@ -371,6 +371,10 @@ package WasmFpgaEnginePackage is
     procedure PushToStack(signal State : inout std_logic_vector;
                           signal WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
                           signal WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction);
+
+    procedure GetLocalFromStack(signal State : inout std_logic_vector;
+                                signal WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
+                                signal WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction);
 
 end;
 
@@ -639,6 +643,38 @@ package body WasmFpgaEnginePackage is
         elsif (State = StateEnd) then
             State <= StateIdle;
         else
+            State <= (others => '1');
+        end if;
+    end;
+
+
+    procedure GetLocalFromStack(signal State : inout std_logic_vector;
+                                signal WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
+                                signal WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction) is
+    begin
+        if (State = StateIdle) then
+            WasmFpgaInstruction_WasmFpgaStack.Run <= '1';
+            WasmFpgaInstruction_WasmFpgaStack.Action <= WASMFPGASTACK_VAL_LocalGet;
+            State <= State0;
+        elsif (State = State0) then
+            WasmFpgaInstruction_WasmFpgaStack.Run <= '0';
+            State <= State1;
+        elsif (State = State1) then
+            State <= State2;
+        elsif (State = State2) then
+            State <= State3;
+        elsif (State = State3) then
+            State <= State4;
+        elsif (State = State4) then
+            State <= State5;
+        elsif (State = State5) then
+            if (WasmFpgaStack_WasmFpgaInstruction.Busy = '0') then
+                State <= StateEnd;
+            end if;
+        elsif (State = StateEnd) then
+            State <= StateIdle;
+        else
+            -- Error state by convention
             State <= (others => '1');
         end if;
     end;

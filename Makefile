@@ -10,7 +10,7 @@ convert:
 prepare:
 	@mkdir -p work
 
-project: prepare hxs
+project: prepare fetch-definitions hxs
 	@vivado -mode batch -source scripts/create_project.tcl -notrace -nojournal -tempDir work -log work/vivado.log
 
 package: prepare hxs

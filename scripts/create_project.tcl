@@ -108,6 +108,8 @@ set files_vhd [list \
  [file normalize "${project_src}/instructions/I32Gtu.vhd" ]\
  [file normalize "${project_src}/instructions/I32Les.vhd" ]\
  [file normalize "${project_src}/instructions/I32Leu.vhd" ]\
+ [file normalize "${project_src}/instructions/LocalGet.vhd" ]\
+ [file normalize "${project_src}/instructions/LocalSet.vhd" ]\
  [file normalize "${project_package}/component.xml" ]\
 ]
 add_files -norecurse -fileset $obj $files_vhd

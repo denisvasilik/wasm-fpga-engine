@@ -43,6 +43,12 @@ BEGIN_SUB
     CALL $TEST_I32_STORE
     CALL $TEST_I32_LOAD
 
+    -- NOTE: The following tests can be created as soon as the call instruction
+    --       is implemented.
+    -- CALL $TEST_LOCAL_GET
+    -- CALL $TEST_LOCAL_SET
+    -- CALL $TEST_LOCAL_TEE
+
     RETURN_CALL
 END_SUB
 

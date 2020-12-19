@@ -63,8 +63,8 @@ set files_vhd [list \
  [file normalize "${project_src}/WasmFpgaStoreProxy.vhd" ]\
  [file normalize "${project_src}/WasmFpgaStackProxy.vhd" ]\
  [file normalize "${project_src}/WasmFpgaMemoryProxy.vhd" ]\
- [file normalize "${project_src_gen}/vhd_gen/header/wasm_fpga_engine_header.vhd" ]\
- [file normalize "${project_src_gen}/vhd_gen/wishbone/wasm_fpga_engine_wishbone.vhd" ]\
+ [file normalize "${project_src}/../resources/wasm_fpga_engine_header.vhd" ]\
+ [file normalize "${project_src}/../resources/wasm_fpga_engine_wishbone.vhd" ]\
  [file normalize "${project_src}/../resources/wasm_fpga_store_header.vhd" ]\
  [file normalize "${project_src}/../resources/wasm_fpga_store_wishbone.vhd" ]\
  [file normalize "${project_src}/../resources/wasm_fpga_stack_header.vhd" ]\

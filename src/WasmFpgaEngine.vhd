@@ -26,6 +26,14 @@ entity WasmFpgaEngine is
         Bus_DatIn: in std_logic_vector(31 downto 0);
         Bus_Ack : in std_logic;
         Bus_Cyc : out std_logic_vector(0 downto 0);
+        Uart_Adr : out std_logic_vector(23 downto 0);
+        Uart_Sel : out std_logic_vector(3 downto 0);
+        Uart_DatIn: in std_logic_vector(31 downto 0);
+        Uart_We : out std_logic;
+        Uart_Stb : out std_logic;
+        Uart_Cyc : out std_logic_vector(0 downto 0);
+        Uart_DatOut : out std_logic_vector(31 downto 0);
+        Uart_Ack : in std_logic;
         Trap : out std_logic
     );
 end entity WasmFpgaEngine;

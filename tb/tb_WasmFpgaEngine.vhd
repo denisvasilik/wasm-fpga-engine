@@ -182,14 +182,6 @@ architecture behavioural of tb_WasmFpgaEngine is
             Bus_DatIn: in std_logic_vector(31 downto 0);
             Bus_Ack : in std_logic;
             Bus_Cyc : out std_logic_vector(0 downto 0);
-            Uart_Adr : out std_logic_vector(23 downto 0);
-            Uart_Sel : out std_logic_vector(3 downto 0);
-            Uart_DatIn: in std_logic_vector(31 downto 0);
-            Uart_We : out std_logic;
-            Uart_Stb : out std_logic;
-            Uart_Cyc : out std_logic_vector(0 downto 0);
-            Uart_DatOut : out std_logic_vector(31 downto 0);
-            Uart_Ack : in std_logic;
             Trap : out std_logic
         );
     end component;
@@ -421,14 +413,6 @@ begin
             Bus_DatIn => WasmFpgaBus_WasmFpgaEngine.DatOut,
             Bus_Ack => WasmFpgaBus_WasmFpgaEngine.Ack,
             Bus_Cyc => WasmFpgaEngine_WasmFpgaBus.Cyc,
-            Uart_Adr => open,
-            Uart_Sel => open,
-            Uart_DatIn => (others => '0'),
-            Uart_We => open,
-            Uart_Stb => open,
-            Uart_Cyc => open,
-            Uart_DatOut => open,
-            Uart_Ack => '0',
             Trap => open
        );
 

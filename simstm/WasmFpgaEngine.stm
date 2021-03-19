@@ -7,18 +7,20 @@ BEGIN_SUB
 
     SET_MESSAGELEVEL 0
 
-    CALL $TEST_WASM_FPGA_ENGINE
+    -- CALL $TEST_WASM_FPGA_ENGINE
+    CALL $TEST_CALL
 
     RETURN_CALL
 END_SUB
 
-INCLUDE "../hxs_gen/simstm_gen/indirect/wasm_fpga_engine_indirect.stm"
+INCLUDE "../resources/wasm_fpga_engine_indirect.stm"
 INCLUDE "../../wasm-fpga-stack/hxs_gen/simstm_gen/indirect/wasm_fpga_stack_indirect.stm"
 
 INCLUDE "WasmFpgaEngineDefines.stm"
 INCLUDE "WasmFpgaEngineHelper.stm"
 INCLUDE "WasmFpgaEngineTests.stm"
 
+INCLUDE "instructions/Call.stm"
 INCLUDE "instructions/Select.stm"
 INCLUDE "instructions/I32Add.stm"
 INCLUDE "instructions/I32Sub.stm"

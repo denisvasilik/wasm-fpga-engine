@@ -1,0 +1,21 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Binalyzer Unit Test",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/tools/bin2simstm.py",
+            "args": [],
+            "env": {
+                "PYTHONPATH": "binalyzer"
+            },
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "python": "${workspaceFolder}/../.venv/bin/python3"
+        },
+    ]
+}

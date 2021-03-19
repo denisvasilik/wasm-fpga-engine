@@ -102,6 +102,7 @@ package WasmFpgaEngineWshBn_Package is
     type T_WasmFpgaEngineWshBn_EngineBlk is
     record
         Run :   std_logic;
+        WRegPulse_ControlReg :   std_logic;
     end record;
 
     type array_of_T_WasmFpgaEngineWshBn_EngineBlk is

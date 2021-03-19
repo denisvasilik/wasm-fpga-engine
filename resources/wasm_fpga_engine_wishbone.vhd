@@ -27,6 +27,7 @@ entity EngineBlk_WasmFpgaEngine is
         EngineBlk_Ack : out std_logic;
         EngineBlk_Unoccupied_Ack : out std_logic;
         Run : out std_logic;
+        WRegPulse_ControlReg : out std_logic;
         Trap : in std_logic;
         Busy : in std_logic
      );
@@ -49,6 +50,7 @@ architecture arch_for_synthesys of EngineBlk_WasmFpgaEngine is
 
     signal WriteDiff_ControlReg : std_logic;
     signal ReadDiff_ControlReg : std_logic;
+     signal DelWriteDiff_ControlReg: std_logic;
 
 
     signal WriteDiff_StatusReg : std_logic;
@@ -129,9 +131,11 @@ begin
     reg_syn_clk_part_ControlReg0 : process (Clk, Rst)
     begin 
         if (Rst = '1') then 
+             DelWriteDiff_ControlReg <= '0'; 
             PreMuxAck_ControlReg <= '0';
             WReg_Run <= '0';
         elsif rising_edge(Clk) then
+             DelWriteDiff_ControlReg <= WriteDiff_ControlReg;
             PreMuxAck_ControlReg <= WriteDiff_ControlReg or ReadDiff_ControlReg; 
             if (WriteDiff_ControlReg = '1') then
                 if (Sel(0) = '1') then WReg_Run <= DatIn(0); end if;
@@ -150,6 +154,7 @@ begin
 
 
 
+    WRegPulse_ControlReg <= DelWriteDiff_ControlReg;
 
     Run <= WReg_Run;
 
@@ -238,6 +243,7 @@ architecture arch_for_synthesys of WasmFpgaEngineWshBn is
             EngineBlk_Ack : out std_logic;
             EngineBlk_Unoccupied_Ack : out std_logic;
             Run : out std_logic;
+            WRegPulse_ControlReg : out std_logic;
             Trap : in std_logic;
             Busy : in std_logic
          );
@@ -271,6 +277,7 @@ begin
         EngineBlk_Ack => EngineBlk_Ack,
         EngineBlk_Unoccupied_Ack => EngineBlk_Unoccupied_Ack,
         Run => WasmFpgaEngineWshBn_EngineBlk.Run,
+        WRegPulse_ControlReg => WasmFpgaEngineWshBn_EngineBlk.WRegPulse_ControlReg,
         Trap => EngineBlk_WasmFpgaEngineWshBn.Trap,
         Busy => EngineBlk_WasmFpgaEngineWshBn.Busy
      );

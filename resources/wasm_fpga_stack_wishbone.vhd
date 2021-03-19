@@ -28,6 +28,7 @@ entity StackBlk_WasmFpgaStack is
         StackBlk_Unoccupied_Ack : out std_logic;
         Run : out std_logic;
         Action : out std_logic_vector(1 downto 0);
+        WRegPulse_ControlReg : out std_logic;
         Busy : in std_logic;
         SizeValue : in std_logic_vector(31 downto 0);
         HighValue_ToBeRead : in std_logic_vector(31 downto 0);
@@ -72,6 +73,7 @@ architecture arch_for_synthesys of StackBlk_WasmFpgaStack is
 
     signal WriteDiff_ControlReg : std_logic;
     signal ReadDiff_ControlReg : std_logic;
+     signal DelWriteDiff_ControlReg: std_logic;
 
 
     signal WriteDiff_StatusReg : std_logic;
@@ -213,10 +215,12 @@ begin
     reg_syn_clk_part_ControlReg0 : process (Clk, Rst)
     begin 
         if (Rst = '1') then 
+             DelWriteDiff_ControlReg <= '0'; 
             PreMuxAck_ControlReg <= '0';
             WReg_Run <= '0';
             WReg_Action <= "00";
         elsif rising_edge(Clk) then
+             DelWriteDiff_ControlReg <= WriteDiff_ControlReg;
             PreMuxAck_ControlReg <= WriteDiff_ControlReg or ReadDiff_ControlReg; 
             if (WriteDiff_ControlReg = '1') then
                 if (Sel(0) = '1') then WReg_Run <= DatIn(2); end if;
@@ -238,6 +242,7 @@ begin
 
 
 
+    WRegPulse_ControlReg <= DelWriteDiff_ControlReg;
 
     Run <= WReg_Run;
     Action <= WReg_Action;
@@ -599,6 +604,7 @@ architecture arch_for_synthesys of WasmFpgaStackWshBn is
             StackBlk_Unoccupied_Ack : out std_logic;
             Run : out std_logic;
             Action : out std_logic_vector(1 downto 0);
+            WRegPulse_ControlReg : out std_logic;
             Busy : in std_logic;
             SizeValue : in std_logic_vector(31 downto 0);
             HighValue_ToBeRead : in std_logic_vector(31 downto 0);
@@ -643,6 +649,7 @@ begin
         StackBlk_Unoccupied_Ack => StackBlk_Unoccupied_Ack,
         Run => WasmFpgaStackWshBn_StackBlk.Run,
         Action => WasmFpgaStackWshBn_StackBlk.Action,
+        WRegPulse_ControlReg => WasmFpgaStackWshBn_StackBlk.WRegPulse_ControlReg,
         Busy => StackBlk_WasmFpgaStackWshBn.Busy,
         SizeValue => StackBlk_WasmFpgaStackWshBn.SizeValue,
         HighValue_ToBeRead => StackBlk_WasmFpgaStackWshBn.HighValue_ToBeRead,

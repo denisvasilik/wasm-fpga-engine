@@ -103,6 +103,7 @@ package WasmFpgaStoreWshBn_Package is
     record
         Operation :   std_logic;
         Run :   std_logic;
+        WRegPulse_ControlReg :   std_logic;
         ModuleInstanceUID :   std_logic_vector(31 downto 0);
         SectionUID :   std_logic_vector(31 downto 0);
         Idx :   std_logic_vector(31 downto 0);

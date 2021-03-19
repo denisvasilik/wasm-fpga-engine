@@ -28,6 +28,7 @@ entity StoreBlk_WasmFpgaStore is
         StoreBlk_Unoccupied_Ack : out std_logic;
         Operation : out std_logic;
         Run : out std_logic;
+        WRegPulse_ControlReg : out std_logic;
         Busy : in std_logic;
         ModuleInstanceUID : out std_logic_vector(31 downto 0);
         SectionUID : out std_logic_vector(31 downto 0);
@@ -62,6 +63,7 @@ architecture arch_for_synthesys of StoreBlk_WasmFpgaStore is
 
     signal WriteDiff_ControlReg : std_logic;
     signal ReadDiff_ControlReg : std_logic;
+     signal DelWriteDiff_ControlReg: std_logic;
 
 
     signal WriteDiff_StatusReg : std_logic;
@@ -183,10 +185,12 @@ begin
     reg_syn_clk_part_ControlReg0 : process (Clk, Rst)
     begin 
         if (Rst = '1') then 
+             DelWriteDiff_ControlReg <= '0'; 
             PreMuxAck_ControlReg <= '0';
             WReg_Operation <= '0';
             WReg_Run <= '0';
         elsif rising_edge(Clk) then
+             DelWriteDiff_ControlReg <= WriteDiff_ControlReg;
             PreMuxAck_ControlReg <= WriteDiff_ControlReg or ReadDiff_ControlReg; 
             if (WriteDiff_ControlReg = '1') then
                 if (Sel(0) = '1') then WReg_Operation <= DatIn(1); end if;
@@ -208,6 +212,7 @@ begin
 
 
 
+    WRegPulse_ControlReg <= DelWriteDiff_ControlReg;
 
     Operation <= WReg_Operation;
     Run <= WReg_Run;
@@ -484,6 +489,7 @@ architecture arch_for_synthesys of WasmFpgaStoreWshBn is
             StoreBlk_Unoccupied_Ack : out std_logic;
             Operation : out std_logic;
             Run : out std_logic;
+            WRegPulse_ControlReg : out std_logic;
             Busy : in std_logic;
             ModuleInstanceUID : out std_logic_vector(31 downto 0);
             SectionUID : out std_logic_vector(31 downto 0);
@@ -522,6 +528,7 @@ begin
         StoreBlk_Unoccupied_Ack => StoreBlk_Unoccupied_Ack,
         Operation => WasmFpgaStoreWshBn_StoreBlk.Operation,
         Run => WasmFpgaStoreWshBn_StoreBlk.Run,
+        WRegPulse_ControlReg => WasmFpgaStoreWshBn_StoreBlk.WRegPulse_ControlReg,
         Busy => StoreBlk_WasmFpgaStoreWshBn.Busy,
         ModuleInstanceUID => WasmFpgaStoreWshBn_StoreBlk.ModuleInstanceUID,
         SectionUID => WasmFpgaStoreWshBn_StoreBlk.SectionUID,

@@ -103,6 +103,7 @@ package WasmFpgaStackWshBn_Package is
     record
         Run :   std_logic;
         Action :   std_logic_vector(1 downto 0);
+        WRegPulse_ControlReg :   std_logic;
         HighValue_Written :   std_logic_vector(31 downto 0);
         LowValue_Written :   std_logic_vector(31 downto 0);
         Type_Written :   std_logic_vector(2 downto 0);

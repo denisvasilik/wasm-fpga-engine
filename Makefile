@@ -1,11 +1,14 @@
 PWD=$(shell pwd)
+WASM_APP_NAME=call_app
+
 
 all: package
 
 convert:
-	wat2wasm resources/debug.wat -o resources/debug.wasm
-	wat2wasm resources/debug.wat -v > resources/debug.text
-	tools/bin2coe.py --input resources/debug.wasm --output resources/debug.coe
+	wat2wasm resources/${WASM_APP_NAME}.wat -o resources/${WASM_APP_NAME}.wasm
+	wat2wasm resources/${WASM_APP_NAME}.wat -v 2> resources/${WASM_APP_NAME}.txt
+	tools/bin2coe.py --input resources/${WASM_APP_NAME}.wasm --output resources/${WASM_APP_NAME}.coe
+	rm ${WASM_APP_NAME}.wasm
 
 prepare:
 	@mkdir -p work
@@ -34,13 +37,19 @@ clean-ip:
 
 hxs:
 	docker run -t \
-               -v ${PWD}/hxs:/work/src \
+               -v ${PWD}/hxs/wasm_fpga_engine.hxs:/work/src/wasm_fpga_engine.hxs \
                -v ${PWD}/hxs_gen:/work/gen \
                registry.build.aug:5000/docker/hxs_generator:latest
+	cp hxs_gen/simstm_gen/indirect/wasm_fpga_engine_indirect.stm resources/wasm_fpga_engine_indirect.stm
 	cp hxs_gen/vhd_gen/header/wasm_fpga_engine_header.vhd resources/wasm_fpga_engine_header.vhd
 	cp hxs_gen/vhd_gen/wishbone/wasm_fpga_engine_wishbone.vhd resources/wasm_fpga_engine_wishbone.vhd
-	cp hxs_gen/vhd_gen/testbench/direct/wasm_fpga_engine_direct.vhd resources/wasm_fpga_engine_direct.vhd
-	cp hxs_gen/vhd_gen/testbench/indirect/wasm_fpga_engine_indirect.vhd resources/wasm_fpga_engine_indirect.vhd
+	docker run -t \
+               -v ${PWD}/hxs/wasm_fpga_engine_debug.hxs:/work/src/wasm_fpga_engine_debug.hxs \
+               -v ${PWD}/hxs_gen:/work/gen \
+               registry.build.aug:5000/docker/hxs_generator:latest
+	cp hxs_gen/simstm_gen/indirect/wasm_fpga_engine_debug_indirect.stm resources/wasm_fpga_engine_debug_indirect.stm
+	cp hxs_gen/vhd_gen/header/wasm_fpga_engine_debug_header.vhd resources/wasm_fpga_engine_debug_header.vhd
+	cp hxs_gen/vhd_gen/wishbone/wasm_fpga_engine_debug_wishbone.vhd resources/wasm_fpga_engine_debug_wishbone.vhd
 
 fetch-definitions:
 	cp ../wasm-fpga-stack/hxs_gen/vhd_gen/header/* resources

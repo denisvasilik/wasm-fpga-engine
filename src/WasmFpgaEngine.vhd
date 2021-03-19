@@ -18,6 +18,14 @@ entity WasmFpgaEngine is
         Cyc : in std_logic_vector(0 downto 0);
         DatOut : out std_logic_vector(31 downto 0);
         Ack : out std_logic;
+        Debug_Adr : in std_logic_vector(23 downto 0);
+        Debug_Sel : in std_logic_vector(3 downto 0);
+        Debug_DatIn : in std_logic_vector(31 downto 0);
+        Debug_We : in std_logic;
+        Debug_Stb : in std_logic;
+        Debug_Cyc : in std_logic_vector(0 downto 0);
+        Debug_DatOut : out std_logic_vector(31 downto 0);
+        Debug_Ack : out std_logic;
         Bus_Adr : out std_logic_vector(23 downto 0);
         Bus_Sel : out std_logic_vector(3 downto 0);
         Bus_We : out std_logic;
@@ -28,7 +36,7 @@ entity WasmFpgaEngine is
         Bus_Cyc : out std_logic_vector(0 downto 0);
         Trap : out std_logic
     );
-end entity WasmFpgaEngine;
+end entity;
 
 architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
 
@@ -133,10 +141,9 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   signal Read32UState : std_logic_vector(15 downto 0);
   signal ReadFromModuleRamState : std_logic_vector(15 downto 0);
 
-  signal InstantiationRun : std_logic;
-  signal InstantiationPreviousRun : std_logic;
-  signal InstantiationRunTrigger : std_logic;
   signal InstantiationBusy : std_logic;
+
+  signal WRegPulse_ControlReg : std_logic;
 
   signal InvocationRun : std_logic;
   signal InvocationBusy : std_logic;
@@ -201,23 +208,7 @@ begin
   Bus_StoreBlk.DatOut <= Bus_DatIn;
   Bus_StoreBlk.Ack <= Bus_Ack;
 
-  InstantiationRun <= Run;
-
   Busy <= InvocationBusy or InstantiationBusy;
-
-  RunTriggerGenerator: process (Clk, Rst) is
-  begin
-    if(Rst = '1') then
-      InstantiationPreviousRun <= '0';
-      InstantiationRunTrigger <= '0';
-    elsif rising_edge(Clk) then
-      InstantiationRunTrigger <= '0';
-      InstantiationPreviousRun <= Run;
-      if(InstantiationRun = '1' and InstantiationRun /= InstantiationPreviousRun) then
-        InstantiationRunTrigger <= '1';
-      end if;
-    end if;
-  end process;
 
   Instantiation : process (Clk, Rst) is
   begin
@@ -245,7 +236,7 @@ begin
         if (InstantiationState = StateIdle) then
             InstantiationBusy <= '0';
             InvocationRun <= '0';
-            if (InstantiationRunTrigger = '1') then
+            if (WRegPulse_ControlReg = '1' and Run = '1') then
                 InstantiationBusy <= '1';
                 InstantiationState <= State0;
             end if;
@@ -570,9 +561,32 @@ begin
       EngineBlk_Ack => EngineBlk_Ack,
       EngineBlk_Unoccupied_Ack => EngineBlk_Unoccupied_Ack,
       Run => Run,
+      WRegPulse_ControlReg => WRegPulse_ControlReg,
       Trap => InvocationTrap,
       Busy => Busy
     );
+
+    EngineBlk_WasmFpgaEngineDebug_i : entity work.EngineBlk_WasmFpgaEngineDebug
+      port map (
+        Clk => Clk,
+        Rst => Rst,
+        Adr => Debug_Adr,
+        Sel => Debug_Sel,
+        DatIn => Debug_DatIn,
+        We => Debug_We,
+        Stb => Debug_Stb,
+        Cyc => Debug_Cyc,
+        EngineBlk_DatOut => Debug_DatOut,
+        EngineBlk_Ack => Debug_Ack,
+        EngineBlk_Unoccupied_Ack => open,
+        InvocationTrap => InvocationTrap,
+        InstantiationTrap => InstantiationTrap,
+        InstantiationRunning => InstantiationBusy,
+        InvocationRunning => InvocationBusy,
+        Address => WasmFpgaInvocation_WasmFpgaModuleRam.Address,
+        Instruction => InvocationCurrentByte,
+        Error => (others => '0')
+      );
 
     WasmFpgaEngine_ModuleBlk_i : entity work.WasmFpgaEngine_ModuleBlk
       port map (
@@ -1178,6 +1192,20 @@ begin
             WasmFpgaInstruction_WasmFpgaModuleRam => WasmFpgaInstruction_WasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_LOCAL_SET))),
             WasmFpgaMemory_WasmFpgaInstruction => WasmFpgaMemory_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_LOCAL_SET))),
             WasmFpgaInstruction_WasmFpgaMemory => WasmFpgaInstruction_WasmFpgaMemory(to_integer(unsigned(WASM_OPCODE_LOCAL_SET)))
+        );
+
+    InstructionCall_i : entity work.InstructionCall
+        port map (
+            Clk => Clk,
+            nRst => nRst,
+            WasmFpgaInvocation_WasmFpgaInstruction => WasmFpgaInvocation_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_CALL))),
+            WasmFpgaInstruction_WasmFpgaInvocation => WasmFpgaInstruction_WasmFpgaInvocation(to_integer(unsigned(WASM_OPCODE_CALL))),
+            WasmFpgaStack_WasmFpgaInstruction => WasmFpgaStack_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_CALL))),
+            WasmFpgaInstruction_WasmFpgaStack => WasmFpgaInstruction_WasmFpgaStack(to_integer(unsigned(WASM_OPCODE_CALL))),
+            WasmFpgaModuleRam_WasmFpgaInstruction => WasmFpgaModuleRam_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_CALL))),
+            WasmFpgaInstruction_WasmFpgaModuleRam => WasmFpgaInstruction_WasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_CALL))),
+            WasmFpgaMemory_WasmFpgaInstruction => WasmFpgaMemory_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_CALL))),
+            WasmFpgaInstruction_WasmFpgaMemory => WasmFpgaInstruction_WasmFpgaMemory(to_integer(unsigned(WASM_OPCODE_CALL)))
         );
 
 end;

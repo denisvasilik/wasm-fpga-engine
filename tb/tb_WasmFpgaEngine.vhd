@@ -174,6 +174,14 @@ architecture behavioural of tb_WasmFpgaEngine is
             Cyc : in std_logic_vector(0 downto 0);
             DatOut : out std_logic_vector(31 downto 0);
             Ack : out std_logic;
+            Debug_Adr : in std_logic_vector(23 downto 0);
+            Debug_Sel : in std_logic_vector(3 downto 0);
+            Debug_DatIn : in std_logic_vector(31 downto 0);
+            Debug_We : in std_logic;
+            Debug_Stb : in std_logic;
+            Debug_Cyc : in std_logic_vector(0 downto 0);
+            Debug_DatOut : out std_logic_vector(31 downto 0);
+            Debug_Ack : out std_logic;
             Bus_Adr : out std_logic_vector(23 downto 0);
             Bus_Sel : out std_logic_vector(3 downto 0);
             Bus_We : out std_logic;
@@ -405,6 +413,14 @@ begin
             Cyc => FileIO_WasmFpgaEngine.Cyc,
             DatOut => WasmFpgaEngine_FileIO.DatOut,
             Ack => WasmFpgaEngine_FileIO.Ack,
+            Debug_Adr => (others => '0'),
+            Debug_Sel => (others => '0'),
+            Debug_DatIn => (others => '0'),
+            Debug_We => '0',
+            Debug_Stb => '0',
+            Debug_Cyc => (others => '0'),
+            Debug_DatOut => open,
+            Debug_Ack => open,
             Bus_Adr => WasmFpgaEngine_WasmFpgaBus.Adr,
             Bus_Sel => WasmFpgaEngine_WasmFpgaBus.Sel,
             Bus_We => WasmFpgaEngine_WasmFpgaBus.We,

@@ -42,6 +42,12 @@ BEGIN_SUB
     WRITE_RAM $WASM_STORE #x6 #x01 -- Idx
     WRITE_RAM $WASM_STORE #x7 #x27 -- Start Function Address
 
+    -- Prepare store to provide a start function address
+    WRITE_RAM $WASM_STORE #x8 #x0 -- Module Instance UID
+    WRITE_RAM $WASM_STORE #x9 #xA -- Section UID of Code Section
+    WRITE_RAM $WASM_STORE #xA #x00 -- Idx
+    WRITE_RAM $WASM_STORE #xB #x1E -- Start Function Address
+
     WRITE_RAM $WASM_MODULE #x000000 #x00
     WRITE_RAM $WASM_MODULE #x000001 #x61
     WRITE_RAM $WASM_MODULE #x000002 #x73

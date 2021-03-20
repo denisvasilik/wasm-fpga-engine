@@ -1238,8 +1238,8 @@ begin
             WasmFpgaInstruction_WasmFpgaModuleRam => WasmFpgaInstruction_WasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_CALL))),
             WasmFpgaMemory_WasmFpgaInstruction => WasmFpgaMemory_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_CALL))),
             WasmFpgaInstruction_WasmFpgaMemory => WasmFpgaInstruction_WasmFpgaMemory(to_integer(unsigned(WASM_OPCODE_CALL))),
-            WasmFpgaStore_WasmFpgaInstruction => WasmFpgaStore_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_CALL))),
-            WasmFpgaInstruction_WasmFpgaStore => WasmFpgaInstruction_WasmFpgaStore(to_integer(unsigned(WASM_OPCODE_CALL)))
+            FromWasmFpgaStore => WasmFpgaStore_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_CALL))),
+            ToWasmFpgaStore => WasmFpgaInstruction_WasmFpgaStore(to_integer(unsigned(WASM_OPCODE_CALL)))
         );
 
 end;

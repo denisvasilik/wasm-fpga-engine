@@ -20,8 +20,8 @@ entity InstructionCall is
         WasmFpgaInstruction_WasmFpgaModuleRam : buffer T_WasmFpgaInstruction_WasmFpgaModuleRam;
         WasmFpgaMemory_WasmFpgaInstruction : in T_WasmFpgaMemory_WasmFpgaInstruction;
         WasmFpgaInstruction_WasmFpgaMemory : out T_WasmFpgaInstruction_WasmFpgaMemory;
-        WasmFpgaStore_WasmFpgaInstruction : in T_FromWasmFpgaStore;
-        WasmFpgaInstruction_WasmFpgaStore : out T_ToWasmFpgaStore
+        FromWasmFpgaStore : in T_FromWasmFpgaStore;
+        ToWasmFpgaStore : out T_ToWasmFpgaStore
     );
 end;
 
@@ -33,9 +33,12 @@ architecture InstructionCallArchitecture of InstructionCall is
     signal ReadFromModuleRamState : std_logic_vector(15 downto 0);
     signal PopFromStackState : std_logic_vector(15 downto 0);
     signal PushToStackState : std_logic_vector(15 downto 0);
+    signal StoreState : std_logic_vector(15 downto 0);
 
     signal CurrentByte : std_logic_vector(7 downto 0);
     signal DecodedValue : std_logic_vector(31 downto 0);
+
+    signal TmpAddress : std_logic_vector(23 downto 0);
 
 begin
 
@@ -49,22 +52,32 @@ begin
     process (Clk, Rst) is
     begin
         if (Rst = '1') then
+          CurrentByte <= (others => '0');
+          DecodedValue <= (others => '0');
+          TmpAddress <= (others => '0');
+          -- Stack
           WasmFpgaInstruction_WasmFpgaStack.Run <= '0';
           WasmFpgaInstruction_WasmFpgaStack.Action <= (others => '0');
           WasmFpgaInstruction_WasmFpgaStack.TypeValue <= (others => '0');
           WasmFpgaInstruction_WasmFpgaStack.HighValue <= (others => '0');
           WasmFpgaInstruction_WasmFpgaStack.LowValue <= (others => '0');
+          -- Module
           WasmFpgaInstruction_WasmFpgaModuleRam.Run <= '0';
           WasmFpgaInstruction_WasmFpgaModuleRam.Address <= (others => '0');
           WasmFpgaInstruction_WasmFpgaInvocation.Address <= (others => '0');
           WasmFpgaInstruction_WasmFpgaInvocation.Trap <= '0';
           WasmFpgaInstruction_WasmFpgaInvocation.Busy <= '1';
-          CurrentByte <= (others => '0');
-          DecodedValue <= (others => '0');
+          -- Store
+          ToWasmFpgaStore.ModuleInstanceUID <= (others => '0');
+          ToWasmFpgaStore.SectionUID <= (others => '0');
+          ToWasmFpgaStore.Idx <= (others => '0');
+          ToWasmFpgaStore.Run <= '0';
+          -- States
           ReadUnsignedLEB128State <= StateIdle;
           ReadFromModuleRamState <= StateIdle;
-          PopFromStackState <= (others => '0');
-          PushToStackState <= (others => '0');
+          PopFromStackState <= StateIdle;
+          PushToStackState <= StateIdle;
+          StoreState <= StateIdle;
           State <= StateIdle;
         elsif rising_edge(Clk) then
             if (State = StateIdle) then
@@ -88,7 +101,20 @@ begin
                 end if;
             elsif (State = State1) then
                 -- Use function idx to get type section address from store
-            elsif (State = State2) then
+                ToWasmFpgaStore.ModuleInstanceUID <= (others => '0');
+                ToWasmFpgaStore.SectionUID <= SECTION_UID_CODE;
+                ToWasmFpgaStore.Idx <= DecodedValue; -- Use start function idx
+                State <= State2;
+            elsif(State = State2) then
+                ReadModuleAddressFromStore(StoreState,
+                                           ToWasmFpgaStore,
+                                           FromWasmFpgaStore);
+                if (StoreState = StateEnd) then
+                    -- Start section size address
+                    TmpAddress <= FromWasmFpgaStore.Address(23 downto 0);
+                    State <= State3;
+                end if;
+            elsif (State = State3) then
                 -- Get number of parameters and pop them from stack
                 -- PopFromStack(PopFromStackState,
                 --              WasmFpgaInstruction_WasmFpgaStack,
@@ -96,11 +122,11 @@ begin
                 -- if(PopFromStackState = StateEnd) then
                 --     State <= State1;
                 -- end if;
-            elsif (State = State3) then
-                -- Create new stack frame and push parameters onto stack
             elsif (State = State4) then
-                -- Use function idx to get code section address
+                -- Create new stack frame and push parameters onto stack
             elsif (State = State5) then
+                -- Use function idx to get code section address
+            elsif (State = State6) then
                 -- Jump to address of function to call
                 WasmFpgaInstruction_WasmFpgaInvocation.Address <= WasmFpgaInstruction_WasmFpgaModuleRam.Address;
                 State <= StateIdle;

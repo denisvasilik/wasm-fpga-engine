@@ -368,7 +368,7 @@ package WasmFpgaEnginePackage is
     function i32_sub(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
 
     procedure ReadModuleAddressFromStore(signal State : inout std_logic_vector;
-        signal ToWasmFpgaStore : inout T_ToWasmFpgaStore;
+        signal ToWasmFpgaStore : out T_ToWasmFpgaStore;
         signal FromWasmFpgaStore : in T_FromWasmFpgaStore);
 
     procedure ReadFromModuleRam(signal State : inout std_logic_vector;
@@ -444,7 +444,7 @@ package body WasmFpgaEnginePackage is
     -- Read module address from store
     --
     procedure ReadModuleAddressFromStore(signal State : inout std_logic_vector;
-        signal ToWasmFpgaStore : inout T_ToWasmFpgaStore;
+        signal ToWasmFpgaStore : out T_ToWasmFpgaStore;
         signal FromWasmFpgaStore : in T_FromWasmFpgaStore) is
     begin
         if (State = StateIdle) then

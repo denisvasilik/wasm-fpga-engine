@@ -48,6 +48,20 @@ BEGIN_SUB
     WRITE_RAM $WASM_STORE #xA #x00 -- Idx
     WRITE_RAM $WASM_STORE #xB #x1E -- Start Function Address
 
+    -- Prepare store to provide function section address in order to figure out
+    -- the functions type index
+    WRITE_RAM $WASM_STORE #xC #x0 -- Module Instance UID
+    WRITE_RAM $WASM_STORE #xD #x3 -- Section UID of Function Section
+    WRITE_RAM $WASM_STORE #xE #x0 -- Idx
+    WRITE_RAM $WASM_STORE #xF #x16 -- Type Idx Address
+
+    -- Prepare store to provide type section address in order to check number of
+    -- parameters
+    WRITE_RAM $WASM_STORE #xC #x0 -- Module Instance UID
+    WRITE_RAM $WASM_STORE #xD #x1 -- Section UID of Type Section
+    WRITE_RAM $WASM_STORE #xE #x0 -- Idx
+    WRITE_RAM $WASM_STORE #xF #x0C -- Function Type Address
+
     WRITE_RAM $WASM_MODULE #x000000 #x00
     WRITE_RAM $WASM_MODULE #x000001 #x61
     WRITE_RAM $WASM_MODULE #x000002 #x73

@@ -504,7 +504,7 @@ begin
     WasmFpgaStore_i : WasmFpgaStore
       generic map (
           PinMaxAddress => true,
-          MaxAddress => x"00000020"
+          MaxAddress => x"00000100"
       )
       port map (
         Clk => Clk100M,

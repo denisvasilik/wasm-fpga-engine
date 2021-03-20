@@ -200,30 +200,9 @@ package WasmFpgaEnginePackage is
     constant WASM_OPCODE_F32_REINTERPRET_I32 : std_logic_vector(7 downto 0) := x"BE";
     constant WASM_OPCODE_F64_REINTERPRET_I64 : std_logic_vector(7 downto 0) := x"BF";
 
-    constant StateIdle : std_logic_vector(15 downto 0) := x"0000";
-    constant State0 : std_logic_vector(15 downto 0) := x"0001";
-    constant State1 : std_logic_vector(15 downto 0) := x"0002";
-    constant State2 : std_logic_vector(15 downto 0) := x"0003";
-    constant State3 : std_logic_vector(15 downto 0) := x"0004";
-    constant State4 : std_logic_vector(15 downto 0) := x"0005";
-    constant State5 : std_logic_vector(15 downto 0) := x"0006";
-    constant State6 : std_logic_vector(15 downto 0) := x"0007";
-    constant State7 : std_logic_vector(15 downto 0) := x"0008";
-    constant State8 : std_logic_vector(15 downto 0) := x"0009";
-    constant State9 : std_logic_vector(15 downto 0) := x"000A";
-    constant State10 : std_logic_vector(15 downto 0) := x"000B";
-    constant State11 : std_logic_vector(15 downto 0) := x"000C";
-    constant State12 : std_logic_vector(15 downto 0) := x"000D";
-    constant State13 : std_logic_vector(15 downto 0) := x"000E";
-    constant State14 : std_logic_vector(15 downto 0) := x"000F";
-    constant State15 : std_logic_vector(15 downto 0) := x"0010";
-    constant State16 : std_logic_vector(15 downto 0) := x"0011";
-
-    constant StateEnd : std_logic_vector(15 downto 0) := x"00F0";
-    constant StateTrapped : std_logic_vector(15 downto 0) := x"00FD";
-    constant StateNotSupported : std_logic_vector(15 downto 0) := x"00FE";
-    constant StateError : std_logic_vector(15 downto 0) := x"00FF";
-
+    --
+    -- Types
+    --
     type T_WshBnUp is
     record
         DatOut : std_logic_vector(31 downto 0);
@@ -296,7 +275,50 @@ package WasmFpgaEnginePackage is
         Address : std_logic_vector(23 downto 0);
     end record;
 
+    type T_FromWasmFpgaStore is
+    record
+        Busy : std_logic;
+        Address : std_logic_vector(31 downto 0);
+    end record;
 
+    type T_ToWasmFpgaStore is
+    record
+        Run : std_logic;
+        ModuleInstanceUID : std_logic_vector(31 downto 0);
+        SectionUID : std_logic_vector(31 downto 0);
+        Idx : std_logic_vector(31 downto 0);
+    end record;
+
+    --
+    -- States
+    --
+    constant StateIdle : std_logic_vector(15 downto 0) := x"0000";
+    constant State0 : std_logic_vector(15 downto 0) := x"0001";
+    constant State1 : std_logic_vector(15 downto 0) := x"0002";
+    constant State2 : std_logic_vector(15 downto 0) := x"0003";
+    constant State3 : std_logic_vector(15 downto 0) := x"0004";
+    constant State4 : std_logic_vector(15 downto 0) := x"0005";
+    constant State5 : std_logic_vector(15 downto 0) := x"0006";
+    constant State6 : std_logic_vector(15 downto 0) := x"0007";
+    constant State7 : std_logic_vector(15 downto 0) := x"0008";
+    constant State8 : std_logic_vector(15 downto 0) := x"0009";
+    constant State9 : std_logic_vector(15 downto 0) := x"000A";
+    constant State10 : std_logic_vector(15 downto 0) := x"000B";
+    constant State11 : std_logic_vector(15 downto 0) := x"000C";
+    constant State12 : std_logic_vector(15 downto 0) := x"000D";
+    constant State13 : std_logic_vector(15 downto 0) := x"000E";
+    constant State14 : std_logic_vector(15 downto 0) := x"000F";
+    constant State15 : std_logic_vector(15 downto 0) := x"0010";
+    constant State16 : std_logic_vector(15 downto 0) := x"0011";
+
+    constant StateEnd : std_logic_vector(15 downto 0) := x"00F0";
+    constant StateTrapped : std_logic_vector(15 downto 0) := x"00FD";
+    constant StateNotSupported : std_logic_vector(15 downto 0) := x"00FE";
+    constant StateError : std_logic_vector(15 downto 0) := x"00FF";
+
+    --
+    -- Functions
+    --
     function i32_ctz(value: std_logic_vector) return std_logic_vector;
 
     function i32_clz(value: std_logic_vector) return std_logic_vector;
@@ -344,6 +366,10 @@ package WasmFpgaEnginePackage is
     function i32_add(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
 
     function i32_sub(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
+
+    procedure ReadModuleAddressFromStore(signal State : inout std_logic_vector;
+        signal ToWasmFpgaStore : inout T_ToWasmFpgaStore;
+        signal FromWasmFpgaStore : in T_FromWasmFpgaStore);
 
     procedure ReadFromModuleRam(signal State : inout std_logic_vector;
                                  signal CurrentByte : inout std_logic_vector;
@@ -413,6 +439,34 @@ package WasmFpgaEnginePackage is
 end;
 
 package body WasmFpgaEnginePackage is
+
+    --
+    -- Read module address from store
+    --
+    procedure ReadModuleAddressFromStore(signal State : inout std_logic_vector;
+        signal ToWasmFpgaStore : inout T_ToWasmFpgaStore;
+        signal FromWasmFpgaStore : in T_FromWasmFpgaStore) is
+    begin
+        if (State = StateIdle) then
+            ToWasmFpgaStore.Run <= '1';
+            State <= State0;
+        elsif (State = State0) then
+            ToWasmFpgaStore.Run <= '0';
+            State <= State1;
+        elsif (State = State1) then
+            State <= State2;
+        elsif (State = State2) then
+            State <= State3;
+        elsif (State = State3) then
+            if(FromWasmFpgaStore.Busy = '0') then
+                State <= StateEnd;
+            end if;
+        elsif (State = StateEnd) then
+            State <= StateIdle;
+        else
+            State <= StateError;
+        end if;
+    end;
 
     --
     -- Read u32 (LEB128 encoded)

@@ -112,6 +112,9 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   signal StackLowValue_Written : std_logic_vector(31 downto 0);
   signal StackType_ToBeRead : std_logic_vector(2 downto 0);
   signal StackType_Written : std_logic_vector(2 downto 0);
+  signal StackMaxLocals : std_logic_vector(31 downto 0);
+  signal StackMaxResults : std_logic_vector(31 downto 0);
+  signal StackReturnAddress : std_logic_vector(31 downto 0);
 
   signal Bus_ModuleBlk : T_WshBnUp;
   signal ModuleBlk_Bus : T_WshBnDown;
@@ -451,6 +454,9 @@ begin
         StackHighValue_Written <= (others => '0');
         StackLowValue_Written <= (others => '0');
         StackType_Written <= (others => '0');
+        StackMaxLocals <= (others => '0');
+        StackMaxResults <= (others => '0');
+        StackReturnAddress <= (others => '0');
         for i in WasmFpgaStack_WasmFpgaInstruction'RANGE loop
             WasmFpgaStack_WasmFpgaInstruction(i).Busy <= '1';
             WasmFpgaStack_WasmFpgaInstruction(i).HighValue <= (others => '0');
@@ -494,6 +500,9 @@ begin
             StackAction <= WasmFpgaInstantiation_WasmFpgaStack.Action;
             StackLowValue_Written <= WasmFpgaInstantiation_WasmFpgaStack.LowValue;
             StackType_Written <= WasmFpgaInstantiation_WasmFpgaStack.TypeValue;
+            StackMaxLocals <= WasmFpgaInstantiation_WasmFpgaStack.MaxLocals;
+            StackMaxResults <= WasmFpgaInstantiation_WasmFpgaStack.MaxResults;
+            StackReturnAddress <= WasmFpgaInstantiation_WasmFpgaStack.ReturnAddress;
 
             -- Module
             WasmFpgaModuleRam_WasmFpgaInstantiation.Busy <= ModuleRamBusy;
@@ -503,7 +512,7 @@ begin
 
             -- Store
             WasmFpgaStore_WasmFpgaInstantiation.Busy <= StoreBusy;
-            WasmFpgaStore_WasmFpgaInstantiation.Address <= StoreAddress;
+            WasmFpgaStore_WasmFpgaInstantiation.Address <= StoreAddress(23 downto 0);
             StoreModuleInstanceUID <= WasmFpgaInstantiation_WasmFpgaStore.ModuleInstanceUID;
             StoreSectionUID <= WasmFpgaInstantiation_WasmFpgaStore.SectionUID;
             StoreIdx <= WasmFpgaInstantiation_WasmFpgaStore.Idx;
@@ -520,6 +529,9 @@ begin
             StackAction <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).Action;
             StackLowValue_Written <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).LowValue;
             StackType_Written <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).TypeValue;
+            StackMaxLocals <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).MaxLocals;
+            StackMaxResults <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).MaxResults;
+            StackReturnAddress <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).ReturnAddress;
 
             -- Memory
             WasmFpgaMemory_WasmFpgaInstruction(CurrentInstruction).Busy <= MemoryBusy;
@@ -531,7 +543,7 @@ begin
 
             -- Store
             WasmFpgaStore_WasmFpgaInstruction(CurrentInstruction).Busy <= StoreBusy;
-            WasmFpgaStore_WasmFpgaInstruction(CurrentInstruction).Address <= StoreAddress;
+            WasmFpgaStore_WasmFpgaInstruction(CurrentInstruction).Address <= StoreAddress(23 downto 0);
             StoreModuleInstanceUID <= WasmFpgaInstruction_WasmFpgaStore(CurrentInstruction).ModuleInstanceUID;
             StoreSectionUID <= WasmFpgaInstruction_WasmFpgaStore(CurrentInstruction).SectionUID;
             StoreIdx <= WasmFpgaInstruction_WasmFpgaStore(CurrentInstruction).Idx;

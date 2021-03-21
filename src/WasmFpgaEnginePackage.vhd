@@ -260,6 +260,9 @@ package WasmFpgaEnginePackage is
         HighValue : std_logic_vector(31 downto 0);
         LowValue : std_logic_vector(31 downto 0);
         TypeValue : std_logic_vector(2 downto 0);
+        MaxLocals : std_logic_vector(31 downto 0);
+        MaxResults : std_logic_vector(31 downto 0);
+        ReturnAddress : std_logic_vector(31 downto 0);
     end record;
 
     type T_WasmFpgaInstruction_WasmFpgaInvocation is
@@ -278,7 +281,7 @@ package WasmFpgaEnginePackage is
     type T_FromWasmFpgaStore is
     record
         Busy : std_logic;
-        Address : std_logic_vector(31 downto 0);
+        Address : std_logic_vector(23 downto 0);
     end record;
 
     type T_ToWasmFpgaStore is
@@ -390,6 +393,10 @@ package WasmFpgaEnginePackage is
                       signal SignBits : inout std_logic_vector;
                       signal WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
                       signal WasmFpgaInstruction_WasmFpgaModuleRam : inout T_WasmFpgaInstruction_WasmFpgaModuleRam);
+
+    procedure CreateActivationFrame(signal State : inout std_logic_vector;
+                                    signal WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
+                                    signal WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction);
 
     procedure PopFromStack(signal State : inout std_logic_vector;
                            signal WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
@@ -676,6 +683,36 @@ package body WasmFpgaEnginePackage is
         end if;
     end;
 
+    procedure CreateActivationFrame(signal State : inout std_logic_vector;
+                                    signal WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
+                                    signal WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction) is
+    begin
+        if (State = StateIdle) then
+            WasmFpgaInstruction_WasmFpgaStack.Run <= '1';
+            WasmFpgaInstruction_WasmFpgaStack.Action <= WASMFPGASTACK_VAL_CreateActivationFrame;
+            State <= State0;
+        elsif (State = State0) then
+            WasmFpgaInstruction_WasmFpgaStack.Run <= '0';
+            State <= State1;
+        elsif (State = State1) then
+            State <= State2;
+        elsif (State = State2) then
+            State <= State3;
+        elsif (State = State3) then
+            State <= State4;
+        elsif (State = State4) then
+            State <= State5;
+        elsif (State = State5) then
+            if (WasmFpgaStack_WasmFpgaInstruction.Busy = '0') then
+                State <= StateEnd;
+            end if;
+        elsif (State = StateEnd) then
+            State <= StateIdle;
+        else
+            State <= (others => '1');
+        end if;
+    end;
+
     procedure PopFromStack(signal State : inout std_logic_vector;
                            signal WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
                            signal WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction) is
@@ -707,6 +744,7 @@ package body WasmFpgaEnginePackage is
         end if;
     end;
 
+
     procedure PushToStack(signal State : inout std_logic_vector;
                           signal WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
                           signal WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction) is
@@ -725,6 +763,8 @@ package body WasmFpgaEnginePackage is
         elsif (State = State3) then
             State <= State4;
         elsif (State = State4) then
+            State <= State5;
+        elsif (State = State5) then
             if (WasmFpgaStack_WasmFpgaInstruction.Busy = '0') then
                 State <= StateEnd;
             end if;

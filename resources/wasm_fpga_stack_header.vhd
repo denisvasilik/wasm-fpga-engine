@@ -102,7 +102,7 @@ package WasmFpgaStackWshBn_Package is
     type T_WasmFpgaStackWshBn_StackBlk is
     record
         Run :   std_logic;
-        Action :   std_logic_vector(1 downto 0);
+        Action :   std_logic_vector(2 downto 0);
         WRegPulse_ControlReg :   std_logic;
         HighValue_Written :   std_logic_vector(31 downto 0);
         LowValue_Written :   std_logic_vector(31 downto 0);
@@ -110,6 +110,9 @@ package WasmFpgaStackWshBn_Package is
         LocalIndex :   std_logic_vector(31 downto 0);
         StackAddress_Written :   std_logic_vector(31 downto 0);
         WRegPulse_StackAddressReg :   std_logic;
+        MaxLocals :   std_logic_vector(31 downto 0);
+        MaxResults :   std_logic_vector(31 downto 0);
+        ReturnAddress :   std_logic_vector(31 downto 0);
     end record;
 
     type array_of_T_WasmFpgaStackWshBn_StackBlk is
@@ -136,14 +139,14 @@ package WasmFpgaStackWshBn_Package is
     -- BUS: 
 
     constant WASMFPGASTACK_ADR_BLK_BASE_StackBlk                                                     : std_logic_vector(23 downto 0) := x"000000";
-    constant WASMFPGASTACK_ADR_BLK_SIZE_StackBlk                                                     : std_logic_vector(23 downto 0) := x"000020";
+    constant WASMFPGASTACK_ADR_BLK_SIZE_StackBlk                                                     : std_logic_vector(23 downto 0) := x"000030";
 
         -- ControlReg: Control Register 
         constant WASMFPGASTACK_WIDTH_ControlReg                                                      : integer := 32;
         constant WASMFPGASTACK_ADR_ControlReg                                                        : std_logic_vector(23 downto 0) := std_logic_vector(x"000000" + unsigned(WASMFPGASTACK_ADR_BLK_BASE_StackBlk));
 
             -- 
-            constant WASMFPGASTACK_BUS_MASK_Run                                                      : std_logic_vector(31 downto 0) := x"00000004";
+            constant WASMFPGASTACK_BUS_MASK_Run                                                      : std_logic_vector(31 downto 0) := x"00000008";
 
                 -- Do nothing.
                 constant WASMFPGASTACK_VAL_DoNotRun                                                  : std_logic := '0';
@@ -152,16 +155,20 @@ package WasmFpgaStackWshBn_Package is
 
 
             -- 
-            constant WASMFPGASTACK_BUS_MASK_Action                                                   : std_logic_vector(31 downto 0) := x"00000003";
+            constant WASMFPGASTACK_BUS_MASK_Action                                                   : std_logic_vector(31 downto 0) := x"00000007";
 
                 -- Push a value onto the stack.
-                constant WASMFPGASTACK_VAL_Push                                                      : std_logic_vector(1 downto 0) := b"00";
+                constant WASMFPGASTACK_VAL_Push                                                      : std_logic_vector(2 downto 0) := b"000";
                 -- Pop a value from the stack.
-                constant WASMFPGASTACK_VAL_Pop                                                       : std_logic_vector(1 downto 0) := b"01";
+                constant WASMFPGASTACK_VAL_Pop                                                       : std_logic_vector(2 downto 0) := b"001";
                 -- Get local of current activation frame.
-                constant WASMFPGASTACK_VAL_LocalGet                                                  : std_logic_vector(1 downto 0) := b"10";
+                constant WASMFPGASTACK_VAL_LocalGet                                                  : std_logic_vector(2 downto 0) := b"010";
                 -- Set local of current activation frame.
-                constant WASMFPGASTACK_VAL_LocalSet                                                  : std_logic_vector(1 downto 0) := b"11";
+                constant WASMFPGASTACK_VAL_LocalSet                                                  : std_logic_vector(2 downto 0) := b"011";
+                -- Create activation frame.
+                constant WASMFPGASTACK_VAL_CreateActivationFrame                                     : std_logic_vector(2 downto 0) := b"100";
+                -- Remove activation frame.
+                constant WASMFPGASTACK_VAL_RemoveActivationFrame                                     : std_logic_vector(2 downto 0) := b"101";
 
 
         -- StatusReg: Status Register 
@@ -237,6 +244,30 @@ package WasmFpgaStackWshBn_Package is
             -- 
 
             constant WASMFPGASTACK_BUS_MASK_StackAddress                                             : std_logic_vector(31 downto 0) := x"FFFFFFFF";
+
+        -- MaxLocalsReg: Max. Locals Register 
+        constant WASMFPGASTACK_WIDTH_MaxLocalsReg                                                    : integer := 32;
+        constant WASMFPGASTACK_ADR_MaxLocalsReg                                                      : std_logic_vector(23 downto 0) := std_logic_vector(x"000020" + unsigned(WASMFPGASTACK_ADR_BLK_BASE_StackBlk));
+
+            -- 
+
+            constant WASMFPGASTACK_BUS_MASK_MaxLocals                                                : std_logic_vector(31 downto 0) := x"FFFFFFFF";
+
+        -- MaxResultsReg: Max. Results Register 
+        constant WASMFPGASTACK_WIDTH_MaxResultsReg                                                   : integer := 32;
+        constant WASMFPGASTACK_ADR_MaxResultsReg                                                     : std_logic_vector(23 downto 0) := std_logic_vector(x"000024" + unsigned(WASMFPGASTACK_ADR_BLK_BASE_StackBlk));
+
+            -- 
+
+            constant WASMFPGASTACK_BUS_MASK_MaxResults                                               : std_logic_vector(31 downto 0) := x"FFFFFFFF";
+
+        -- ReturnAddressReg: Return Address Register 
+        constant WASMFPGASTACK_WIDTH_ReturnAddressReg                                                : integer := 32;
+        constant WASMFPGASTACK_ADR_ReturnAddressReg                                                  : std_logic_vector(23 downto 0) := std_logic_vector(x"000028" + unsigned(WASMFPGASTACK_ADR_BLK_BASE_StackBlk));
+
+            -- 
+
+            constant WASMFPGASTACK_BUS_MASK_ReturnAddress                                            : std_logic_vector(31 downto 0) := x"FFFFFFFF";
 
 
 

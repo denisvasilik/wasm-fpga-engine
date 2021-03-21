@@ -27,7 +27,7 @@ entity StackBlk_WasmFpgaStack is
         StackBlk_Ack : out std_logic;
         StackBlk_Unoccupied_Ack : out std_logic;
         Run : out std_logic;
-        Action : out std_logic_vector(1 downto 0);
+        Action : out std_logic_vector(2 downto 0);
         WRegPulse_ControlReg : out std_logic;
         Busy : in std_logic;
         SizeValue : in std_logic_vector(31 downto 0);
@@ -40,7 +40,10 @@ entity StackBlk_WasmFpgaStack is
         LocalIndex : out std_logic_vector(31 downto 0);
         StackAddress_ToBeRead : in std_logic_vector(31 downto 0);
         StackAddress_Written : out std_logic_vector(31 downto 0);
-        WRegPulse_StackAddressReg : out std_logic
+        WRegPulse_StackAddressReg : out std_logic;
+        MaxLocals : out std_logic_vector(31 downto 0);
+        MaxResults : out std_logic_vector(31 downto 0);
+        ReturnAddress : out std_logic_vector(31 downto 0)
      );
 end StackBlk_WasmFpgaStack;
 
@@ -70,6 +73,12 @@ architecture arch_for_synthesys of StackBlk_WasmFpgaStack is
     signal PreMuxAck_LocalIndexReg : std_logic;
     signal PreMuxDatOut_StackAddressReg : std_logic_vector(31 downto 0);
     signal PreMuxAck_StackAddressReg : std_logic;
+    signal PreMuxDatOut_MaxLocalsReg : std_logic_vector(31 downto 0);
+    signal PreMuxAck_MaxLocalsReg : std_logic;
+    signal PreMuxDatOut_MaxResultsReg : std_logic_vector(31 downto 0);
+    signal PreMuxAck_MaxResultsReg : std_logic;
+    signal PreMuxDatOut_ReturnAddressReg : std_logic_vector(31 downto 0);
+    signal PreMuxAck_ReturnAddressReg : std_logic;
 
     signal WriteDiff_ControlReg : std_logic;
     signal ReadDiff_ControlReg : std_logic;
@@ -105,13 +114,28 @@ architecture arch_for_synthesys of StackBlk_WasmFpgaStack is
      signal DelWriteDiff_StackAddressReg: std_logic;
 
 
+    signal WriteDiff_MaxLocalsReg : std_logic;
+    signal ReadDiff_MaxLocalsReg : std_logic;
+
+
+    signal WriteDiff_MaxResultsReg : std_logic;
+    signal ReadDiff_MaxResultsReg : std_logic;
+
+
+    signal WriteDiff_ReturnAddressReg : std_logic;
+    signal ReadDiff_ReturnAddressReg : std_logic;
+
+
     signal WReg_Run : std_logic;
-    signal WReg_Action : std_logic_vector(1 downto 0);
+    signal WReg_Action : std_logic_vector(2 downto 0);
     signal WReg_HighValue_Written : std_logic_vector(31 downto 0);
     signal WReg_LowValue_Written : std_logic_vector(31 downto 0);
     signal WReg_Type_Written : std_logic_vector(2 downto 0);
     signal WReg_LocalIndex : std_logic_vector(31 downto 0);
     signal WReg_StackAddress_Written : std_logic_vector(31 downto 0);
+    signal WReg_MaxLocals : std_logic_vector(31 downto 0);
+    signal WReg_MaxResults : std_logic_vector(31 downto 0);
+    signal WReg_ReturnAddress : std_logic_vector(31 downto 0);
 
 begin 
 
@@ -150,6 +174,12 @@ begin
                                 PreMuxAck_LocalIndexReg,
                                 PreMuxDatOut_StackAddressReg,
                                 PreMuxAck_StackAddressReg,
+                                PreMuxDatOut_MaxLocalsReg,
+                                PreMuxAck_MaxLocalsReg,
+                                PreMuxDatOut_MaxResultsReg,
+                                PreMuxAck_MaxResultsReg,
+                                PreMuxDatOut_ReturnAddressReg,
+                                PreMuxAck_ReturnAddressReg,
                                 PreMuxAck_Unoccupied
                                 )
     begin 
@@ -184,6 +214,15 @@ begin
             elsif ( (unsigned(Adr)/4)*4  = ( unsigned(WASMFPGASTACK_ADR_StackAddressReg)) ) then
                  StackBlk_PreDatOut <= PreMuxDatOut_StackAddressReg;
                 StackBlk_PreAck <= PreMuxAck_StackAddressReg;
+            elsif ( (unsigned(Adr)/4)*4  = ( unsigned(WASMFPGASTACK_ADR_MaxLocalsReg)) ) then
+                 StackBlk_PreDatOut <= PreMuxDatOut_MaxLocalsReg;
+                StackBlk_PreAck <= PreMuxAck_MaxLocalsReg;
+            elsif ( (unsigned(Adr)/4)*4  = ( unsigned(WASMFPGASTACK_ADR_MaxResultsReg)) ) then
+                 StackBlk_PreDatOut <= PreMuxDatOut_MaxResultsReg;
+                StackBlk_PreAck <= PreMuxAck_MaxResultsReg;
+            elsif ( (unsigned(Adr)/4)*4  = ( unsigned(WASMFPGASTACK_ADR_ReturnAddressReg)) ) then
+                 StackBlk_PreDatOut <= PreMuxDatOut_ReturnAddressReg;
+                StackBlk_PreAck <= PreMuxAck_ReturnAddressReg;
             else 
                 StackBlk_PreAck <= PreMuxAck_Unoccupied;
                 StackBlk_Unoccupied_PreAck <= PreMuxAck_Unoccupied;
@@ -218,13 +257,13 @@ begin
              DelWriteDiff_ControlReg <= '0'; 
             PreMuxAck_ControlReg <= '0';
             WReg_Run <= '0';
-            WReg_Action <= "00";
+            WReg_Action <= "000";
         elsif rising_edge(Clk) then
              DelWriteDiff_ControlReg <= WriteDiff_ControlReg;
             PreMuxAck_ControlReg <= WriteDiff_ControlReg or ReadDiff_ControlReg; 
             if (WriteDiff_ControlReg = '1') then
-                if (Sel(0) = '1') then WReg_Run <= DatIn(2); end if;
-                if (Sel(0) = '1') then WReg_Action(1 downto 0) <= DatIn(1 downto 0); end if;
+                if (Sel(0) = '1') then WReg_Run <= DatIn(3); end if;
+                if (Sel(0) = '1') then WReg_Action(2 downto 0) <= DatIn(2 downto 0); end if;
             else
             end if;
         end if;
@@ -236,8 +275,8 @@ begin
             )
     begin 
          PreMuxDatOut_ControlReg <= x"0000_0000";
-         PreMuxDatOut_ControlReg(2) <= WReg_Run;
-         PreMuxDatOut_ControlReg(1 downto 0) <= WReg_Action;
+         PreMuxDatOut_ControlReg(3) <= WReg_Run;
+         PreMuxDatOut_ControlReg(2 downto 0) <= WReg_Action;
     end process;
 
 
@@ -558,6 +597,147 @@ begin
 
     StackAddress_Written <= WReg_StackAddress_Written;
 
+    -- .......... MaxLocalsReg, Width: 32, Type: Synchronous  .......... 
+
+    ack_imdt_part_MaxLocalsReg0 : process (Adr, We, Stb, Cyc, PreMuxAck_MaxLocalsReg)
+    begin 
+        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGASTACK_ADR_MaxLocalsReg) ) then 
+            WriteDiff_MaxLocalsReg <=  We and Stb and Cyc(0) and not PreMuxAck_MaxLocalsReg;
+        else
+            WriteDiff_MaxLocalsReg <= '0';
+        end if;
+
+        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGASTACK_ADR_MaxLocalsReg) ) then 
+            ReadDiff_MaxLocalsReg <= not We and Stb and Cyc(0) and not PreMuxAck_MaxLocalsReg;
+        else
+            ReadDiff_MaxLocalsReg <= '0';
+        end if;
+    end process;
+
+    reg_syn_clk_part_MaxLocalsReg0 : process (Clk, Rst)
+    begin 
+        if (Rst = '1') then 
+            PreMuxAck_MaxLocalsReg <= '0';
+            WReg_MaxLocals <= "00000000000000000000000000000000";
+        elsif rising_edge(Clk) then
+            PreMuxAck_MaxLocalsReg <= WriteDiff_MaxLocalsReg or ReadDiff_MaxLocalsReg; 
+            if (WriteDiff_MaxLocalsReg = '1') then
+                if (Sel(3) = '1') then WReg_MaxLocals(31 downto 24) <= DatIn(31 downto 24); end if;
+                if (Sel(2) = '1') then WReg_MaxLocals(23 downto 16) <= DatIn(23 downto 16); end if;
+                if (Sel(1) = '1') then WReg_MaxLocals(15 downto 8) <= DatIn(15 downto 8); end if;
+                if (Sel(0) = '1') then WReg_MaxLocals(7 downto 0) <= DatIn(7 downto 0); end if;
+            else
+            end if;
+        end if;
+    end process;
+
+    mux_premuxdatout_MaxLocalsReg0 : process (
+            WReg_MaxLocals
+            )
+    begin 
+         PreMuxDatOut_MaxLocalsReg <= x"0000_0000";
+         PreMuxDatOut_MaxLocalsReg(31 downto 0) <= WReg_MaxLocals;
+    end process;
+
+
+
+
+    MaxLocals <= WReg_MaxLocals;
+
+    -- .......... MaxResultsReg, Width: 32, Type: Synchronous  .......... 
+
+    ack_imdt_part_MaxResultsReg0 : process (Adr, We, Stb, Cyc, PreMuxAck_MaxResultsReg)
+    begin 
+        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGASTACK_ADR_MaxResultsReg) ) then 
+            WriteDiff_MaxResultsReg <=  We and Stb and Cyc(0) and not PreMuxAck_MaxResultsReg;
+        else
+            WriteDiff_MaxResultsReg <= '0';
+        end if;
+
+        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGASTACK_ADR_MaxResultsReg) ) then 
+            ReadDiff_MaxResultsReg <= not We and Stb and Cyc(0) and not PreMuxAck_MaxResultsReg;
+        else
+            ReadDiff_MaxResultsReg <= '0';
+        end if;
+    end process;
+
+    reg_syn_clk_part_MaxResultsReg0 : process (Clk, Rst)
+    begin 
+        if (Rst = '1') then 
+            PreMuxAck_MaxResultsReg <= '0';
+            WReg_MaxResults <= "00000000000000000000000000000000";
+        elsif rising_edge(Clk) then
+            PreMuxAck_MaxResultsReg <= WriteDiff_MaxResultsReg or ReadDiff_MaxResultsReg; 
+            if (WriteDiff_MaxResultsReg = '1') then
+                if (Sel(3) = '1') then WReg_MaxResults(31 downto 24) <= DatIn(31 downto 24); end if;
+                if (Sel(2) = '1') then WReg_MaxResults(23 downto 16) <= DatIn(23 downto 16); end if;
+                if (Sel(1) = '1') then WReg_MaxResults(15 downto 8) <= DatIn(15 downto 8); end if;
+                if (Sel(0) = '1') then WReg_MaxResults(7 downto 0) <= DatIn(7 downto 0); end if;
+            else
+            end if;
+        end if;
+    end process;
+
+    mux_premuxdatout_MaxResultsReg0 : process (
+            WReg_MaxResults
+            )
+    begin 
+         PreMuxDatOut_MaxResultsReg <= x"0000_0000";
+         PreMuxDatOut_MaxResultsReg(31 downto 0) <= WReg_MaxResults;
+    end process;
+
+
+
+
+    MaxResults <= WReg_MaxResults;
+
+    -- .......... ReturnAddressReg, Width: 32, Type: Synchronous  .......... 
+
+    ack_imdt_part_ReturnAddressReg0 : process (Adr, We, Stb, Cyc, PreMuxAck_ReturnAddressReg)
+    begin 
+        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGASTACK_ADR_ReturnAddressReg) ) then 
+            WriteDiff_ReturnAddressReg <=  We and Stb and Cyc(0) and not PreMuxAck_ReturnAddressReg;
+        else
+            WriteDiff_ReturnAddressReg <= '0';
+        end if;
+
+        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGASTACK_ADR_ReturnAddressReg) ) then 
+            ReadDiff_ReturnAddressReg <= not We and Stb and Cyc(0) and not PreMuxAck_ReturnAddressReg;
+        else
+            ReadDiff_ReturnAddressReg <= '0';
+        end if;
+    end process;
+
+    reg_syn_clk_part_ReturnAddressReg0 : process (Clk, Rst)
+    begin 
+        if (Rst = '1') then 
+            PreMuxAck_ReturnAddressReg <= '0';
+            WReg_ReturnAddress <= "00000000000000000000000000000000";
+        elsif rising_edge(Clk) then
+            PreMuxAck_ReturnAddressReg <= WriteDiff_ReturnAddressReg or ReadDiff_ReturnAddressReg; 
+            if (WriteDiff_ReturnAddressReg = '1') then
+                if (Sel(3) = '1') then WReg_ReturnAddress(31 downto 24) <= DatIn(31 downto 24); end if;
+                if (Sel(2) = '1') then WReg_ReturnAddress(23 downto 16) <= DatIn(23 downto 16); end if;
+                if (Sel(1) = '1') then WReg_ReturnAddress(15 downto 8) <= DatIn(15 downto 8); end if;
+                if (Sel(0) = '1') then WReg_ReturnAddress(7 downto 0) <= DatIn(7 downto 0); end if;
+            else
+            end if;
+        end if;
+    end process;
+
+    mux_premuxdatout_ReturnAddressReg0 : process (
+            WReg_ReturnAddress
+            )
+    begin 
+         PreMuxDatOut_ReturnAddressReg <= x"0000_0000";
+         PreMuxDatOut_ReturnAddressReg(31 downto 0) <= WReg_ReturnAddress;
+    end process;
+
+
+
+
+    ReturnAddress <= WReg_ReturnAddress;
+
 
 end architecture;
 
@@ -603,7 +783,7 @@ architecture arch_for_synthesys of WasmFpgaStackWshBn is
             StackBlk_Ack : out std_logic;
             StackBlk_Unoccupied_Ack : out std_logic;
             Run : out std_logic;
-            Action : out std_logic_vector(1 downto 0);
+            Action : out std_logic_vector(2 downto 0);
             WRegPulse_ControlReg : out std_logic;
             Busy : in std_logic;
             SizeValue : in std_logic_vector(31 downto 0);
@@ -616,7 +796,10 @@ architecture arch_for_synthesys of WasmFpgaStackWshBn is
             LocalIndex : out std_logic_vector(31 downto 0);
             StackAddress_ToBeRead : in std_logic_vector(31 downto 0);
             StackAddress_Written : out std_logic_vector(31 downto 0);
-            WRegPulse_StackAddressReg : out std_logic
+            WRegPulse_StackAddressReg : out std_logic;
+            MaxLocals : out std_logic_vector(31 downto 0);
+            MaxResults : out std_logic_vector(31 downto 0);
+            ReturnAddress : out std_logic_vector(31 downto 0)
          );
     end component; 
 
@@ -661,7 +844,10 @@ begin
         LocalIndex => WasmFpgaStackWshBn_StackBlk.LocalIndex,
         StackAddress_ToBeRead => StackBlk_WasmFpgaStackWshBn.StackAddress_ToBeRead,
         StackAddress_Written => WasmFpgaStackWshBn_StackBlk.StackAddress_Written,
-        WRegPulse_StackAddressReg => WasmFpgaStackWshBn_StackBlk.WRegPulse_StackAddressReg
+        WRegPulse_StackAddressReg => WasmFpgaStackWshBn_StackBlk.WRegPulse_StackAddressReg,
+        MaxLocals => WasmFpgaStackWshBn_StackBlk.MaxLocals,
+        MaxResults => WasmFpgaStackWshBn_StackBlk.MaxResults,
+        ReturnAddress => WasmFpgaStackWshBn_StackBlk.ReturnAddress
      );
 
 

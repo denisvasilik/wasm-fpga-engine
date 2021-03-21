@@ -31,14 +31,13 @@ architecture InstructionCallArchitecture of InstructionCall is
     signal State : std_logic_vector(15 downto 0);
     signal ReadUnsignedLEB128State : std_logic_vector(15 downto 0);
     signal ReadFromModuleRamState : std_logic_vector(15 downto 0);
-    signal PopFromStackState : std_logic_vector(15 downto 0);
-    signal PushToStackState : std_logic_vector(15 downto 0);
+    signal ActivationFrameStackState : std_logic_vector(15 downto 0);
     signal StoreState : std_logic_vector(15 downto 0);
     signal CurrentByte : std_logic_vector(7 downto 0);
     signal DecodedValue : std_logic_vector(31 downto 0);
     signal NumberOfParameters : std_logic_vector(31 downto 0);
-    signal NumberOfResults : std_logic_vector(31 downto 0);
     signal FuncIdx : std_logic_vector(31 downto 0);
+    signal ReturnAddress : std_logic_vector(23 downto 0);
 
 begin
 
@@ -56,13 +55,16 @@ begin
           CurrentByte <= (others => '0');
           DecodedValue <= (others => '0');
           NumberOfParameters <= (others => '0');
-          NumberOfResults <= (others => '0');
+          ReturnAddress <= (others => '0');
           -- Stack
           ToWasmFpgaStack.Run <= '0';
           ToWasmFpgaStack.Action <= (others => '0');
           ToWasmFpgaStack.TypeValue <= (others => '0');
           ToWasmFpgaStack.HighValue <= (others => '0');
           ToWasmFpgaStack.LowValue <= (others => '0');
+          ToWasmFpgaStack.MaxResults <= (others => '0');
+          ToWasmFpgaStack.MaxLocals <= (others => '0');
+          ToWasmFpgaStack.ReturnAddress <= (others => '0');
           -- Module
           ToWasmFpgaModuleRam.Run <= '0';
           ToWasmFpgaModuleRam.Address <= (others => '0');
@@ -77,8 +79,7 @@ begin
           -- States
           ReadUnsignedLEB128State <= StateIdle;
           ReadFromModuleRamState <= StateIdle;
-          PopFromStackState <= StateIdle;
-          PushToStackState <= StateIdle;
+          ActivationFrameStackState <= StateIdle;
           StoreState <= StateIdle;
           State <= StateIdle;
         elsif rising_edge(Clk) then
@@ -104,6 +105,7 @@ begin
                     ToWasmFpgaStore.SectionUID <= SECTION_UID_FUNCTION;
                     ToWasmFpgaStore.Idx <= DecodedValue;
                     FuncIdx <= DecodedValue;
+                    ReturnAddress <= ToWasmFpgaModuleRam.Address;
                     State <= State1;
                 end if;
             elsif(State = State1) then
@@ -112,7 +114,8 @@ begin
                                            FromWasmFpgaStore);
                 if (StoreState = StateEnd) then
                     -- Function section address of function's type idx
-                    ToWasmFpgaModuleRam.Address <= FromWasmFpgaStore.Address(23 downto 0);
+                    ToWasmFpgaModuleRam.Address <= FromWasmFpgaStore.Address;
+
                     State <= State2;
                 end if;
             elsif (State = State2) then
@@ -124,7 +127,8 @@ begin
                         FromWasmFpgaModuleRam,
                         ToWasmFpgaModuleRam);
                 if(ReadUnsignedLEB128State = StateEnd) then
-                    -- Use function's type idx to get address of type idx from type section
+                    -- Use function's type idx to get address of type idx from
+                    -- type section.
                     ToWasmFpgaStore.ModuleInstanceUID <= (others => '0');
                     ToWasmFpgaStore.SectionUID <= SECTION_UID_TYPE;
                     ToWasmFpgaStore.Idx <= DecodedValue;
@@ -136,7 +140,7 @@ begin
                                            FromWasmFpgaStore);
                 if (StoreState = StateEnd) then
                     -- Type section address of function's type idx
-                    ToWasmFpgaModuleRam.Address <= FromWasmFpgaStore.Address(23 downto 0);
+                    ToWasmFpgaModuleRam.Address <= FromWasmFpgaStore.Address;
                     State <= State4;
                 end if;
             elsif (State = State4) then
@@ -163,14 +167,19 @@ begin
                         FromWasmFpgaModuleRam,
                         ToWasmFpgaModuleRam);
                 if(ReadUnsignedLEB128State = StateEnd) then
-                    NumberOfResults <= DecodedValue;
+                    ToWasmFpgaStack.MaxResults <= DecodedValue;
+                    ToWasmFpgaStack.MaxLocals <= NumberOfParameters;
+                    ToWasmFpgaStack.ReturnAddress <= std_logic_vector(resize(
+                        unsigned(ReturnAddress),
+                        ToWasmFpgaStack.ReturnAddress'LENGTH
+                    ));
                     State <= State6;
                 end if;
             elsif (State = State6) then
-                -- CreateActivationFrame(PopFromStackState,
-                --                       ToWasmFpgaStack,
-                --                       FromWasmFpgaStack);
-                if(PopFromStackState = StateEnd) then
+                CreateActivationFrame(ActivationFrameStackState,
+                                      ToWasmFpgaStack,
+                                      FromWasmFpgaStack);
+                if(ActivationFrameStackState = StateEnd) then
                     -- Use function idx to get code section address
                     ToWasmFpgaStore.ModuleInstanceUID <= (others => '0');
                     ToWasmFpgaStore.SectionUID <= SECTION_UID_FUNCTION;
@@ -178,9 +187,14 @@ begin
                     State <= State7;
                 end if;
             elsif (State = State7) then
-                -- Jump to address of called function
-                ToWasmFpgaInvocation.Address <= ToWasmFpgaModuleRam.Address;
-                State <= StateIdle;
+                ReadModuleAddressFromStore(StoreState,
+                                           ToWasmFpgaStore,
+                                           FromWasmFpgaStore);
+                if (StoreState = StateEnd) then
+                    -- Jump to address of called function
+                    ToWasmFpgaInvocation.Address <= FromWasmFpgaStore.Address;
+                    State <= StateIdle;
+                end if;
             end if;
         end if;
     end process;

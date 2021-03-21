@@ -53,6 +53,13 @@ LABEL
                 DEFINE_CONST ENGINEBLK_VAL_IsBusy                                                     #x00000001
 
 
+        -- ModuleInstanceUidReg: Module Instance UID Register 
+        DEFINE_CONST ENGINEBLK_WIDTH_ModuleInstanceUidReg                                             32
+        DEFINE_CONST ENGINEBLK_ADR_ModuleInstanceUidReg                                               #x00000008
+        ADD_CONST ENGINEBLK_ADR_ModuleInstanceUidReg                                                  $WASMFPGAENGINE_ADR_BLK_BASE_ENGINEBLK
+
+            DEFINE_CONST ENGINEBLK_BUS_MASK_ModuleInstanceUid                                         #xFFFFFFFF
+
 
 
 RETURN_CALL
@@ -89,6 +96,9 @@ VERIFY_FPGA 32 $ENGINEBLK_ADR_ControlReg WasmFpgaEnginevalRstRead #x00000000 #x0
 --     Trap
 -- R : StatusReg
 --     Busy
+-- RW : ModuleInstanceUidReg
+VERIFY_FPGA 32 $ENGINEBLK_ADR_ModuleInstanceUidReg WasmFpgaEnginevalRstRead #x00000000 #xFFFFFFFF -- ModuleInstanceUid
+
 
 RETURN_CALL
 END_SUB
@@ -129,6 +139,12 @@ VERIFY_FPGA 32 $ENGINEBLK_ADR_ControlReg WasmFpgaEnginevalRdBkRead #x00000000 #x
 --     Trap
 -- R : StatusReg
 --     Busy
+-- RW : ModuleInstanceUidReg
+WRITE_FPGA  32 $ENGINEBLK_ADR_ModuleInstanceUidReg #x55555555          -- ModuleInstanceUid
+VERIFY_FPGA 32 $ENGINEBLK_ADR_ModuleInstanceUidReg WasmFpgaEnginevalRdBkRead #x55555555 #xFFFFFFFF -- ModuleInstanceUid
+WRITE_FPGA  32 $ENGINEBLK_ADR_ModuleInstanceUidReg #xAAAAAAAA          -- ModuleInstanceUid
+VERIFY_FPGA 32 $ENGINEBLK_ADR_ModuleInstanceUidReg WasmFpgaEnginevalRdBkRead #xAAAAAAAA #xFFFFFFFF -- ModuleInstanceUid
+
 
 RETURN_CALL
 END_SUB

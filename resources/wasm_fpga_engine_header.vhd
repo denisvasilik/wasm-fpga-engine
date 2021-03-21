@@ -103,6 +103,7 @@ package WasmFpgaEngineWshBn_Package is
     record
         Run :   std_logic;
         WRegPulse_ControlReg :   std_logic;
+        ModuleInstanceUid :   std_logic_vector(31 downto 0);
     end record;
 
     type array_of_T_WasmFpgaEngineWshBn_EngineBlk is
@@ -161,6 +162,14 @@ package WasmFpgaEngineWshBn_Package is
                 -- Engine is busy.
                 constant WASMFPGAENGINE_VAL_IsBusy                                                   : std_logic := '1';
 
+
+        -- ModuleInstanceUidReg: Module Instance UID Register 
+        constant WASMFPGAENGINE_WIDTH_ModuleInstanceUidReg                                           : integer := 32;
+        constant WASMFPGAENGINE_ADR_ModuleInstanceUidReg                                             : std_logic_vector(23 downto 0) := std_logic_vector(x"000008" + unsigned(WASMFPGAENGINE_ADR_BLK_BASE_EngineBlk));
+
+            -- 
+
+            constant WASMFPGAENGINE_BUS_MASK_ModuleInstanceUid                                       : std_logic_vector(31 downto 0) := x"FFFFFFFF";
 
 
 

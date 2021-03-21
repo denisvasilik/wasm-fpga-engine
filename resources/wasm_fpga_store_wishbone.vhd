@@ -1,9 +1,9 @@
 
 
--- ========== WebAssembly Store Block( StoreBlk) ========== 
+-- ========== WebAssembly Store Block( StoreBlk) ==========
 
 -- This block describes the WebAssembly store block.
--- BUS: 
+-- BUS:
 
 
 library ieee;
@@ -30,7 +30,7 @@ entity StoreBlk_WasmFpgaStore is
         Run : out std_logic;
         WRegPulse_ControlReg : out std_logic;
         Busy : in std_logic;
-        ModuleInstanceUID : out std_logic_vector(31 downto 0);
+        ModuleInstanceUid : out std_logic_vector(31 downto 0);
         SectionUID : out std_logic_vector(31 downto 0);
         Idx : out std_logic_vector(31 downto 0);
         Address_ToBeRead : in std_logic_vector(31 downto 0);
@@ -42,7 +42,7 @@ end StoreBlk_WasmFpgaStore;
 
 architecture arch_for_synthesys of StoreBlk_WasmFpgaStore is
 
-    -- ---------- block variables ---------- 
+    -- ---------- block variables ----------
     signal PreMuxAck_Unoccupied : std_logic;
     signal UnoccupiedDec : std_logic_vector(1 downto 0);
     signal StoreBlk_PreDatOut : std_logic_vector(31 downto 0);
@@ -93,17 +93,17 @@ architecture arch_for_synthesys of StoreBlk_WasmFpgaStore is
     signal WReg_Idx : std_logic_vector(31 downto 0);
     signal WReg_Address_Written : std_logic_vector(31 downto 0);
 
-begin 
+begin
 
     -- ---------- block DatOut mux ----------
 
     gen_unoccupied_ack : process (Clk, Rst)
-    begin 
-        if (Rst = '1') then 
+    begin
+        if (Rst = '1') then
             PreMuxAck_Unoccupied <= '0';
             UnoccupiedDec <= "00";
         elsif rising_edge(Clk) then
-            UnoccupiedDec(0) <= UnoccupiedDec(1); 
+            UnoccupiedDec(0) <= UnoccupiedDec(1);
             UnoccupiedDec(1)  <= (Cyc(0)  and Stb);
             PreMuxAck_Unoccupied <= UnoccupiedDec(1) and not UnoccupiedDec(0);
         end if;
@@ -113,7 +113,7 @@ begin
     StoreBlk_Ack <=  StoreBlk_PreAck;
     StoreBlk_Unoccupied_Ack <= StoreBlk_Unoccupied_PreAck;
 
-    mux_data_ack_out : process (Cyc, Adr, 
+    mux_data_ack_out : process (Cyc, Adr,
                                 PreMuxDatOut_ControlReg,
                                 PreMuxAck_ControlReg,
                                 PreMuxDatOut_StatusReg,
@@ -128,14 +128,14 @@ begin
                                 PreMuxAck_AddressReg,
                                 PreMuxAck_Unoccupied
                                 )
-    begin 
+    begin
         StoreBlk_PreDatOut <= x"0000_0000"; -- default statements
-        StoreBlk_PreAck <= '0'; 
+        StoreBlk_PreAck <= '0';
         StoreBlk_Unoccupied_PreAck <= '0';
-        if ( (Cyc(0) = '1') 
+        if ( (Cyc(0) = '1')
               and (unsigned(Adr) >= unsigned(WASMFPGASTORE_ADR_BLK_BASE_StoreBlk) )
               and (unsigned(Adr) <= (unsigned(WASMFPGASTORE_ADR_BLK_BASE_StoreBlk) + unsigned(WASMFPGASTORE_ADR_BLK_SIZE_StoreBlk) - 1)) )
-        then 
+        then
             if ( (unsigned(Adr)/4)*4  = ( unsigned(WASMFPGASTORE_ADR_ControlReg)) ) then
                  StoreBlk_PreDatOut <= PreMuxDatOut_ControlReg;
                 StoreBlk_PreAck <= PreMuxAck_ControlReg;
@@ -154,7 +154,7 @@ begin
             elsif ( (unsigned(Adr)/4)*4  = ( unsigned(WASMFPGASTORE_ADR_AddressReg)) ) then
                  StoreBlk_PreDatOut <= PreMuxDatOut_AddressReg;
                 StoreBlk_PreAck <= PreMuxAck_AddressReg;
-            else 
+            else
                 StoreBlk_PreAck <= PreMuxAck_Unoccupied;
                 StoreBlk_Unoccupied_PreAck <= PreMuxAck_Unoccupied;
             end if;
@@ -162,20 +162,20 @@ begin
     end process;
 
 
-    -- ---------- block functions ---------- 
+    -- ---------- block functions ----------
 
 
-    -- .......... ControlReg, Width: 32, Type: Synchronous  .......... 
+    -- .......... ControlReg, Width: 32, Type: Synchronous  ..........
 
     ack_imdt_part_ControlReg0 : process (Adr, We, Stb, Cyc, PreMuxAck_ControlReg)
-    begin 
-        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGASTORE_ADR_ControlReg) ) then 
+    begin
+        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGASTORE_ADR_ControlReg) ) then
             WriteDiff_ControlReg <=  We and Stb and Cyc(0) and not PreMuxAck_ControlReg;
         else
             WriteDiff_ControlReg <= '0';
         end if;
 
-        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGASTORE_ADR_ControlReg) ) then 
+        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGASTORE_ADR_ControlReg) ) then
             ReadDiff_ControlReg <= not We and Stb and Cyc(0) and not PreMuxAck_ControlReg;
         else
             ReadDiff_ControlReg <= '0';
@@ -183,15 +183,15 @@ begin
     end process;
 
     reg_syn_clk_part_ControlReg0 : process (Clk, Rst)
-    begin 
-        if (Rst = '1') then 
-             DelWriteDiff_ControlReg <= '0'; 
+    begin
+        if (Rst = '1') then
+             DelWriteDiff_ControlReg <= '0';
             PreMuxAck_ControlReg <= '0';
             WReg_Operation <= '0';
             WReg_Run <= '0';
         elsif rising_edge(Clk) then
              DelWriteDiff_ControlReg <= WriteDiff_ControlReg;
-            PreMuxAck_ControlReg <= WriteDiff_ControlReg or ReadDiff_ControlReg; 
+            PreMuxAck_ControlReg <= WriteDiff_ControlReg or ReadDiff_ControlReg;
             if (WriteDiff_ControlReg = '1') then
                 if (Sel(0) = '1') then WReg_Operation <= DatIn(1); end if;
                 if (Sel(0) = '1') then WReg_Run <= DatIn(0); end if;
@@ -204,7 +204,7 @@ begin
             WReg_Operation,
             WReg_Run
             )
-    begin 
+    begin
          PreMuxDatOut_ControlReg <= x"0000_0000";
          PreMuxDatOut_ControlReg(1) <= WReg_Operation;
          PreMuxDatOut_ControlReg(0) <= WReg_Run;
@@ -217,17 +217,17 @@ begin
     Operation <= WReg_Operation;
     Run <= WReg_Run;
 
-    -- .......... StatusReg, Width: 32, Type: Synchronous  .......... 
+    -- .......... StatusReg, Width: 32, Type: Synchronous  ..........
 
     ack_imdt_part_StatusReg0 : process (Adr, We, Stb, Cyc, PreMuxAck_StatusReg)
-    begin 
-        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGASTORE_ADR_StatusReg) ) then 
+    begin
+        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGASTORE_ADR_StatusReg) ) then
             WriteDiff_StatusReg <=  We and Stb and Cyc(0) and not PreMuxAck_StatusReg;
         else
             WriteDiff_StatusReg <= '0';
         end if;
 
-        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGASTORE_ADR_StatusReg) ) then 
+        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGASTORE_ADR_StatusReg) ) then
             ReadDiff_StatusReg <= not We and Stb and Cyc(0) and not PreMuxAck_StatusReg;
         else
             ReadDiff_StatusReg <= '0';
@@ -235,18 +235,18 @@ begin
     end process;
 
     reg_syn_clk_part_StatusReg0 : process (Clk, Rst)
-    begin 
-        if (Rst = '1') then 
+    begin
+        if (Rst = '1') then
             PreMuxAck_StatusReg <= '0';
         elsif rising_edge(Clk) then
-            PreMuxAck_StatusReg <= WriteDiff_StatusReg or ReadDiff_StatusReg; 
+            PreMuxAck_StatusReg <= WriteDiff_StatusReg or ReadDiff_StatusReg;
         end if;
     end process;
 
     mux_premuxdatout_StatusReg0 : process (
             Busy
             )
-    begin 
+    begin
          PreMuxDatOut_StatusReg <= x"0000_0000";
          PreMuxDatOut_StatusReg(0) <= Busy;
     end process;
@@ -255,17 +255,17 @@ begin
 
 
 
-    -- .......... ModuleInstanceUidReg, Width: 32, Type: Synchronous  .......... 
+    -- .......... ModuleInstanceUidReg, Width: 32, Type: Synchronous  ..........
 
     ack_imdt_part_ModuleInstanceUidReg0 : process (Adr, We, Stb, Cyc, PreMuxAck_ModuleInstanceUidReg)
-    begin 
-        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGASTORE_ADR_ModuleInstanceUidReg) ) then 
+    begin
+        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGASTORE_ADR_ModuleInstanceUidReg) ) then
             WriteDiff_ModuleInstanceUidReg <=  We and Stb and Cyc(0) and not PreMuxAck_ModuleInstanceUidReg;
         else
             WriteDiff_ModuleInstanceUidReg <= '0';
         end if;
 
-        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGASTORE_ADR_ModuleInstanceUidReg) ) then 
+        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGASTORE_ADR_ModuleInstanceUidReg) ) then
             ReadDiff_ModuleInstanceUidReg <= not We and Stb and Cyc(0) and not PreMuxAck_ModuleInstanceUidReg;
         else
             ReadDiff_ModuleInstanceUidReg <= '0';
@@ -273,12 +273,12 @@ begin
     end process;
 
     reg_syn_clk_part_ModuleInstanceUidReg0 : process (Clk, Rst)
-    begin 
-        if (Rst = '1') then 
+    begin
+        if (Rst = '1') then
             PreMuxAck_ModuleInstanceUidReg <= '0';
             WReg_ModuleInstanceUID <= "00000000000000000000000000000000";
         elsif rising_edge(Clk) then
-            PreMuxAck_ModuleInstanceUidReg <= WriteDiff_ModuleInstanceUidReg or ReadDiff_ModuleInstanceUidReg; 
+            PreMuxAck_ModuleInstanceUidReg <= WriteDiff_ModuleInstanceUidReg or ReadDiff_ModuleInstanceUidReg;
             if (WriteDiff_ModuleInstanceUidReg = '1') then
                 if (Sel(3) = '1') then WReg_ModuleInstanceUID(31 downto 24) <= DatIn(31 downto 24); end if;
                 if (Sel(2) = '1') then WReg_ModuleInstanceUID(23 downto 16) <= DatIn(23 downto 16); end if;
@@ -292,7 +292,7 @@ begin
     mux_premuxdatout_ModuleInstanceUidReg0 : process (
             WReg_ModuleInstanceUID
             )
-    begin 
+    begin
          PreMuxDatOut_ModuleInstanceUidReg <= x"0000_0000";
          PreMuxDatOut_ModuleInstanceUidReg(31 downto 0) <= WReg_ModuleInstanceUID;
     end process;
@@ -300,19 +300,19 @@ begin
 
 
 
-    ModuleInstanceUID <= WReg_ModuleInstanceUID;
+    ModuleInstanceUid <= WReg_ModuleInstanceUID;
 
-    -- .......... SectionUidReg, Width: 32, Type: Synchronous  .......... 
+    -- .......... SectionUidReg, Width: 32, Type: Synchronous  ..........
 
     ack_imdt_part_SectionUidReg0 : process (Adr, We, Stb, Cyc, PreMuxAck_SectionUidReg)
-    begin 
-        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGASTORE_ADR_SectionUidReg) ) then 
+    begin
+        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGASTORE_ADR_SectionUidReg) ) then
             WriteDiff_SectionUidReg <=  We and Stb and Cyc(0) and not PreMuxAck_SectionUidReg;
         else
             WriteDiff_SectionUidReg <= '0';
         end if;
 
-        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGASTORE_ADR_SectionUidReg) ) then 
+        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGASTORE_ADR_SectionUidReg) ) then
             ReadDiff_SectionUidReg <= not We and Stb and Cyc(0) and not PreMuxAck_SectionUidReg;
         else
             ReadDiff_SectionUidReg <= '0';
@@ -320,12 +320,12 @@ begin
     end process;
 
     reg_syn_clk_part_SectionUidReg0 : process (Clk, Rst)
-    begin 
-        if (Rst = '1') then 
+    begin
+        if (Rst = '1') then
             PreMuxAck_SectionUidReg <= '0';
             WReg_SectionUID <= "00000000000000000000000000000000";
         elsif rising_edge(Clk) then
-            PreMuxAck_SectionUidReg <= WriteDiff_SectionUidReg or ReadDiff_SectionUidReg; 
+            PreMuxAck_SectionUidReg <= WriteDiff_SectionUidReg or ReadDiff_SectionUidReg;
             if (WriteDiff_SectionUidReg = '1') then
                 if (Sel(3) = '1') then WReg_SectionUID(31 downto 24) <= DatIn(31 downto 24); end if;
                 if (Sel(2) = '1') then WReg_SectionUID(23 downto 16) <= DatIn(23 downto 16); end if;
@@ -339,7 +339,7 @@ begin
     mux_premuxdatout_SectionUidReg0 : process (
             WReg_SectionUID
             )
-    begin 
+    begin
          PreMuxDatOut_SectionUidReg <= x"0000_0000";
          PreMuxDatOut_SectionUidReg(31 downto 0) <= WReg_SectionUID;
     end process;
@@ -349,17 +349,17 @@ begin
 
     SectionUID <= WReg_SectionUID;
 
-    -- .......... IdxReg, Width: 32, Type: Synchronous  .......... 
+    -- .......... IdxReg, Width: 32, Type: Synchronous  ..........
 
     ack_imdt_part_IdxReg0 : process (Adr, We, Stb, Cyc, PreMuxAck_IdxReg)
-    begin 
-        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGASTORE_ADR_IdxReg) ) then 
+    begin
+        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGASTORE_ADR_IdxReg) ) then
             WriteDiff_IdxReg <=  We and Stb and Cyc(0) and not PreMuxAck_IdxReg;
         else
             WriteDiff_IdxReg <= '0';
         end if;
 
-        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGASTORE_ADR_IdxReg) ) then 
+        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGASTORE_ADR_IdxReg) ) then
             ReadDiff_IdxReg <= not We and Stb and Cyc(0) and not PreMuxAck_IdxReg;
         else
             ReadDiff_IdxReg <= '0';
@@ -367,12 +367,12 @@ begin
     end process;
 
     reg_syn_clk_part_IdxReg0 : process (Clk, Rst)
-    begin 
-        if (Rst = '1') then 
+    begin
+        if (Rst = '1') then
             PreMuxAck_IdxReg <= '0';
             WReg_Idx <= "00000000000000000000000000000000";
         elsif rising_edge(Clk) then
-            PreMuxAck_IdxReg <= WriteDiff_IdxReg or ReadDiff_IdxReg; 
+            PreMuxAck_IdxReg <= WriteDiff_IdxReg or ReadDiff_IdxReg;
             if (WriteDiff_IdxReg = '1') then
                 if (Sel(3) = '1') then WReg_Idx(31 downto 24) <= DatIn(31 downto 24); end if;
                 if (Sel(2) = '1') then WReg_Idx(23 downto 16) <= DatIn(23 downto 16); end if;
@@ -386,7 +386,7 @@ begin
     mux_premuxdatout_IdxReg0 : process (
             WReg_Idx
             )
-    begin 
+    begin
          PreMuxDatOut_IdxReg <= x"0000_0000";
          PreMuxDatOut_IdxReg(31 downto 0) <= WReg_Idx;
     end process;
@@ -396,17 +396,17 @@ begin
 
     Idx <= WReg_Idx;
 
-    -- .......... AddressReg, Width: 32, Type: Synchronous  .......... 
+    -- .......... AddressReg, Width: 32, Type: Synchronous  ..........
 
     ack_imdt_part_AddressReg0 : process (Adr, We, Stb, Cyc, PreMuxAck_AddressReg)
-    begin 
-        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGASTORE_ADR_AddressReg) ) then 
+    begin
+        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGASTORE_ADR_AddressReg) ) then
             WriteDiff_AddressReg <=  We and Stb and Cyc(0) and not PreMuxAck_AddressReg;
         else
             WriteDiff_AddressReg <= '0';
         end if;
 
-        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGASTORE_ADR_AddressReg) ) then 
+        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGASTORE_ADR_AddressReg) ) then
             ReadDiff_AddressReg <= not We and Stb and Cyc(0) and not PreMuxAck_AddressReg;
         else
             ReadDiff_AddressReg <= '0';
@@ -414,12 +414,12 @@ begin
     end process;
 
     reg_syn_clk_part_AddressReg0 : process (Clk, Rst)
-    begin 
-        if (Rst = '1') then 
+    begin
+        if (Rst = '1') then
             PreMuxAck_AddressReg <= '0';
             WReg_Address_Written <= "00000000000000000000000000000000";
         elsif rising_edge(Clk) then
-            PreMuxAck_AddressReg <= WriteDiff_AddressReg or ReadDiff_AddressReg; 
+            PreMuxAck_AddressReg <= WriteDiff_AddressReg or ReadDiff_AddressReg;
             if (WriteDiff_AddressReg = '1') then
                 if (Sel(3) = '1') then WReg_Address_Written(31 downto 24) <= DatIn(31 downto 24); end if;
                 if (Sel(2) = '1') then WReg_Address_Written(23 downto 16) <= DatIn(23 downto 16); end if;
@@ -433,7 +433,7 @@ begin
     mux_premuxdatout_AddressReg0 : process (
             Address_ToBeRead
             )
-    begin 
+    begin
          PreMuxDatOut_AddressReg <= x"0000_0000";
          PreMuxDatOut_AddressReg(31 downto 0) <= Address_ToBeRead;
     end process;
@@ -456,7 +456,7 @@ use ieee.numeric_std.all;
 library work;
 use work.WasmFpgaStoreWshBn_Package.all;
 
--- ========== Wishbone for WasmFpgaStore (WasmFpgaStoreWishbone) ========== 
+-- ========== Wishbone for WasmFpgaStore (WasmFpgaStoreWishbone) ==========
 
 entity WasmFpgaStoreWshBn is
     port (
@@ -491,13 +491,13 @@ architecture arch_for_synthesys of WasmFpgaStoreWshBn is
             Run : out std_logic;
             WRegPulse_ControlReg : out std_logic;
             Busy : in std_logic;
-            ModuleInstanceUID : out std_logic_vector(31 downto 0);
+            ModuleInstanceUid : out std_logic_vector(31 downto 0);
             SectionUID : out std_logic_vector(31 downto 0);
             Idx : out std_logic_vector(31 downto 0);
             Address_ToBeRead : in std_logic_vector(31 downto 0);
             Address_Written : out std_logic_vector(31 downto 0)
          );
-    end component; 
+    end component;
 
 
     -- ---------- internal wires ----------
@@ -508,7 +508,7 @@ architecture arch_for_synthesys of WasmFpgaStoreWshBn is
     signal StoreBlk_Unoccupied_Ack : std_logic;
 
 
-begin 
+begin
 
 
     -- ---------- Connect register instances ----------
@@ -530,7 +530,7 @@ begin
         Run => WasmFpgaStoreWshBn_StoreBlk.Run,
         WRegPulse_ControlReg => WasmFpgaStoreWshBn_StoreBlk.WRegPulse_ControlReg,
         Busy => StoreBlk_WasmFpgaStoreWshBn.Busy,
-        ModuleInstanceUID => WasmFpgaStoreWshBn_StoreBlk.ModuleInstanceUID,
+        ModuleInstanceUid => WasmFpgaStoreWshBn_StoreBlk.ModuleInstanceUid,
         SectionUID => WasmFpgaStoreWshBn_StoreBlk.SectionUID,
         Idx => WasmFpgaStoreWshBn_StoreBlk.Idx,
         Address_ToBeRead => StoreBlk_WasmFpgaStoreWshBn.Address_ToBeRead,
@@ -538,7 +538,7 @@ begin
      );
 
 
-    Sel <= WasmFpgaStoreWshBnDn.Sel;                                                      
+    Sel <= WasmFpgaStoreWshBnDn.Sel;
 
     WasmFpgaStoreWshBn_UnOccpdRcrd.forRecord_Adr <= WasmFpgaStoreWshBnDn.Adr;
     WasmFpgaStoreWshBn_UnOccpdRcrd.forRecord_Sel <= Sel;
@@ -547,13 +547,13 @@ begin
 
     -- ---------- Or all DataOuts and Acks of blocks ----------
 
-     WasmFpgaStoreWshBnUp.DatOut <= 
+     WasmFpgaStoreWshBnUp.DatOut <=
         StoreBlk_DatOut;
 
-     WasmFpgaStoreWshBnUp.Ack <= 
+     WasmFpgaStoreWshBnUp.Ack <=
         StoreBlk_Ack;
 
-     WasmFpgaStoreWshBn_UnOccpdRcrd.Unoccupied_Ack <= 
+     WasmFpgaStoreWshBn_UnOccpdRcrd.Unoccupied_Ack <=
         StoreBlk_Unoccupied_Ack;
 
 

@@ -29,7 +29,8 @@ entity EngineBlk_WasmFpgaEngine is
         Run : out std_logic;
         WRegPulse_ControlReg : out std_logic;
         Trap : in std_logic;
-        Busy : in std_logic
+        Busy : in std_logic;
+        ModuleInstanceUid : out std_logic_vector(31 downto 0)
      );
 end EngineBlk_WasmFpgaEngine;
 
@@ -47,6 +48,8 @@ architecture arch_for_synthesys of EngineBlk_WasmFpgaEngine is
     signal PreMuxAck_ControlReg : std_logic;
     signal PreMuxDatOut_StatusReg : std_logic_vector(31 downto 0);
     signal PreMuxAck_StatusReg : std_logic;
+    signal PreMuxDatOut_ModuleInstanceUidReg : std_logic_vector(31 downto 0);
+    signal PreMuxAck_ModuleInstanceUidReg : std_logic;
 
     signal WriteDiff_ControlReg : std_logic;
     signal ReadDiff_ControlReg : std_logic;
@@ -57,7 +60,12 @@ architecture arch_for_synthesys of EngineBlk_WasmFpgaEngine is
     signal ReadDiff_StatusReg : std_logic;
 
 
+    signal WriteDiff_ModuleInstanceUidReg : std_logic;
+    signal ReadDiff_ModuleInstanceUidReg : std_logic;
+
+
     signal WReg_Run : std_logic;
+    signal WReg_ModuleInstanceUid : std_logic_vector(31 downto 0);
 
 begin 
 
@@ -84,6 +92,8 @@ begin
                                 PreMuxAck_ControlReg,
                                 PreMuxDatOut_StatusReg,
                                 PreMuxAck_StatusReg,
+                                PreMuxDatOut_ModuleInstanceUidReg,
+                                PreMuxAck_ModuleInstanceUidReg,
                                 PreMuxAck_Unoccupied
                                 )
     begin 
@@ -100,6 +110,9 @@ begin
             elsif ( (unsigned(Adr)/4)*4  = ( unsigned(WASMFPGAENGINE_ADR_StatusReg)) ) then
                  EngineBlk_PreDatOut <= PreMuxDatOut_StatusReg;
                 EngineBlk_PreAck <= PreMuxAck_StatusReg;
+            elsif ( (unsigned(Adr)/4)*4  = ( unsigned(WASMFPGAENGINE_ADR_ModuleInstanceUidReg)) ) then
+                 EngineBlk_PreDatOut <= PreMuxDatOut_ModuleInstanceUidReg;
+                EngineBlk_PreAck <= PreMuxAck_ModuleInstanceUidReg;
             else 
                 EngineBlk_PreAck <= PreMuxAck_Unoccupied;
                 EngineBlk_Unoccupied_PreAck <= PreMuxAck_Unoccupied;
@@ -198,6 +211,53 @@ begin
 
 
 
+    -- .......... ModuleInstanceUidReg, Width: 32, Type: Synchronous  .......... 
+
+    ack_imdt_part_ModuleInstanceUidReg0 : process (Adr, We, Stb, Cyc, PreMuxAck_ModuleInstanceUidReg)
+    begin 
+        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGAENGINE_ADR_ModuleInstanceUidReg) ) then 
+            WriteDiff_ModuleInstanceUidReg <=  We and Stb and Cyc(0) and not PreMuxAck_ModuleInstanceUidReg;
+        else
+            WriteDiff_ModuleInstanceUidReg <= '0';
+        end if;
+
+        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGAENGINE_ADR_ModuleInstanceUidReg) ) then 
+            ReadDiff_ModuleInstanceUidReg <= not We and Stb and Cyc(0) and not PreMuxAck_ModuleInstanceUidReg;
+        else
+            ReadDiff_ModuleInstanceUidReg <= '0';
+        end if;
+    end process;
+
+    reg_syn_clk_part_ModuleInstanceUidReg0 : process (Clk, Rst)
+    begin 
+        if (Rst = '1') then 
+            PreMuxAck_ModuleInstanceUidReg <= '0';
+            WReg_ModuleInstanceUid <= "00000000000000000000000000000000";
+        elsif rising_edge(Clk) then
+            PreMuxAck_ModuleInstanceUidReg <= WriteDiff_ModuleInstanceUidReg or ReadDiff_ModuleInstanceUidReg; 
+            if (WriteDiff_ModuleInstanceUidReg = '1') then
+                if (Sel(3) = '1') then WReg_ModuleInstanceUid(31 downto 24) <= DatIn(31 downto 24); end if;
+                if (Sel(2) = '1') then WReg_ModuleInstanceUid(23 downto 16) <= DatIn(23 downto 16); end if;
+                if (Sel(1) = '1') then WReg_ModuleInstanceUid(15 downto 8) <= DatIn(15 downto 8); end if;
+                if (Sel(0) = '1') then WReg_ModuleInstanceUid(7 downto 0) <= DatIn(7 downto 0); end if;
+            else
+            end if;
+        end if;
+    end process;
+
+    mux_premuxdatout_ModuleInstanceUidReg0 : process (
+            WReg_ModuleInstanceUid
+            )
+    begin 
+         PreMuxDatOut_ModuleInstanceUidReg <= x"0000_0000";
+         PreMuxDatOut_ModuleInstanceUidReg(31 downto 0) <= WReg_ModuleInstanceUid;
+    end process;
+
+
+
+
+    ModuleInstanceUid <= WReg_ModuleInstanceUid;
+
 
 end architecture;
 
@@ -245,7 +305,8 @@ architecture arch_for_synthesys of WasmFpgaEngineWshBn is
             Run : out std_logic;
             WRegPulse_ControlReg : out std_logic;
             Trap : in std_logic;
-            Busy : in std_logic
+            Busy : in std_logic;
+            ModuleInstanceUid : out std_logic_vector(31 downto 0)
          );
     end component; 
 
@@ -279,7 +340,8 @@ begin
         Run => WasmFpgaEngineWshBn_EngineBlk.Run,
         WRegPulse_ControlReg => WasmFpgaEngineWshBn_EngineBlk.WRegPulse_ControlReg,
         Trap => EngineBlk_WasmFpgaEngineWshBn.Trap,
-        Busy => EngineBlk_WasmFpgaEngineWshBn.Busy
+        Busy => EngineBlk_WasmFpgaEngineWshBn.Busy,
+        ModuleInstanceUid => WasmFpgaEngineWshBn_EngineBlk.ModuleInstanceUid
      );
 
 

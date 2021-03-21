@@ -149,5 +149,26 @@ HwSwIf WasmFpgaEngine {
                 }
             }
         }
+        
+        FieldDiscretePositions ModuleInstanceUidReg ( Width = 32, Idx->Addr 0 -> 0x8 ) {
+            FieldName { "Module Instance UID Register"; }
+            FieldDescription {
+                "This register store the module instance UID to use for instantiation and invocation.";
+            }
+            TransferPointOfTime = '-';
+            HwConfiguration {
+                HwTypeSync = 'Yes';
+                HwAckImmediate = 'Yes';
+            }
+            Bits {
+                BitFieldData ModuleInstanceUid ( 31 downto 0 ) 'RW_WReg_RLoopBack' {
+                    BitFieldDescription { ""; }
+                    ResetValueEntry = 0b0;
+                    BlockResetsAffecting {
+                        Pwr = 'X' ;
+                    }
+                }
+            }
+        }
     }
 }

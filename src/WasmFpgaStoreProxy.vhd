@@ -21,7 +21,7 @@ entity WasmFpgaEngine_StoreBlk is
         Operation : in std_logic;
         Run : in std_logic;
         Busy : out std_logic;
-        ModuleInstanceUID : in std_logic_vector(31 downto 0);
+        ModuleInstanceUid : in std_logic_vector(31 downto 0);
         SectionUID : in std_logic_vector(31 downto 0);
         Idx : in std_logic_vector(31 downto 0);
         Address_ToBeRead : out std_logic_vector(31 downto 0);
@@ -83,7 +83,7 @@ begin
           We <= '1';
           Adr <= std_logic_vector(unsigned(WASMFPGABUS_ADR_BASE_StoreArea) +
                                   unsigned(WASMFPGASTORE_ADR_ModuleInstanceUidReg));
-          DatIn <= ModuleInstanceUID;
+          DatIn <= ModuleInstanceUid;
           State <= WriteModuleInstanceUid;
         end if;
       elsif( State = WriteModuleInstanceUid ) then
@@ -132,8 +132,8 @@ begin
           We <= '1';
           Adr <= std_logic_vector(unsigned(WASMFPGABUS_ADR_BASE_StoreArea) +
                                   unsigned(WASMFPGASTORE_ADR_ControlReg));
-          DatIn <= (31 downto 2 => '0') & 
-                   WASMFPGASTORE_VAL_Read & 
+          DatIn <= (31 downto 2 => '0') &
+                   WASMFPGASTORE_VAL_Read &
                    WASMFPGASTORE_VAL_DoRun;
           State <= WriteControlReg1;
       elsif( State = WriteControlReg1 ) then

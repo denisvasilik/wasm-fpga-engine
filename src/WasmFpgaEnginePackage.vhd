@@ -276,6 +276,7 @@ package WasmFpgaEnginePackage is
     record
         Run : std_logic;
         Address : std_logic_vector(23 downto 0);
+        ModuleInstanceUid : std_logic_vector(31 downto 0);
     end record;
 
     type T_FromWasmFpgaStore is
@@ -287,7 +288,7 @@ package WasmFpgaEnginePackage is
     type T_ToWasmFpgaStore is
     record
         Run : std_logic;
-        ModuleInstanceUID : std_logic_vector(31 downto 0);
+        ModuleInstanceUid : std_logic_vector(31 downto 0);
         SectionUID : std_logic_vector(31 downto 0);
         Idx : std_logic_vector(31 downto 0);
     end record;

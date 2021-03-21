@@ -113,6 +113,7 @@ package WasmFpgaStackWshBn_Package is
         MaxLocals :   std_logic_vector(31 downto 0);
         MaxResults :   std_logic_vector(31 downto 0);
         ReturnAddress :   std_logic_vector(31 downto 0);
+        ModuleInstanceUid :   std_logic_vector(31 downto 0);
     end record;
 
     type array_of_T_WasmFpgaStackWshBn_StackBlk is
@@ -268,6 +269,14 @@ package WasmFpgaStackWshBn_Package is
             -- 
 
             constant WASMFPGASTACK_BUS_MASK_ReturnAddress                                            : std_logic_vector(31 downto 0) := x"FFFFFFFF";
+
+        -- ModuleInstanceUidReg: Module Instance UID Register 
+        constant WASMFPGASTACK_WIDTH_ModuleInstanceUidReg                                            : integer := 32;
+        constant WASMFPGASTACK_ADR_ModuleInstanceUidReg                                              : std_logic_vector(23 downto 0) := std_logic_vector(x"00002C" + unsigned(WASMFPGASTACK_ADR_BLK_BASE_StackBlk));
+
+            -- 
+
+            constant WASMFPGASTACK_BUS_MASK_ModuleInstanceUid                                        : std_logic_vector(31 downto 0) := x"FFFFFFFF";
 
 
 

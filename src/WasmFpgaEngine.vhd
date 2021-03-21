@@ -116,6 +116,7 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   signal StackMaxLocals : std_logic_vector(31 downto 0);
   signal StackMaxResults : std_logic_vector(31 downto 0);
   signal StackReturnAddress : std_logic_vector(31 downto 0);
+  signal StackModuleInstanceUid : std_logic_vector(31 downto 0);
 
   signal Bus_ModuleBlk : T_WshBnUp;
   signal ModuleBlk_Bus : T_WshBnDown;
@@ -461,6 +462,7 @@ begin
         StackMaxLocals <= (others => '0');
         StackMaxResults <= (others => '0');
         StackReturnAddress <= (others => '0');
+        StackModuleInstanceUid <= (others => '0');
         for i in WasmFpgaStack_WasmFpgaInstruction'RANGE loop
             WasmFpgaStack_WasmFpgaInstruction(i).Busy <= '1';
             WasmFpgaStack_WasmFpgaInstruction(i).HighValue <= (others => '0');
@@ -507,6 +509,7 @@ begin
             StackMaxLocals <= WasmFpgaInstantiation_WasmFpgaStack.MaxLocals;
             StackMaxResults <= WasmFpgaInstantiation_WasmFpgaStack.MaxResults;
             StackReturnAddress <= WasmFpgaInstantiation_WasmFpgaStack.ReturnAddress;
+            StackModuleInstanceUid <= WasmFpgaInstantiation_WasmFpgaStack.ModuleInstanceUid;
 
             -- Module
             WasmFpgaModuleRam_WasmFpgaInstantiation.Busy <= ModuleRamBusy;
@@ -536,6 +539,7 @@ begin
             StackMaxLocals <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).MaxLocals;
             StackMaxResults <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).MaxResults;
             StackReturnAddress <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).ReturnAddress;
+            StackModuleInstanceUid <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).ModuleInstanceUid;
 
             -- Memory
             WasmFpgaMemory_WasmFpgaInstruction(CurrentInstruction).Busy <= MemoryBusy;
@@ -592,7 +596,11 @@ begin
       LowValue_ToBeRead => StackLowValue_ToBeRead,
       LowValue_Written => StackLowValue_Written,
       Type_ToBeRead => StackType_ToBeRead,
-      Type_Written => StackType_Written
+      Type_Written => StackType_Written,
+      MaxLocals => StackMaxLocals,
+      MaxResults => StackMaxResults,
+      ReturnAddress => StackReturnAddress,
+      ModuleInstanceUid => StackModuleInstanceUid
     );
 
   EngineBlk_WasmFpgaEngine_i : entity work.EngineBlk_WasmFpgaEngine

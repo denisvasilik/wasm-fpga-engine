@@ -263,6 +263,7 @@ package WasmFpgaEnginePackage is
         MaxLocals : std_logic_vector(31 downto 0);
         MaxResults : std_logic_vector(31 downto 0);
         ReturnAddress : std_logic_vector(31 downto 0);
+        ModuleInstanceUid : std_logic_vector(31 downto 0);
     end record;
 
     type T_WasmFpgaInstruction_WasmFpgaInvocation is

@@ -43,7 +43,8 @@ entity StackBlk_WasmFpgaStack is
         WRegPulse_StackAddressReg : out std_logic;
         MaxLocals : out std_logic_vector(31 downto 0);
         MaxResults : out std_logic_vector(31 downto 0);
-        ReturnAddress : out std_logic_vector(31 downto 0)
+        ReturnAddress : out std_logic_vector(31 downto 0);
+        ModuleInstanceUid : out std_logic_vector(31 downto 0)
      );
 end StackBlk_WasmFpgaStack;
 
@@ -79,6 +80,8 @@ architecture arch_for_synthesys of StackBlk_WasmFpgaStack is
     signal PreMuxAck_MaxResultsReg : std_logic;
     signal PreMuxDatOut_ReturnAddressReg : std_logic_vector(31 downto 0);
     signal PreMuxAck_ReturnAddressReg : std_logic;
+    signal PreMuxDatOut_ModuleInstanceUidReg : std_logic_vector(31 downto 0);
+    signal PreMuxAck_ModuleInstanceUidReg : std_logic;
 
     signal WriteDiff_ControlReg : std_logic;
     signal ReadDiff_ControlReg : std_logic;
@@ -126,6 +129,10 @@ architecture arch_for_synthesys of StackBlk_WasmFpgaStack is
     signal ReadDiff_ReturnAddressReg : std_logic;
 
 
+    signal WriteDiff_ModuleInstanceUidReg : std_logic;
+    signal ReadDiff_ModuleInstanceUidReg : std_logic;
+
+
     signal WReg_Run : std_logic;
     signal WReg_Action : std_logic_vector(2 downto 0);
     signal WReg_HighValue_Written : std_logic_vector(31 downto 0);
@@ -136,6 +143,7 @@ architecture arch_for_synthesys of StackBlk_WasmFpgaStack is
     signal WReg_MaxLocals : std_logic_vector(31 downto 0);
     signal WReg_MaxResults : std_logic_vector(31 downto 0);
     signal WReg_ReturnAddress : std_logic_vector(31 downto 0);
+    signal WReg_ModuleInstanceUid : std_logic_vector(31 downto 0);
 
 begin 
 
@@ -180,6 +188,8 @@ begin
                                 PreMuxAck_MaxResultsReg,
                                 PreMuxDatOut_ReturnAddressReg,
                                 PreMuxAck_ReturnAddressReg,
+                                PreMuxDatOut_ModuleInstanceUidReg,
+                                PreMuxAck_ModuleInstanceUidReg,
                                 PreMuxAck_Unoccupied
                                 )
     begin 
@@ -223,6 +233,9 @@ begin
             elsif ( (unsigned(Adr)/4)*4  = ( unsigned(WASMFPGASTACK_ADR_ReturnAddressReg)) ) then
                  StackBlk_PreDatOut <= PreMuxDatOut_ReturnAddressReg;
                 StackBlk_PreAck <= PreMuxAck_ReturnAddressReg;
+            elsif ( (unsigned(Adr)/4)*4  = ( unsigned(WASMFPGASTACK_ADR_ModuleInstanceUidReg)) ) then
+                 StackBlk_PreDatOut <= PreMuxDatOut_ModuleInstanceUidReg;
+                StackBlk_PreAck <= PreMuxAck_ModuleInstanceUidReg;
             else 
                 StackBlk_PreAck <= PreMuxAck_Unoccupied;
                 StackBlk_Unoccupied_PreAck <= PreMuxAck_Unoccupied;
@@ -738,6 +751,53 @@ begin
 
     ReturnAddress <= WReg_ReturnAddress;
 
+    -- .......... ModuleInstanceUidReg, Width: 32, Type: Synchronous  .......... 
+
+    ack_imdt_part_ModuleInstanceUidReg0 : process (Adr, We, Stb, Cyc, PreMuxAck_ModuleInstanceUidReg)
+    begin 
+        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGASTACK_ADR_ModuleInstanceUidReg) ) then 
+            WriteDiff_ModuleInstanceUidReg <=  We and Stb and Cyc(0) and not PreMuxAck_ModuleInstanceUidReg;
+        else
+            WriteDiff_ModuleInstanceUidReg <= '0';
+        end if;
+
+        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGASTACK_ADR_ModuleInstanceUidReg) ) then 
+            ReadDiff_ModuleInstanceUidReg <= not We and Stb and Cyc(0) and not PreMuxAck_ModuleInstanceUidReg;
+        else
+            ReadDiff_ModuleInstanceUidReg <= '0';
+        end if;
+    end process;
+
+    reg_syn_clk_part_ModuleInstanceUidReg0 : process (Clk, Rst)
+    begin 
+        if (Rst = '1') then 
+            PreMuxAck_ModuleInstanceUidReg <= '0';
+            WReg_ModuleInstanceUid <= "00000000000000000000000000000000";
+        elsif rising_edge(Clk) then
+            PreMuxAck_ModuleInstanceUidReg <= WriteDiff_ModuleInstanceUidReg or ReadDiff_ModuleInstanceUidReg; 
+            if (WriteDiff_ModuleInstanceUidReg = '1') then
+                if (Sel(3) = '1') then WReg_ModuleInstanceUid(31 downto 24) <= DatIn(31 downto 24); end if;
+                if (Sel(2) = '1') then WReg_ModuleInstanceUid(23 downto 16) <= DatIn(23 downto 16); end if;
+                if (Sel(1) = '1') then WReg_ModuleInstanceUid(15 downto 8) <= DatIn(15 downto 8); end if;
+                if (Sel(0) = '1') then WReg_ModuleInstanceUid(7 downto 0) <= DatIn(7 downto 0); end if;
+            else
+            end if;
+        end if;
+    end process;
+
+    mux_premuxdatout_ModuleInstanceUidReg0 : process (
+            WReg_ModuleInstanceUid
+            )
+    begin 
+         PreMuxDatOut_ModuleInstanceUidReg <= x"0000_0000";
+         PreMuxDatOut_ModuleInstanceUidReg(31 downto 0) <= WReg_ModuleInstanceUid;
+    end process;
+
+
+
+
+    ModuleInstanceUid <= WReg_ModuleInstanceUid;
+
 
 end architecture;
 
@@ -799,7 +859,8 @@ architecture arch_for_synthesys of WasmFpgaStackWshBn is
             WRegPulse_StackAddressReg : out std_logic;
             MaxLocals : out std_logic_vector(31 downto 0);
             MaxResults : out std_logic_vector(31 downto 0);
-            ReturnAddress : out std_logic_vector(31 downto 0)
+            ReturnAddress : out std_logic_vector(31 downto 0);
+            ModuleInstanceUid : out std_logic_vector(31 downto 0)
          );
     end component; 
 
@@ -847,7 +908,8 @@ begin
         WRegPulse_StackAddressReg => WasmFpgaStackWshBn_StackBlk.WRegPulse_StackAddressReg,
         MaxLocals => WasmFpgaStackWshBn_StackBlk.MaxLocals,
         MaxResults => WasmFpgaStackWshBn_StackBlk.MaxResults,
-        ReturnAddress => WasmFpgaStackWshBn_StackBlk.ReturnAddress
+        ReturnAddress => WasmFpgaStackWshBn_StackBlk.ReturnAddress,
+        ModuleInstanceUid => WasmFpgaStackWshBn_StackBlk.ModuleInstanceUid
      );
 
 

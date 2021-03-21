@@ -27,9 +27,13 @@ entity WasmFpgaEngine_StackBlk is
         LowValue_ToBeRead : out std_logic_vector(31 downto 0);
         LowValue_Written : in std_logic_vector(31 downto 0);
         Type_ToBeRead : out std_logic_vector(2 downto 0);
-        Type_Written : in std_logic_vector(2 downto 0)
+        Type_Written : in std_logic_vector(2 downto 0);
+        MaxLocals : in std_logic_vector(31 downto 0);
+        MaxResults : in std_logic_vector(31 downto 0);
+        ReturnAddress : in std_logic_vector(31 downto 0);
+        ModuleInstanceUid : in std_logic_vector(31 downto 0)
     );
-end entity;
+end;
 
 architecture Behavioural of WasmFpgaEngine_StackBlk is
 
@@ -64,6 +68,14 @@ begin
     constant ReadHighValueReg1 : std_logic_vector(7 downto 0) := x"10";
     constant ReadTypeReg0 : std_logic_vector(7 downto 0) := x"11";
     constant ReadTypeReg1 : std_logic_vector(7 downto 0) := x"12";
+    constant WriteMaxLocalsReg0 : std_logic_vector(7 downto 0) := x"13";
+    constant WriteMaxLocalsReg1 : std_logic_vector(7 downto 0) := x"14";
+    constant WriteMaxResultsReg0 : std_logic_vector(7 downto 0) := x"15";
+    constant WriteMaxResultsReg1 : std_logic_vector(7 downto 0) := x"16";
+    constant WriteReturnAddressReg0 : std_logic_vector(7 downto 0) := x"17";
+    constant WriteReturnAddressReg1 : std_logic_vector(7 downto 0) := x"18";
+    constant WriteModuleInstanceUidReg0 : std_logic_vector(7 downto 0) := x"19";
+    constant WriteModuleInstanceUidReg1 : std_logic_vector(7 downto 0) := x"1A";
   begin
     if (Rst = '1') then
       Busy <= '0';
@@ -128,6 +140,70 @@ begin
           DatIn <= (31 downto 3 => '0') & Type_Written;
           State <= WriteTypeReg1;
       elsif( State = WriteTypeReg1 ) then
+        if ( Ack = '1' ) then
+          Cyc <= "0";
+          Stb <= '0';
+          We <= '0';
+          State <= WriteMaxLocalsReg0;
+        end if;
+      elsif( State = WriteMaxLocalsReg0 ) then
+          Cyc <= "1";
+          Stb <= '1';
+          Sel <= (others => '1');
+          We <= '1';
+          Adr <= std_logic_vector(unsigned(WASMFPGABUS_ADR_BASE_StackArea) +
+                                  unsigned(WASMFPGASTACK_ADR_MaxLocalsReg));
+          DatIn <= (31 downto 3 => '0') & Type_Written;
+          State <= WriteMaxLocalsReg1;
+      elsif( State = WriteMaxLocalsReg1 ) then
+        if ( Ack = '1' ) then
+          Cyc <= "0";
+          Stb <= '0';
+          We <= '0';
+          State <= WriteMaxResultsReg0;
+        end if;
+      elsif( State = WriteMaxResultsReg0 ) then
+          Cyc <= "1";
+          Stb <= '1';
+          Sel <= (others => '1');
+          We <= '1';
+          Adr <= std_logic_vector(unsigned(WASMFPGABUS_ADR_BASE_StackArea) +
+                                  unsigned(WASMFPGASTACK_ADR_MaxResultsReg));
+          DatIn <= (31 downto 3 => '0') & Type_Written;
+          State <= WriteMaxResultsReg1;
+      elsif( State = WriteMaxResultsReg1 ) then
+        if ( Ack = '1' ) then
+          Cyc <= "0";
+          Stb <= '0';
+          We <= '0';
+          State <= WriteReturnAddressReg0;
+        end if;
+      elsif( State = WriteReturnAddressReg0 ) then
+          Cyc <= "1";
+          Stb <= '1';
+          Sel <= (others => '1');
+          We <= '1';
+          Adr <= std_logic_vector(unsigned(WASMFPGABUS_ADR_BASE_StackArea) +
+                                  unsigned(WASMFPGASTACK_ADR_ReturnAddressReg));
+          DatIn <= (31 downto 3 => '0') & Type_Written;
+          State <= WriteReturnAddressReg1;
+      elsif( State = WriteReturnAddressReg1 ) then
+        if ( Ack = '1' ) then
+          Cyc <= "0";
+          Stb <= '0';
+          We <= '0';
+          State <= WriteModuleInstanceUidReg0;
+        end if;
+      elsif( State = WriteModuleInstanceUidReg0 ) then
+          Cyc <= "1";
+          Stb <= '1';
+          Sel <= (others => '1');
+          We <= '1';
+          Adr <= std_logic_vector(unsigned(WASMFPGABUS_ADR_BASE_StackArea) +
+                                  unsigned(WASMFPGASTACK_ADR_ModuleInstanceUidReg));
+          DatIn <= (31 downto 3 => '0') & Type_Written;
+          State <= WriteModuleInstanceUidReg1;
+      elsif( State = WriteModuleInstanceUidReg1 ) then
         if ( Ack = '1' ) then
           Cyc <= "0";
           Stb <= '0';
@@ -237,4 +313,4 @@ begin
     end if;
   end process;
 
-end architecture;
+end;

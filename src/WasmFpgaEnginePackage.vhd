@@ -256,7 +256,7 @@ package WasmFpgaEnginePackage is
     type T_WasmFpgaInstruction_WasmFpgaStack is
     record
         Run : std_logic;
-        Action : std_logic_vector(1 downto 0);
+        Action : std_logic_vector(2 downto 0);
         HighValue : std_logic_vector(31 downto 0);
         LowValue : std_logic_vector(31 downto 0);
         TypeValue : std_logic_vector(2 downto 0);

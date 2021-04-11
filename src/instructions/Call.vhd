@@ -60,14 +60,17 @@ begin
           NumberOfParameters <= (others => '0');
           ReturnAddress <= (others => '0');
           -- Stack
-          ToWasmFpgaStack.Run <= '0';
-          ToWasmFpgaStack.Action <= (others => '0');
-          ToWasmFpgaStack.TypeValue <= (others => '0');
-          ToWasmFpgaStack.HighValue <= (others => '0');
-          ToWasmFpgaStack.LowValue <= (others => '0');
-          ToWasmFpgaStack.MaxResults <= (others => '0');
-          ToWasmFpgaStack.MaxLocals <= (others => '0');
-          ToWasmFpgaStack.ReturnAddress <= (others => '0');
+          ToWasmFpgaStack <= (
+              Run => '0',
+              Action => (others => '0'),
+              TypeValue => (others => '0'),
+              HighValue => (others => '0'),
+              LowValue => (others => '0'),
+              MaxResults => (others => '0'),
+              MaxLocals => (others => '0'),
+              ReturnAddress => (others => '0'),
+              ModuleInstanceUid => (others => '0')
+          );
           -- Module
           ToWasmFpgaModuleRam.Run <= '0';
           ToWasmFpgaModuleRam.Address <= (others => '0');
@@ -124,11 +127,11 @@ begin
             elsif (State = State2) then
                 -- Read function's type idx from module RAM
                 ReadUnsignedLEB128(ReadUnsignedLEB128State,
-                        ReadFromModuleRamState,
-                        DecodedValue,
-                        CurrentByte,
-                        FromWasmFpgaModuleRam,
-                        ToWasmFpgaModuleRam);
+                                   ReadFromModuleRamState,
+                                   DecodedValue,
+                                   CurrentByte,
+                                   FromWasmFpgaModuleRam,
+                                   ToWasmFpgaModuleRam);
                 if(ReadUnsignedLEB128State = StateEnd) then
                     -- Use function's type idx to get address of type idx from
                     -- type section.
@@ -186,7 +189,7 @@ begin
                 if(ActivationFrameStackState = StateEnd) then
                     -- Use function idx to get code section address
                     ToWasmFpgaStore.ModuleInstanceUid <= ModuleInstanceUid;
-                    ToWasmFpgaStore.SectionUID <= SECTION_UID_FUNCTION;
+                    ToWasmFpgaStore.SectionUID <= SECTION_UID_CODE;
                     ToWasmFpgaStore.Idx <= FuncIdx;
                     State <= State7;
                 end if;

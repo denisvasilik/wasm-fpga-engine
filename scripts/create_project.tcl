@@ -112,6 +112,7 @@ set files_vhd [list \
  [file normalize "${project_src}/instructions/I32Leu.vhd" ]\
  [file normalize "${project_src}/instructions/LocalGet.vhd" ]\
  [file normalize "${project_src}/instructions/LocalSet.vhd" ]\
+ [file normalize "${project_src}/instructions/Call.vhd" ]\
  [file normalize "${project_package}/component.xml" ]\
 ]
 add_files -norecurse -fileset $obj $files_vhd
@@ -161,6 +162,7 @@ set files [list \
  "[file normalize "${project_tb}/tb_WbRam.vhd"]"\
  "[file normalize "${project_origin}/wasm-fpga-store/src/WasmFpgaStore.vhd"]"\
  "[file normalize "${project_origin}/wasm-fpga-stack/src/WasmFpgaStack.vhd"]"\
+ "[file normalize "${project_origin}/wasm-fpga-stack/src/WasmFpgaStackPackage.vhd"]"\
  "[file normalize "${project_origin}/wasm-fpga-bus/src/WasmFpgaBus.vhd"]"\
 ]
 add_files -norecurse -fileset $obj $files

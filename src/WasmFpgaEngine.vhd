@@ -389,8 +389,11 @@ begin
       WasmFpgaInvocation_WasmFpgaModuleRam.Run <= '0';
       WasmFpgaInvocation_WasmFpgaModuleRam.Address <= (others => '0');
       for i in WasmFpgaInvocation_WasmFpgaInstruction'RANGE loop
-            WasmFpgaInvocation_WasmFpgaInstruction(i).Run <= '0';
-            WasmFpgaInvocation_WasmFpgaInstruction(i).Address <= (others => '0');
+            WasmFpgaInvocation_WasmFpgaInstruction(i) <= (
+                Run => '0',
+                Address => (others => '0'),
+                ModuleInstanceUid => (others => '0')
+            );
       end loop;
       InvocationReadFromModuleRamState <= StateIdle;
       InvocationState <= StateIdle;

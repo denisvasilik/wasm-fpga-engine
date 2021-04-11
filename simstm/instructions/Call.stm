@@ -57,10 +57,10 @@ BEGIN_SUB
 
     -- Prepare store to provide type section address in order to check number of
     -- parameters
-    WRITE_RAM $WASM_STORE #xC #x0 -- Module Instance UID
-    WRITE_RAM $WASM_STORE #xD #x1 -- Section UID of Type Section
-    WRITE_RAM $WASM_STORE #xE #x0 -- Idx
-    WRITE_RAM $WASM_STORE #xF #x0C -- Function Type Address
+    WRITE_RAM $WASM_STORE #x10 #x0 -- Module Instance UID
+    WRITE_RAM $WASM_STORE #x11 #x1 -- Section UID of Type Section
+    WRITE_RAM $WASM_STORE #x12 #x0 -- Idx
+    WRITE_RAM $WASM_STORE #x13 #x0C -- Function Type Address
 
     WRITE_RAM $WASM_MODULE #x000000 #x00
     WRITE_RAM $WASM_MODULE #x000001 #x61

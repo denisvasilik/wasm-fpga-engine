@@ -110,10 +110,12 @@ package WasmFpgaStackWshBn_Package is
         LocalIndex :   std_logic_vector(31 downto 0);
         StackAddress_Written :   std_logic_vector(31 downto 0);
         WRegPulse_StackAddressReg :   std_logic;
-        MaxLocals :   std_logic_vector(31 downto 0);
-        MaxResults :   std_logic_vector(31 downto 0);
-        ReturnAddress :   std_logic_vector(31 downto 0);
-        ModuleInstanceUid :   std_logic_vector(31 downto 0);
+        MaxLocals_Written :   std_logic_vector(31 downto 0);
+        MaxResults_Written :   std_logic_vector(31 downto 0);
+        ReturnAddress_Written :   std_logic_vector(31 downto 0);
+        ModuleInstanceUid_Written :   std_logic_vector(31 downto 0);
+        ActivationFrameAddress_Written :   std_logic_vector(31 downto 0);
+        WRegPulse_ActivationFrameAddressReg :   std_logic;
     end record;
 
     type array_of_T_WasmFpgaStackWshBn_StackBlk is
@@ -128,6 +130,11 @@ package WasmFpgaStackWshBn_Package is
         LowValue_ToBeRead :   std_logic_vector(31 downto 0);
         Type_ToBeRead :   std_logic_vector(2 downto 0);
         StackAddress_ToBeRead :   std_logic_vector(31 downto 0);
+        MaxLocals_ToBeRead :   std_logic_vector(31 downto 0);
+        MaxResults_ToBeRead :   std_logic_vector(31 downto 0);
+        ReturnAddress_ToBeRead :   std_logic_vector(31 downto 0);
+        ModuleInstanceUid_ToBeRead :   std_logic_vector(31 downto 0);
+        ActivationFrameAddress_ToBeRead :   std_logic_vector(31 downto 0);
     end record;
 
     type array_of_T_StackBlk_WasmFpgaStackWshBn is
@@ -140,7 +147,7 @@ package WasmFpgaStackWshBn_Package is
     -- BUS: 
 
     constant WASMFPGASTACK_ADR_BLK_BASE_StackBlk                                                     : std_logic_vector(23 downto 0) := x"000000";
-    constant WASMFPGASTACK_ADR_BLK_SIZE_StackBlk                                                     : std_logic_vector(23 downto 0) := x"000030";
+    constant WASMFPGASTACK_ADR_BLK_SIZE_StackBlk                                                     : std_logic_vector(23 downto 0) := x"000040";
 
         -- ControlReg: Control Register 
         constant WASMFPGASTACK_WIDTH_ControlReg                                                      : integer := 32;
@@ -277,6 +284,14 @@ package WasmFpgaStackWshBn_Package is
             -- 
 
             constant WASMFPGASTACK_BUS_MASK_ModuleInstanceUid                                        : std_logic_vector(31 downto 0) := x"FFFFFFFF";
+
+        -- ActivationFrameAddressReg: Activation Frame Register 
+        constant WASMFPGASTACK_WIDTH_ActivationFrameAddressReg                                       : integer := 32;
+        constant WASMFPGASTACK_ADR_ActivationFrameAddressReg                                         : std_logic_vector(23 downto 0) := std_logic_vector(x"000030" + unsigned(WASMFPGASTACK_ADR_BLK_BASE_StackBlk));
+
+            -- 
+
+            constant WASMFPGASTACK_BUS_MASK_ActivationFrameAddress                                   : std_logic_vector(31 downto 0) := x"FFFFFFFF";
 
 
 

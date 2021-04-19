@@ -17,11 +17,72 @@ LABEL
 
     DEFINE_CONST WASMFPGAENGINEDEBUG_ADR_BLK_BASE_ENGINEBLK                                           #x00000000
     ADD_CONST WASMFPGAENGINEDEBUG_ADR_BLK_BASE_ENGINEBLK                                              $WASMFPGAENGINEDEBUG_ADR_BLK_BASE_SIM_OFFSET_ENGINEBLK
-    DEFINE_CONST WASMFPGAENGINEDEBUG_ADR_BLK_SIZE_ENGINEBLK                                           #x00000010
+    DEFINE_CONST WASMFPGAENGINEDEBUG_ADR_BLK_SIZE_ENGINEBLK                                           #x00000014
+
+        -- ControlReg: Debug Control Register 
+        DEFINE_CONST ENGINEBLK_WIDTH_ControlReg                                                       32
+        DEFINE_CONST ENGINEBLK_ADR_ControlReg                                                         #x00000000
+        ADD_CONST ENGINEBLK_ADR_ControlReg                                                            $WASMFPGAENGINEDEBUG_ADR_BLK_BASE_ENGINEBLK
+
+            DEFINE_CONST ENGINEBLK_BUS_MASK_Reset                                                     #x00000040
+
+
+                DEFINE_CONST ENGINEBLK_VAL_DoNotReset                                                 #x00000000
+
+                DEFINE_CONST ENGINEBLK_VAL_DoReset                                                    #x00000040
+
+
+            DEFINE_CONST ENGINEBLK_BUS_MASK_StepOver                                                  #x00000020
+
+
+                DEFINE_CONST ENGINEBLK_VAL_DoNotStepOver                                              #x00000000
+
+                DEFINE_CONST ENGINEBLK_VAL_DoStepOver                                                 #x00000020
+
+
+            DEFINE_CONST ENGINEBLK_BUS_MASK_StepInto                                                  #x00000010
+
+
+                DEFINE_CONST ENGINEBLK_VAL_DoNotStepInto                                              #x00000000
+
+                DEFINE_CONST ENGINEBLK_VAL_DoStepInto                                                 #x00000010
+
+
+            DEFINE_CONST ENGINEBLK_BUS_MASK_StepOut                                                   #x00000008
+
+
+                DEFINE_CONST ENGINEBLK_VAL_DoNotStepOut                                               #x00000000
+
+                DEFINE_CONST ENGINEBLK_VAL_DoStepOut                                                  #x00000008
+
+
+            DEFINE_CONST ENGINEBLK_BUS_MASK_Continue                                                  #x00000004
+
+
+                DEFINE_CONST ENGINEBLK_VAL_DoNotContinue                                              #x00000000
+
+                DEFINE_CONST ENGINEBLK_VAL_DoContinue                                                 #x00000004
+
+
+            DEFINE_CONST ENGINEBLK_BUS_MASK_StopInMain                                                #x00000002
+
+
+                DEFINE_CONST ENGINEBLK_VAL_DoNotStopInMain                                            #x00000000
+
+                DEFINE_CONST ENGINEBLK_VAL_DoStopInMain                                               #x00000002
+
+
+            DEFINE_CONST ENGINEBLK_BUS_MASK_Debug                                                     #x00000001
+
+
+                DEFINE_CONST ENGINEBLK_VAL_DoNotDebug                                                 #x00000000
+
+                DEFINE_CONST ENGINEBLK_VAL_DoRun                                                      #x00000001
+
 
         -- StatusReg: Status Register 
         DEFINE_CONST ENGINEBLK_WIDTH_StatusReg                                                        32
-        DEFINE_CONST ENGINEBLK_ADR_StatusReg                                                          #x00000000
+        DEFINE_CONST ENGINEBLK_ADR_StatusReg                                                          #x00000004
         ADD_CONST ENGINEBLK_ADR_StatusReg                                                             $WASMFPGAENGINEDEBUG_ADR_BLK_BASE_ENGINEBLK
 
             DEFINE_CONST ENGINEBLK_BUS_MASK_InvocationTrap                                            #x00000008
@@ -58,24 +119,31 @@ LABEL
 
         -- AddressReg: Address Register 
         DEFINE_CONST ENGINEBLK_WIDTH_AddressReg                                                       32
-        DEFINE_CONST ENGINEBLK_ADR_AddressReg                                                         #x00000004
+        DEFINE_CONST ENGINEBLK_ADR_AddressReg                                                         #x00000008
         ADD_CONST ENGINEBLK_ADR_AddressReg                                                            $WASMFPGAENGINEDEBUG_ADR_BLK_BASE_ENGINEBLK
 
             DEFINE_CONST ENGINEBLK_BUS_MASK_Address                                                   #x00FFFFFF
 
         -- InstructionReg: Instruction Register 
         DEFINE_CONST ENGINEBLK_WIDTH_InstructionReg                                                   32
-        DEFINE_CONST ENGINEBLK_ADR_InstructionReg                                                     #x00000008
+        DEFINE_CONST ENGINEBLK_ADR_InstructionReg                                                     #x0000000C
         ADD_CONST ENGINEBLK_ADR_InstructionReg                                                        $WASMFPGAENGINEDEBUG_ADR_BLK_BASE_ENGINEBLK
 
             DEFINE_CONST ENGINEBLK_BUS_MASK_Instruction                                               #x000000FF
 
         -- ErrorReg: Error Register 
         DEFINE_CONST ENGINEBLK_WIDTH_ErrorReg                                                         32
-        DEFINE_CONST ENGINEBLK_ADR_ErrorReg                                                           #x0000000C
+        DEFINE_CONST ENGINEBLK_ADR_ErrorReg                                                           #x00000010
         ADD_CONST ENGINEBLK_ADR_ErrorReg                                                              $WASMFPGAENGINEDEBUG_ADR_BLK_BASE_ENGINEBLK
 
             DEFINE_CONST ENGINEBLK_BUS_MASK_Error                                                     #x000000FF
+
+        -- Breakpoint0Reg: Breakpoint Register 0 
+        DEFINE_CONST ENGINEBLK_WIDTH_Breakpoint0Reg                                                   32
+        DEFINE_CONST ENGINEBLK_ADR_Breakpoint0Reg                                                     #x00000014
+        ADD_CONST ENGINEBLK_ADR_Breakpoint0Reg                                                        $WASMFPGAENGINEDEBUG_ADR_BLK_BASE_ENGINEBLK
+
+            DEFINE_CONST ENGINEBLK_BUS_MASK_Breakpoint0                                               #xFFFFFFFF
 
 
 
@@ -106,6 +174,27 @@ DEFINE_VAR WasmFpgaEngineDebugvalRstRead    #x0
 Rst_ENGINEBLK_Test: 
 BEGIN_SUB
 
+-- RW : ControlReg
+VERIFY_FPGA 32 $ENGINEBLK_ADR_ControlReg WasmFpgaEngineDebugvalRstRead #x00000000 #x00000040 -- Reset
+
+-- RW : ControlReg
+VERIFY_FPGA 32 $ENGINEBLK_ADR_ControlReg WasmFpgaEngineDebugvalRstRead #x00000000 #x00000020 -- StepOver
+
+-- RW : ControlReg
+VERIFY_FPGA 32 $ENGINEBLK_ADR_ControlReg WasmFpgaEngineDebugvalRstRead #x00000000 #x00000010 -- StepInto
+
+-- RW : ControlReg
+VERIFY_FPGA 32 $ENGINEBLK_ADR_ControlReg WasmFpgaEngineDebugvalRstRead #x00000000 #x00000008 -- StepOut
+
+-- RW : ControlReg
+VERIFY_FPGA 32 $ENGINEBLK_ADR_ControlReg WasmFpgaEngineDebugvalRstRead #x00000000 #x00000004 -- Continue
+
+-- RW : ControlReg
+VERIFY_FPGA 32 $ENGINEBLK_ADR_ControlReg WasmFpgaEngineDebugvalRstRead #x00000000 #x00000002 -- StopInMain
+
+-- RW : ControlReg
+VERIFY_FPGA 32 $ENGINEBLK_ADR_ControlReg WasmFpgaEngineDebugvalRstRead #x00000000 #x00000001 -- Debug
+
 -- R : StatusReg
 --     InvocationTrap
 -- R : StatusReg
@@ -120,6 +209,9 @@ BEGIN_SUB
 --     Instruction
 -- R : ErrorReg
 --     Error
+-- RW : Breakpoint0Reg
+VERIFY_FPGA 32 $ENGINEBLK_ADR_Breakpoint0Reg WasmFpgaEngineDebugvalRstRead #x00000000 #xFFFFFFFF -- Breakpoint0
+
 
 RETURN_CALL
 END_SUB
@@ -150,6 +242,48 @@ END_SUB
 RdBk_ENGINEBLK_Test: 
 BEGIN_SUB
 
+-- RW : ControlReg
+WRITE_FPGA  32 $ENGINEBLK_ADR_ControlReg #x00000040          -- Reset
+VERIFY_FPGA 32 $ENGINEBLK_ADR_ControlReg WasmFpgaEngineDebugvalRdBkRead #x00000040 #x00000040 -- Reset
+WRITE_FPGA  32 $ENGINEBLK_ADR_ControlReg #x00000000          -- Reset
+VERIFY_FPGA 32 $ENGINEBLK_ADR_ControlReg WasmFpgaEngineDebugvalRdBkRead #x00000000 #x00000040 -- Reset
+
+-- RW : ControlReg
+WRITE_FPGA  32 $ENGINEBLK_ADR_ControlReg #x00000000          -- StepOver
+VERIFY_FPGA 32 $ENGINEBLK_ADR_ControlReg WasmFpgaEngineDebugvalRdBkRead #x00000000 #x00000020 -- StepOver
+WRITE_FPGA  32 $ENGINEBLK_ADR_ControlReg #x00000020          -- StepOver
+VERIFY_FPGA 32 $ENGINEBLK_ADR_ControlReg WasmFpgaEngineDebugvalRdBkRead #x00000020 #x00000020 -- StepOver
+
+-- RW : ControlReg
+WRITE_FPGA  32 $ENGINEBLK_ADR_ControlReg #x00000010          -- StepInto
+VERIFY_FPGA 32 $ENGINEBLK_ADR_ControlReg WasmFpgaEngineDebugvalRdBkRead #x00000010 #x00000010 -- StepInto
+WRITE_FPGA  32 $ENGINEBLK_ADR_ControlReg #x00000000          -- StepInto
+VERIFY_FPGA 32 $ENGINEBLK_ADR_ControlReg WasmFpgaEngineDebugvalRdBkRead #x00000000 #x00000010 -- StepInto
+
+-- RW : ControlReg
+WRITE_FPGA  32 $ENGINEBLK_ADR_ControlReg #x00000000          -- StepOut
+VERIFY_FPGA 32 $ENGINEBLK_ADR_ControlReg WasmFpgaEngineDebugvalRdBkRead #x00000000 #x00000008 -- StepOut
+WRITE_FPGA  32 $ENGINEBLK_ADR_ControlReg #x00000008          -- StepOut
+VERIFY_FPGA 32 $ENGINEBLK_ADR_ControlReg WasmFpgaEngineDebugvalRdBkRead #x00000008 #x00000008 -- StepOut
+
+-- RW : ControlReg
+WRITE_FPGA  32 $ENGINEBLK_ADR_ControlReg #x00000004          -- Continue
+VERIFY_FPGA 32 $ENGINEBLK_ADR_ControlReg WasmFpgaEngineDebugvalRdBkRead #x00000004 #x00000004 -- Continue
+WRITE_FPGA  32 $ENGINEBLK_ADR_ControlReg #x00000000          -- Continue
+VERIFY_FPGA 32 $ENGINEBLK_ADR_ControlReg WasmFpgaEngineDebugvalRdBkRead #x00000000 #x00000004 -- Continue
+
+-- RW : ControlReg
+WRITE_FPGA  32 $ENGINEBLK_ADR_ControlReg #x00000000          -- StopInMain
+VERIFY_FPGA 32 $ENGINEBLK_ADR_ControlReg WasmFpgaEngineDebugvalRdBkRead #x00000000 #x00000002 -- StopInMain
+WRITE_FPGA  32 $ENGINEBLK_ADR_ControlReg #x00000002          -- StopInMain
+VERIFY_FPGA 32 $ENGINEBLK_ADR_ControlReg WasmFpgaEngineDebugvalRdBkRead #x00000002 #x00000002 -- StopInMain
+
+-- RW : ControlReg
+WRITE_FPGA  32 $ENGINEBLK_ADR_ControlReg #x00000001          -- Debug
+VERIFY_FPGA 32 $ENGINEBLK_ADR_ControlReg WasmFpgaEngineDebugvalRdBkRead #x00000001 #x00000001 -- Debug
+WRITE_FPGA  32 $ENGINEBLK_ADR_ControlReg #x00000000          -- Debug
+VERIFY_FPGA 32 $ENGINEBLK_ADR_ControlReg WasmFpgaEngineDebugvalRdBkRead #x00000000 #x00000001 -- Debug
+
 -- R : StatusReg
 --     InvocationTrap
 -- R : StatusReg
@@ -164,6 +298,12 @@ BEGIN_SUB
 --     Instruction
 -- R : ErrorReg
 --     Error
+-- RW : Breakpoint0Reg
+WRITE_FPGA  32 $ENGINEBLK_ADR_Breakpoint0Reg #x55555555          -- Breakpoint0
+VERIFY_FPGA 32 $ENGINEBLK_ADR_Breakpoint0Reg WasmFpgaEngineDebugvalRdBkRead #x55555555 #xFFFFFFFF -- Breakpoint0
+WRITE_FPGA  32 $ENGINEBLK_ADR_Breakpoint0Reg #xAAAAAAAA          -- Breakpoint0
+VERIFY_FPGA 32 $ENGINEBLK_ADR_Breakpoint0Reg WasmFpgaEngineDebugvalRdBkRead #xAAAAAAAA #xFFFFFFFF -- Breakpoint0
+
 
 RETURN_CALL
 END_SUB

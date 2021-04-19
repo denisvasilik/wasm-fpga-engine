@@ -294,6 +294,21 @@ package WasmFpgaEnginePackage is
         Idx : std_logic_vector(31 downto 0);
     end record;
 
+    type T_WasmFpgaInvocation_WasmFpgaInstruction_Array is array (127 downto 0) of T_WasmFpgaInvocation_WasmFpgaInstruction;
+    type T_WasmFpgaInstruction_WasmFpgaInvocation_Array is array (127 downto 0) of T_WasmFpgaInstruction_WasmFpgaInvocation;
+
+    type T_WasmFpgaStack_WasmFpgaInstruction_Array is array (127 downto 0) of T_WasmFpgaStack_WasmFpgaInstruction;
+    type T_WasmFpgaInstruction_WasmFpgaStack_Array is array (127 downto 0) of T_WasmFpgaInstruction_WasmFpgaStack;
+
+    type T_WasmFpgaModuleRam_WasmFpgaInstruction_Array is array (127 downto 0) of T_WasmFpgaModuleRam_WasmFpgaInstruction;
+    type T_WasmFpgaInstruction_WasmFpgaModuleRam_Array is array (127 downto 0) of T_WasmFpgaInstruction_WasmFpgaModuleRam;
+
+    type T_WasmFpgaMemory_WasmFpgaInstruction_Array is array (127 downto 0) of T_WasmFpgaMemory_WasmFpgaInstruction;
+    type T_WasmFpgaInstruction_WasmFpgaMemory_Array is array (127 downto 0) of T_WasmFpgaInstruction_WasmFpgaMemory;
+
+    type T_WasmFpgaStore_WasmFpgaInstruction_Array is array (127 downto 0) of T_FromWasmFpgaStore;
+    type T_WasmFpgaInstruction_WasmFpgaStore_Array is array (127 downto 0) of T_ToWasmFpgaStore;
+
     --
     -- States
     --
@@ -1160,6 +1175,6 @@ package body WasmFpgaEnginePackage is
            when others =>
                state  <= println_stateError;
        end case;
-	end;
+    end;
 
 end;

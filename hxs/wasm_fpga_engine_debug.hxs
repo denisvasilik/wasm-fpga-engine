@@ -73,10 +73,10 @@ HwSwIf WasmFpgaEngineDebug {
         FileEndVhdlTestBench {
             "";
         }
-        BlockAddressSegmentSizes = [ 0x10 ];
+        BlockAddressSegmentSizes = [ 0x100 ];
     }
 
-    Block EngineBlk ( Base = 0x0 , Size = 0x10 ) {
+    Block EngineBlk ( Base = 0x0 , Size = 0x14 ) {
         BlockName {
             "WebAssembly Engine Block"; }
         BlockDescription { "This block describes the WebAssembly engine block."; }
@@ -85,8 +85,99 @@ HwSwIf WasmFpgaEngineDebug {
         BlockResets {
             BlockReset { Pwr BlockResetDescription { "Power On Reset" ; } }
         }
+        
+        FieldDiscretePositions ControlReg ( Width = 32, Idx->Addr 0 -> 0x0 ) {
+            FieldName { "Debug Control Register"; }
+            FieldDescription { ""; }
+            TransferPointOfTime = '-';
+            HwConfiguration {
+                HwTypeSync = 'Yes';
+                HwAckImmediate = 'Yes';
+                HwAddWRegPulse = 'Yes';
+            }
+            Bits {
+                BitFieldReserved ( 31 downto 7 );
+                BitFieldEnum Reset ( 6 ) 'RW_WReg_RLoopBack' {
+                    BitFieldDescription { ""; }
+                    ValueEntries {
+                        Value { 0b0 = DoNotReset ValueDescription { "Do not reset the engine state."; } }
+                        Value { 0b1 = DoReset ValueDescription { "Reset the engine state."; } }
+                    }
+                    ResetValueEntry = 0b0;
+                    BlockResetsAffecting {
+                        Pwr = 'X' ;
+                    }
+                }
+                BitFieldEnum StepOver ( 5 ) 'RW_WReg_RLoopBack' {
+                    BitFieldDescription { ""; }
+                    ValueEntries {
+                        Value { 0b0 = DoNotStepOver ValueDescription { "Do nothing."; } }
+                        Value { 0b1 = DoStepOver ValueDescription { "Step over the next instruction."; } }
+                    }
+                    ResetValueEntry = 0b0;
+                    BlockResetsAffecting {
+                        Pwr = 'X' ;
+                    }
+                }
+                BitFieldEnum StepInto ( 4 ) 'RW_WReg_RLoopBack' {
+                    BitFieldDescription { ""; }
+                    ValueEntries {
+                        Value { 0b0 = DoNotStepInto ValueDescription { "Do nothing."; } }
+                        Value { 0b1 = DoStepInto ValueDescription { "Step into a function."; } }
+                    }
+                    ResetValueEntry = 0b0;
+                    BlockResetsAffecting {
+                        Pwr = 'X' ;
+                    }
+                }
+                BitFieldEnum StepOut ( 3 ) 'RW_WReg_RLoopBack' {
+                    BitFieldDescription { ""; }
+                    ValueEntries {
+                        Value { 0b0 = DoNotStepOut ValueDescription { "Do nothing."; } }
+                        Value { 0b1 = DoStepOut ValueDescription { "Step out of a function."; } }
+                    }
+                    ResetValueEntry = 0b0;
+                    BlockResetsAffecting {
+                        Pwr = 'X' ;
+                    }
+                }
+                BitFieldEnum Continue ( 2 ) 'RW_WReg_RLoopBack' {
+                    BitFieldDescription { ""; }
+                    ValueEntries {
+                        Value { 0b0 = DoNotContinue ValueDescription { "Do nothing."; } }
+                        Value { 0b1 = DoContinue ValueDescription { "Continue execution until next breakpoint."; } }
+                    }
+                    ResetValueEntry = 0b0;
+                    BlockResetsAffecting {
+                        Pwr = 'X' ;
+                    }
+                }
+                BitFieldEnum StopInMain ( 1 ) 'RW_WReg_RLoopBack' {
+                    BitFieldDescription { ""; }
+                    ValueEntries {
+                        Value { 0b0 = DoNotStopInMain ValueDescription { "Do not stop in main."; } }
+                        Value { 0b1 = DoStopInMain ValueDescription { "Do stop in main."; } }
+                    }
+                    ResetValueEntry = 0b0;
+                    BlockResetsAffecting {
+                        Pwr = 'X' ;
+                    }
+                }
+                BitFieldEnum Debug ( 0 ) 'RW_WReg_RLoopBack' {
+                    BitFieldDescription { ""; }
+                    ValueEntries {
+                        Value { 0b0 = DoNotDebug ValueDescription { "Do nothing."; } }
+                        Value { 0b1 = DoRun ValueDescription { "Start debugging."; } }
+                    }
+                    ResetValueEntry = 0b0;
+                    BlockResetsAffecting {
+                        Pwr = 'X' ;
+                    }
+                }
+            }
+        }
 
-        FieldDiscretePositions StatusReg ( Width = 32, Idx->Addr 0 -> 0x0 ) {
+        FieldDiscretePositions StatusReg ( Width = 32, Idx->Addr 0 -> 0x4 ) {
             FieldName { "Status Register"; }
             FieldDescription { ""; }
             TransferPointOfTime = '-';
@@ -151,7 +242,7 @@ HwSwIf WasmFpgaEngineDebug {
             }
         }
         
-        FieldDiscretePositions AddressReg ( Width = 32, Idx->Addr 0 -> 0x4 ) {
+        FieldDiscretePositions AddressReg ( Width = 32, Idx->Addr 0 -> 0x8 ) {
             FieldName { "Address Register"; }
             FieldDescription { ""; }
             TransferPointOfTime = '-';
@@ -171,7 +262,7 @@ HwSwIf WasmFpgaEngineDebug {
             }
         }
         
-        FieldDiscretePositions InstructionReg ( Width = 32, Idx->Addr 0 -> 0x8 ) {
+        FieldDiscretePositions InstructionReg ( Width = 32, Idx->Addr 0 -> 0xC ) {
             FieldName { "Instruction Register"; }
             FieldDescription { ""; }
             TransferPointOfTime = '-';
@@ -191,7 +282,7 @@ HwSwIf WasmFpgaEngineDebug {
             }
         }
         
-        FieldDiscretePositions ErrorReg ( Width = 32, Idx->Addr 0 -> 0xC ) {
+        FieldDiscretePositions ErrorReg ( Width = 32, Idx->Addr 0 -> 0x10 ) {
             FieldName { "Error Register"; }
             FieldDescription { ""; }
             TransferPointOfTime = '-';
@@ -203,6 +294,28 @@ HwSwIf WasmFpgaEngineDebug {
                 BitFieldReserved ( 31 downto 8 );
                 BitFieldData Error ( 7 downto 0 ) 'R_RTrans' {
                     BitFieldDescription { "Internal error code of the engine."; }
+                    ResetValueEntry = 0b0;
+                    BlockResetsAffecting {
+                        Pwr = 'X' ;
+                    }
+                }
+            }
+        }
+        
+        FieldDiscretePositions Breakpoint0Reg ( Width = 32, Idx->Addr 0 -> 0x14 ) {
+            FieldName { "Breakpoint Register 0"; }
+            FieldDescription {
+                "This register stores the module offset where the engine should stop.";
+                "Note: Currently, only a single module is supported.";
+            }
+            TransferPointOfTime = '-';
+            HwConfiguration {
+                HwTypeSync = 'Yes';
+                HwAckImmediate = 'Yes';
+            }
+            Bits {
+                BitFieldData Breakpoint0 ( 31 downto 0 ) 'RW_WReg_RLoopBack' {
+                    BitFieldDescription { ""; }
                     ResetValueEntry = 0b0;
                     BlockResetsAffecting {
                         Pwr = 'X' ;

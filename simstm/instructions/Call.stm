@@ -114,9 +114,20 @@ BEGIN_SUB
     EQU_VAR WASM_BREAKPOINT0 #x000029
     CALL $DEBUG_WASM_FPGA_ENGINE
 
-    WAIT_NS 100000
-
     CALL $WAIT_UNTIL_ENGINE_IS_IDLE
+
+    MESSAGE 0 "ENGINE IS IDLE"
+
+    -- Activaten frame address
+    VERIFY_FPGA 32 $STACKBLK_ADR_ActivationFrameAddressReg WB_VALUE #x0 #xFFFFFFFF
+
+    -- Stack address after current activation frame has been removed
+    VERIFY_FPGA 32 $STACKBLK_ADR_StackAddressReg WB_VALUE #x9 #xFFFFFFFF
+
+    -- Check return value on stack
+    VERIFY_RAM 32 #x6 WB_VALUE #xAABBCCDD #xFFFFFFFF
+    VERIFY_RAM 32 #x7 WB_VALUE #x00000000 #xFFFFFFFF
+    VERIFY_RAM 32 #x8 WB_VALUE $STACKBLK_VAL_i32 #xFFFFFFFF
 
     RETURN_CALL
 END_SUB

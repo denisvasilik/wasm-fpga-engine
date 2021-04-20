@@ -160,6 +160,7 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   signal StepInto : std_logic;
   signal StepOut : std_logic;
   signal Continue : std_logic;
+  signal StopDebugging : std_logic;
 
 begin
 
@@ -418,10 +419,12 @@ begin
                     InvocationState <= State1;
                 end if;
             elsif (WasmFpgaInvocation_WasmFpgaModuleRam.Address = Breakpoint0(23 downto 0)) then
-                if (WRegPulse_DebugControlReg = '1' and
-                    (StepOver = '1' or StepInto = '1' or StepOut = '1' or Continue = '1'))
-                then
-                    InvocationState <= State1;
+                if (StopDebugging = '1') then
+                        InvocationState <= StateIdle;
+                elsif (WRegPulse_DebugControlReg = '1') then
+                    if (StepOver = '1' or StepInto = '1' or StepOut = '1' or Continue = '1') then
+                        InvocationState <= State1;
+                    end if;
                 end if;
             else
                 InvocationState <= State1;
@@ -661,6 +664,7 @@ begin
         EngineDebugBlk_DatOut => Debug_DatOut,
         EngineDebugBlk_Ack => Debug_Ack,
         EngineDebugBlk_Unoccupied_Ack => open,
+        StopDebugging => StopDebugging,
         Reset => open,
         StepOver => StepOver,
         StepInto => StepInto,

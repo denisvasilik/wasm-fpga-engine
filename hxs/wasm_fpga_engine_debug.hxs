@@ -96,7 +96,18 @@ HwSwIf WasmFpgaEngineDebug {
                 HwAddWRegPulse = 'Yes';
             }
             Bits {
-                BitFieldReserved ( 31 downto 7 );
+                BitFieldReserved ( 31 downto 8 );
+                BitFieldEnum StopDebugging ( 7 ) 'RW_WReg_RLoopBack' {
+                    BitFieldDescription { ""; }
+                    ValueEntries {
+                        Value { 0b0 = DoNotStopDebugging ValueDescription { "Do nothing."; } }
+                        Value { 0b1 = DoStopDebugging ValueDescription { "End program execution at current instruction."; } }
+                    }
+                    ResetValueEntry = 0b0;
+                    BlockResetsAffecting {
+                        Pwr = 'X' ;
+                    }
+                }
                 BitFieldEnum Reset ( 6 ) 'RW_WReg_RLoopBack' {
                     BitFieldDescription { ""; }
                     ValueEntries {

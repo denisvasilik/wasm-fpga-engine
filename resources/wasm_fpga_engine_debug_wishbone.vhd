@@ -26,6 +26,7 @@ entity EngineDebugBlk_WasmFpgaEngineDebug is
         EngineDebugBlk_DatOut : out std_logic_vector(31 downto 0);
         EngineDebugBlk_Ack : out std_logic;
         EngineDebugBlk_Unoccupied_Ack : out std_logic;
+        StopDebugging : out std_logic;
         Reset : out std_logic;
         StepOver : out std_logic;
         StepInto : out std_logic;
@@ -93,6 +94,7 @@ architecture arch_for_synthesys of EngineDebugBlk_WasmFpgaEngineDebug is
     signal ReadDiff_Breakpoint0Reg : std_logic;
 
 
+    signal WReg_StopDebugging : std_logic;
     signal WReg_Reset : std_logic;
     signal WReg_StepOver : std_logic;
     signal WReg_StepInto : std_logic;
@@ -196,6 +198,7 @@ begin
         if (Rst = '1') then 
              DelWriteDiff_ControlReg <= '0'; 
             PreMuxAck_ControlReg <= '0';
+            WReg_StopDebugging <= '0';
             WReg_Reset <= '0';
             WReg_StepOver <= '0';
             WReg_StepInto <= '0';
@@ -207,6 +210,7 @@ begin
              DelWriteDiff_ControlReg <= WriteDiff_ControlReg;
             PreMuxAck_ControlReg <= WriteDiff_ControlReg or ReadDiff_ControlReg; 
             if (WriteDiff_ControlReg = '1') then
+                if (Sel(0) = '1') then WReg_StopDebugging <= DatIn(7); end if;
                 if (Sel(0) = '1') then WReg_Reset <= DatIn(6); end if;
                 if (Sel(0) = '1') then WReg_StepOver <= DatIn(5); end if;
                 if (Sel(0) = '1') then WReg_StepInto <= DatIn(4); end if;
@@ -220,6 +224,7 @@ begin
     end process;
 
     mux_premuxdatout_ControlReg0 : process (
+            WReg_StopDebugging,
             WReg_Reset,
             WReg_StepOver,
             WReg_StepInto,
@@ -230,6 +235,7 @@ begin
             )
     begin 
          PreMuxDatOut_ControlReg <= x"0000_0000";
+         PreMuxDatOut_ControlReg(7) <= WReg_StopDebugging;
          PreMuxDatOut_ControlReg(6) <= WReg_Reset;
          PreMuxDatOut_ControlReg(5) <= WReg_StepOver;
          PreMuxDatOut_ControlReg(4) <= WReg_StepInto;
@@ -243,6 +249,7 @@ begin
 
     WRegPulse_ControlReg <= DelWriteDiff_ControlReg;
 
+    StopDebugging <= WReg_StopDebugging;
     Reset <= WReg_Reset;
     StepOver <= WReg_StepOver;
     StepInto <= WReg_StepInto;
@@ -500,6 +507,7 @@ architecture arch_for_synthesys of WasmFpgaEngineDebugWshBn is
             EngineDebugBlk_DatOut : out std_logic_vector(31 downto 0);
             EngineDebugBlk_Ack : out std_logic;
             EngineDebugBlk_Unoccupied_Ack : out std_logic;
+            StopDebugging : out std_logic;
             Reset : out std_logic;
             StepOver : out std_logic;
             StepInto : out std_logic;
@@ -546,6 +554,7 @@ begin
         EngineDebugBlk_DatOut => EngineDebugBlk_DatOut,
         EngineDebugBlk_Ack => EngineDebugBlk_Ack,
         EngineDebugBlk_Unoccupied_Ack => EngineDebugBlk_Unoccupied_Ack,
+        StopDebugging => WasmFpgaEngineDebugWshBn_EngineDebugBlk.StopDebugging,
         Reset => WasmFpgaEngineDebugWshBn_EngineDebugBlk.Reset,
         StepOver => WasmFpgaEngineDebugWshBn_EngineDebugBlk.StepOver,
         StepInto => WasmFpgaEngineDebugWshBn_EngineDebugBlk.StepInto,

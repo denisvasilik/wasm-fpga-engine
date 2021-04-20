@@ -24,6 +24,14 @@ LABEL
         DEFINE_CONST ENGINEDEBUGBLK_ADR_ControlReg                                                    #x00000000
         ADD_CONST ENGINEDEBUGBLK_ADR_ControlReg                                                       $WASMFPGAENGINEDEBUG_ADR_BLK_BASE_ENGINEDEBUGBLK
 
+            DEFINE_CONST ENGINEDEBUGBLK_BUS_MASK_StopDebugging                                        #x00000080
+
+
+                DEFINE_CONST ENGINEDEBUGBLK_VAL_DoNotStopDebugging                                    #x00000000
+
+                DEFINE_CONST ENGINEDEBUGBLK_VAL_DoStopDebugging                                       #x00000080
+
+
             DEFINE_CONST ENGINEDEBUGBLK_BUS_MASK_Reset                                                #x00000040
 
 
@@ -175,6 +183,9 @@ Rst_ENGINEDEBUGBLK_Test:
 BEGIN_SUB
 
 -- RW : ControlReg
+VERIFY_FPGA 32 $ENGINEDEBUGBLK_ADR_ControlReg WasmFpgaEngineDebugvalRstRead #x00000000 #x00000080 -- StopDebugging
+
+-- RW : ControlReg
 VERIFY_FPGA 32 $ENGINEDEBUGBLK_ADR_ControlReg WasmFpgaEngineDebugvalRstRead #x00000000 #x00000040 -- Reset
 
 -- RW : ControlReg
@@ -241,6 +252,12 @@ END_SUB
 
 RdBk_ENGINEDEBUGBLK_Test: 
 BEGIN_SUB
+
+-- RW : ControlReg
+WRITE_FPGA  32 $ENGINEDEBUGBLK_ADR_ControlReg #x00000000          -- StopDebugging
+VERIFY_FPGA 32 $ENGINEDEBUGBLK_ADR_ControlReg WasmFpgaEngineDebugvalRdBkRead #x00000000 #x00000080 -- StopDebugging
+WRITE_FPGA  32 $ENGINEDEBUGBLK_ADR_ControlReg #x00000080          -- StopDebugging
+VERIFY_FPGA 32 $ENGINEDEBUGBLK_ADR_ControlReg WasmFpgaEngineDebugvalRdBkRead #x00000080 #x00000080 -- StopDebugging
 
 -- RW : ControlReg
 WRITE_FPGA  32 $ENGINEDEBUGBLK_ADR_ControlReg #x00000040          -- Reset

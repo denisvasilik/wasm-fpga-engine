@@ -101,6 +101,7 @@ package WasmFpgaEngineDebugWshBn_Package is
 
     type T_WasmFpgaEngineDebugWshBn_EngineDebugBlk is
     record
+        StopDebugging :   std_logic;
         Reset :   std_logic;
         StepOver :   std_logic;
         StepInto :   std_logic;
@@ -142,6 +143,15 @@ package WasmFpgaEngineDebugWshBn_Package is
         -- ControlReg: Debug Control Register 
         constant WASMFPGAENGINEDEBUG_WIDTH_ControlReg                                                : integer := 32;
         constant WASMFPGAENGINEDEBUG_ADR_ControlReg                                                  : std_logic_vector(23 downto 0) := std_logic_vector(x"000000" + unsigned(WASMFPGAENGINEDEBUG_ADR_BLK_BASE_EngineDebugBlk));
+
+            -- 
+            constant WASMFPGAENGINEDEBUG_BUS_MASK_StopDebugging                                      : std_logic_vector(31 downto 0) := x"00000080";
+
+                -- Do nothing.
+                constant WASMFPGAENGINEDEBUG_VAL_DoNotStopDebugging                                  : std_logic := '0';
+                -- End program execution at current instruction.
+                constant WASMFPGAENGINEDEBUG_VAL_DoStopDebugging                                     : std_logic := '1';
+
 
             -- 
             constant WASMFPGAENGINEDEBUG_BUS_MASK_Reset                                              : std_logic_vector(31 downto 0) := x"00000040";

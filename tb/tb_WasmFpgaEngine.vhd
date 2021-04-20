@@ -1,10 +1,9 @@
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
-
-use IEEE.NUMERIC_STD.all;
+library ieee;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
 
 library work;
-use work.tb_types.all;
+  use work.tb_types.all;
 
 entity tb_WasmFpgaEngine is
     generic (
@@ -23,6 +22,9 @@ architecture behavioural of tb_WasmFpgaEngine is
 
     signal WasmFpgaEngine_FileIO : T_WasmFpgaEngine_FileIO;
     signal FileIO_WasmFpgaEngine : T_FileIO_WasmFpgaEngine;
+
+    signal WasmFpgaEngineDebug_FileIO : T_WasmFpgaEngineDebug_FileIO;
+    signal FileIO_WasmFpgaEngineDebug : T_FileIO_WasmFpgaEngineDebug;
 
     signal ModuleMemory_FileIO : T_ModuleMemory_FileIO;
     signal FileIO_ModuleMemory : T_FileIO_ModuleMemory;
@@ -123,175 +125,6 @@ architecture behavioural of tb_WasmFpgaEngine is
     signal ModuleMemory_Ack : std_logic;
     signal ModuleMemory_Cyc : std_logic_vector(0 downto 0);
 
-    component tb_FileIO is
-        generic (
-            stimulus_path: in string;
-            stimulus_file: in string
-        );
-        port (
-            Clk : in std_logic;
-            Rst : in std_logic;
-            nRst : out std_logic;
-            WasmFpgaEngine_FileIO : in T_WasmFpgaEngine_FileIO;
-            FileIO_WasmFpgaEngine : out T_FileIO_WasmFpgaEngine;
-            WasmFpgaBus_FileIO : in T_WasmFpgaBus_FileIO;
-            FileIO_WasmFpgaBus : out T_FileIO_WasmFpgaBus;
-            ModuleMemory_FileIO : in T_ModuleMemory_FileIO;
-            FileIO_ModuleMemory : out T_FileIO_ModuleMemory;
-            StoreMemory_FileIO : in T_StoreMemory_FileIO;
-            FileIO_StoreMemory : out T_FileIO_StoreMemory;
-            StackMemory_FileIO : in T_StackMemory_FileIO;
-            FileIO_StackMemory : out T_FileIO_StackMemory;
-            Memory_FileIO : in T_Memory_FileIO;
-            FileIO_Memory : out T_FileIO_Memory
-        );
-    end component;
-
-    component WbRam is
-        port (
-            Clk : in std_logic;
-            nRst : in std_logic;
-            Adr : in std_logic_vector(23 downto 0);
-            Sel : in std_logic_vector(3 downto 0);
-            DatIn : in std_logic_vector(31 downto 0);
-            We : in std_logic;
-            Stb : in std_logic;
-            Cyc : in std_logic_vector(0 downto 0);
-            DatOut : out std_logic_vector(31 downto 0);
-            Ack : out std_logic
-        );
-    end component;
-
-    component WasmFpgaEngine
-        port (
-            Clk : in std_logic;
-            nRst : in std_logic;
-            Adr : in std_logic_vector(23 downto 0);
-            Sel : in std_logic_vector(3 downto 0);
-            DatIn : in std_logic_vector(31 downto 0);
-            We : in std_logic;
-            Stb : in std_logic;
-            Cyc : in std_logic_vector(0 downto 0);
-            DatOut : out std_logic_vector(31 downto 0);
-            Ack : out std_logic;
-            Debug_Adr : in std_logic_vector(23 downto 0);
-            Debug_Sel : in std_logic_vector(3 downto 0);
-            Debug_DatIn : in std_logic_vector(31 downto 0);
-            Debug_We : in std_logic;
-            Debug_Stb : in std_logic;
-            Debug_Cyc : in std_logic_vector(0 downto 0);
-            Debug_DatOut : out std_logic_vector(31 downto 0);
-            Debug_Ack : out std_logic;
-            Bus_Adr : out std_logic_vector(23 downto 0);
-            Bus_Sel : out std_logic_vector(3 downto 0);
-            Bus_We : out std_logic;
-            Bus_Stb : out std_logic;
-            Bus_DatOut : out std_logic_vector(31 downto 0);
-            Bus_DatIn: in std_logic_vector(31 downto 0);
-            Bus_Ack : in std_logic;
-            Bus_Cyc : out std_logic_vector(0 downto 0);
-            Trap : out std_logic
-        );
-    end component;
-
-    component WasmFpgaBus
-      port (
-        Clk : in std_logic;
-        nRst : in std_logic;
-        Adr : in std_logic_vector(23 downto 0);
-        Sel : in std_logic_vector(3 downto 0);
-        DatIn : in std_logic_vector(31 downto 0);
-        We : in std_logic;
-        Stb : in std_logic;
-        Cyc : in std_logic_vector(0 downto 0);
-        DatOut : out std_logic_vector(31 downto 0);
-        Ack : out std_logic;
-        ModuleArea_Adr : out std_logic_vector(23 downto 0);
-        ModuleArea_Sel : out std_logic_vector(3 downto 0);
-        ModuleArea_We : out std_logic;
-        ModuleArea_Stb : out std_logic;
-        ModuleArea_DatOut : out std_logic_vector(31 downto 0);
-        ModuleArea_DatIn: in std_logic_vector(31 downto 0);
-        ModuleArea_Ack : in std_logic;
-        ModuleArea_Cyc : out std_logic;
-        StackArea_Adr : out std_logic_vector(23 downto 0);
-        StackArea_Sel : out std_logic_vector(3 downto 0);
-        StackArea_We : out std_logic;
-        StackArea_Stb : out std_logic;
-        StackArea_DatOut : out std_logic_vector(31 downto 0);
-        StackArea_DatIn: in std_logic_vector(31 downto 0);
-        StackArea_Ack : in std_logic;
-        StackArea_Cyc : out std_logic;
-        StoreArea_Adr : out std_logic_vector(23 downto 0);
-        StoreArea_Sel : out std_logic_vector(3 downto 0);
-        StoreArea_We : out std_logic;
-        StoreArea_Stb : out std_logic;
-        StoreArea_DatOut : out std_logic_vector(31 downto 0);
-        StoreArea_DatIn: in std_logic_vector(31 downto 0);
-        StoreArea_Ack : in std_logic;
-        StoreArea_Cyc : out std_logic;
-        MemoryArea_Adr : out std_logic_vector(23 downto 0);
-        MemoryArea_Sel : out std_logic_vector(3 downto 0);
-        MemoryArea_We : out std_logic;
-        MemoryArea_Stb : out std_logic;
-        MemoryArea_DatOut : out std_logic_vector(31 downto 0);
-        MemoryArea_DatIn: in std_logic_vector(31 downto 0);
-        MemoryArea_Ack : in std_logic;
-        MemoryArea_Cyc : out std_logic
-      );
-    end component;
-
-    component WasmFpgaStack
-        port (
-            Clk : in std_logic;
-            nRst : in std_logic;
-            Adr : in std_logic_vector(23 downto 0);
-            Sel : in std_logic_vector(3 downto 0);
-            DatIn : in std_logic_vector(31 downto 0);
-            We : in std_logic;
-            Stb : in std_logic;
-            Cyc : in std_logic_vector(0 downto 0);
-            DatOut : out std_logic_vector(31 downto 0);
-            Ack : out std_logic;
-            Stack_Adr : out std_logic_vector(23 downto 0);
-            Stack_Sel : out std_logic_vector(3 downto 0);
-            Stack_We : out std_logic;
-            Stack_Stb : out std_logic;
-            Stack_DatOut : out std_logic_vector(31 downto 0);
-            Stack_DatIn: in std_logic_vector(31 downto 0);
-            Stack_Ack : in std_logic;
-            Stack_Cyc : out std_logic_vector(0 downto 0);
-            Trap : out std_logic
-        );
-    end component;
-
-    component WasmFpgaStore
-      generic (
-        PinMaxAddress : boolean := false;
-        MaxAddress : std_logic_vector(31 downto 0) := x"00000000"
-      );
-      port (
-        Clk : in std_logic;
-        nRst : in std_logic;
-        Adr : in std_logic_vector(23 downto 0);
-        Sel : in std_logic_vector(3 downto 0);
-        DatIn : in std_logic_vector(31 downto 0);
-        We : in std_logic;
-        Stb : in std_logic;
-        Cyc : in std_logic_vector(0 downto 0);
-        DatOut : out std_logic_vector(31 downto 0);
-        Ack : out std_logic;
-        Memory_Adr : out std_logic_vector(23 downto 0);
-        Memory_Sel : out std_logic_vector(3 downto 0);
-        Memory_We : out std_logic;
-        Memory_Stb : out std_logic;
-        Memory_DatOut : out std_logic_vector(31 downto 0);
-        Memory_DatIn: in std_logic_vector(31 downto 0);
-        Memory_Ack : in std_logic;
-        Memory_Cyc : out std_logic_vector(0 downto 0)
-      );
-    end component;
-
 begin
 
     Clk100MGen : process is
@@ -308,7 +141,7 @@ begin
         wait;
     end process;
 
-    tb_FileIO_i : tb_FileIO
+    tb_FileIO_i : entity work.tb_FileIO
         generic map (
             stimulus_path => stimulus_path,
             stimulus_file => stimulus_file
@@ -319,6 +152,8 @@ begin
             nRst => nRst,
             WasmFpgaEngine_FileIO => WasmFpgaEngine_FileIO,
             FileIO_WasmFpgaEngine => FileIO_WasmFpgaEngine,
+            WasmFpgaEngineDebug_FileIO => WasmFpgaEngineDebug_FileIO,
+            FileIO_WasmFpgaEngineDebug => FileIO_WasmFpgaEngineDebug,
             WasmFpgaBus_FileIO => WasmFpgaBus_FileIO,
             FileIO_WasmFpgaBus => FileIO_WasmFpgaBus,
             ModuleMemory_FileIO => ModuleMemory_FileIO,
@@ -401,7 +236,7 @@ begin
     WasmFpgaMemory_WasmFpgaBus.DatOut <= Memory_DatOut;
     WasmFpgaMemory_WasmFpgaBus.Ack <= Memory_Ack;
 
-    WasmFpgaEngine_i : WasmFpgaEngine
+    WasmFpgaEngine_i : entity work.WasmFpgaEngine
         port map (
             Clk => Clk100M,
             nRst => nRst,
@@ -413,14 +248,14 @@ begin
             Cyc => FileIO_WasmFpgaEngine.Cyc,
             DatOut => WasmFpgaEngine_FileIO.DatOut,
             Ack => WasmFpgaEngine_FileIO.Ack,
-            Debug_Adr => (others => '0'),
-            Debug_Sel => (others => '0'),
-            Debug_DatIn => (others => '0'),
-            Debug_We => '0',
-            Debug_Stb => '0',
-            Debug_Cyc => (others => '0'),
-            Debug_DatOut => open,
-            Debug_Ack => open,
+            Debug_Adr => FileIO_WasmFpgaEngineDebug.Adr,
+            Debug_Sel => FileIO_WasmFpgaEngineDebug.Sel,
+            Debug_DatIn => FileIO_WasmFpgaEngineDebug.DatIn,
+            Debug_We => FileIO_WasmFpgaEngineDebug.We,
+            Debug_Stb => FileIO_WasmFpgaEngineDebug.Stb,
+            Debug_Cyc => FileIO_WasmFpgaEngineDebug.Cyc,
+            Debug_DatOut => WasmFpgaEngineDebug_FileIO.DatOut,
+            Debug_Ack => WasmFpgaEngineDebug_FileIO.Ack,
             Bus_Adr => WasmFpgaEngine_WasmFpgaBus.Adr,
             Bus_Sel => WasmFpgaEngine_WasmFpgaBus.Sel,
             Bus_We => WasmFpgaEngine_WasmFpgaBus.We,
@@ -432,7 +267,7 @@ begin
             Trap => open
        );
 
-    WasmFpgaBus_i : WasmFpgaBus
+    WasmFpgaBus_i : entity work.WasmFpgaBus
         port map (
             Clk => Clk100M,
             nRst => nRst,
@@ -478,7 +313,7 @@ begin
             MemoryArea_Cyc => WasmFpgaBus_WasmFpgaMemory.Cyc(0)
        );
 
-    WasmFpgaStack_i : WasmFpgaStack
+    WasmFpgaStack_i : entity work.WasmFpgaStack
         port map (
             Clk => Clk100M,
             nRst => nRst,
@@ -501,7 +336,7 @@ begin
             Trap => open
        );
 
-    WasmFpgaStore_i : WasmFpgaStore
+    WasmFpgaStore_i : entity work.WasmFpgaStore
       generic map (
           PinMaxAddress => true,
           MaxAddress => x"00000100"
@@ -527,7 +362,7 @@ begin
         Memory_Cyc => Store_Cyc
       );
 
-    ModuleMemory_i : WbRam
+    ModuleMemory_i : entity work.WbRam
         port map (
             Clk => Clk100M,
             nRst => nRst,
@@ -541,7 +376,7 @@ begin
             Ack => ModuleMemory_Ack
         );
 
-    StoreMemory_i : WbRam
+    StoreMemory_i : entity work.WbRam
         port map (
             Clk => Clk100M,
             nRst => nRst,
@@ -555,7 +390,7 @@ begin
             Ack => StoreMemory_Ack
         );
 
-    StackMemory_i : WbRam
+    StackMemory_i : entity work.WbRam
         port map (
             Clk => Clk100M,
             nRst => nRst,
@@ -569,7 +404,7 @@ begin
             Ack => StackMemory_Ack
         );
 
-    Memory_i : WbRam
+    Memory_i : entity work.WbRam
         port map (
             Clk => Clk100M,
             nRst => nRst,

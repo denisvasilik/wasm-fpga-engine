@@ -76,7 +76,7 @@ HwSwIf WasmFpgaEngineDebug {
         BlockAddressSegmentSizes = [ 0x100 ];
     }
 
-    Block EngineBlk ( Base = 0x0 , Size = 0x14 ) {
+    Block EngineDebugBlk ( Base = 0x0 , Size = 0x18 ) {
         BlockName {
             "WebAssembly Engine Block"; }
         BlockDescription { "This block describes the WebAssembly engine block."; }
@@ -167,7 +167,7 @@ HwSwIf WasmFpgaEngineDebug {
                     BitFieldDescription { ""; }
                     ValueEntries {
                         Value { 0b0 = DoNotDebug ValueDescription { "Do nothing."; } }
-                        Value { 0b1 = DoRun ValueDescription { "Start debugging."; } }
+                        Value { 0b1 = DoDebug ValueDescription { "Start debugging."; } }
                     }
                     ResetValueEntry = 0b0;
                     BlockResetsAffecting {

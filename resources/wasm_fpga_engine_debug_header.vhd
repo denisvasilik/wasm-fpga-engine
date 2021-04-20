@@ -99,7 +99,7 @@ package WasmFpgaEngineDebugWshBn_Package is
     type array_of_T_WasmFpgaEngineDebugWshBn_UnOccpdRcrd is
       array (natural range <>) of T_WasmFpgaEngineDebugWshBn_UnOccpdRcrd;
 
-    type T_WasmFpgaEngineDebugWshBn_EngineBlk is
+    type T_WasmFpgaEngineDebugWshBn_EngineDebugBlk is
     record
         Reset :   std_logic;
         StepOver :   std_logic;
@@ -112,11 +112,11 @@ package WasmFpgaEngineDebugWshBn_Package is
         Breakpoint0 :   std_logic_vector(31 downto 0);
     end record;
 
-    type array_of_T_WasmFpgaEngineDebugWshBn_EngineBlk is
-      array (natural range <>) of T_WasmFpgaEngineDebugWshBn_EngineBlk;
+    type array_of_T_WasmFpgaEngineDebugWshBn_EngineDebugBlk is
+      array (natural range <>) of T_WasmFpgaEngineDebugWshBn_EngineDebugBlk;
 
 
-    type T_EngineBlk_WasmFpgaEngineDebugWshBn is
+    type T_EngineDebugBlk_WasmFpgaEngineDebugWshBn is
     record
         InvocationTrap :   std_logic;
         InstantiationTrap :   std_logic;
@@ -127,21 +127,21 @@ package WasmFpgaEngineDebugWshBn_Package is
         Error :   std_logic_vector(7 downto 0);
     end record;
 
-    type array_of_T_EngineBlk_WasmFpgaEngineDebugWshBn is
-      array (natural range <>) of T_EngineBlk_WasmFpgaEngineDebugWshBn;
+    type array_of_T_EngineDebugBlk_WasmFpgaEngineDebugWshBn is
+      array (natural range <>) of T_EngineDebugBlk_WasmFpgaEngineDebugWshBn;
 
 
 
 
-    -- ---------- WebAssembly Engine Block( EngineBlk ) ----------
+    -- ---------- WebAssembly Engine Block( EngineDebugBlk ) ----------
     -- BUS: 
 
-    constant WASMFPGAENGINEDEBUG_ADR_BLK_BASE_EngineBlk                                              : std_logic_vector(23 downto 0) := x"000000";
-    constant WASMFPGAENGINEDEBUG_ADR_BLK_SIZE_EngineBlk                                              : std_logic_vector(23 downto 0) := x"000014";
+    constant WASMFPGAENGINEDEBUG_ADR_BLK_BASE_EngineDebugBlk                                         : std_logic_vector(23 downto 0) := x"000000";
+    constant WASMFPGAENGINEDEBUG_ADR_BLK_SIZE_EngineDebugBlk                                         : std_logic_vector(23 downto 0) := x"000018";
 
         -- ControlReg: Debug Control Register 
         constant WASMFPGAENGINEDEBUG_WIDTH_ControlReg                                                : integer := 32;
-        constant WASMFPGAENGINEDEBUG_ADR_ControlReg                                                  : std_logic_vector(23 downto 0) := std_logic_vector(x"000000" + unsigned(WASMFPGAENGINEDEBUG_ADR_BLK_BASE_EngineBlk));
+        constant WASMFPGAENGINEDEBUG_ADR_ControlReg                                                  : std_logic_vector(23 downto 0) := std_logic_vector(x"000000" + unsigned(WASMFPGAENGINEDEBUG_ADR_BLK_BASE_EngineDebugBlk));
 
             -- 
             constant WASMFPGAENGINEDEBUG_BUS_MASK_Reset                                              : std_logic_vector(31 downto 0) := x"00000040";
@@ -203,12 +203,12 @@ package WasmFpgaEngineDebugWshBn_Package is
                 -- Do nothing.
                 constant WASMFPGAENGINEDEBUG_VAL_DoNotDebug                                          : std_logic := '0';
                 -- Start debugging.
-                constant WASMFPGAENGINEDEBUG_VAL_DoRun                                               : std_logic := '1';
+                constant WASMFPGAENGINEDEBUG_VAL_DoDebug                                             : std_logic := '1';
 
 
         -- StatusReg: Status Register 
         constant WASMFPGAENGINEDEBUG_WIDTH_StatusReg                                                 : integer := 32;
-        constant WASMFPGAENGINEDEBUG_ADR_StatusReg                                                   : std_logic_vector(23 downto 0) := std_logic_vector(x"000004" + unsigned(WASMFPGAENGINEDEBUG_ADR_BLK_BASE_EngineBlk));
+        constant WASMFPGAENGINEDEBUG_ADR_StatusReg                                                   : std_logic_vector(23 downto 0) := std_logic_vector(x"000004" + unsigned(WASMFPGAENGINEDEBUG_ADR_BLK_BASE_EngineDebugBlk));
 
             -- 
             constant WASMFPGAENGINEDEBUG_BUS_MASK_InvocationTrap                                     : std_logic_vector(31 downto 0) := x"00000008";
@@ -248,7 +248,7 @@ package WasmFpgaEngineDebugWshBn_Package is
 
         -- AddressReg: Address Register 
         constant WASMFPGAENGINEDEBUG_WIDTH_AddressReg                                                : integer := 32;
-        constant WASMFPGAENGINEDEBUG_ADR_AddressReg                                                  : std_logic_vector(23 downto 0) := std_logic_vector(x"000008" + unsigned(WASMFPGAENGINEDEBUG_ADR_BLK_BASE_EngineBlk));
+        constant WASMFPGAENGINEDEBUG_ADR_AddressReg                                                  : std_logic_vector(23 downto 0) := std_logic_vector(x"000008" + unsigned(WASMFPGAENGINEDEBUG_ADR_BLK_BASE_EngineDebugBlk));
 
             -- Address of the current instruction residing in the module ram.
 
@@ -256,7 +256,7 @@ package WasmFpgaEngineDebugWshBn_Package is
 
         -- InstructionReg: Instruction Register 
         constant WASMFPGAENGINEDEBUG_WIDTH_InstructionReg                                            : integer := 32;
-        constant WASMFPGAENGINEDEBUG_ADR_InstructionReg                                              : std_logic_vector(23 downto 0) := std_logic_vector(x"00000C" + unsigned(WASMFPGAENGINEDEBUG_ADR_BLK_BASE_EngineBlk));
+        constant WASMFPGAENGINEDEBUG_ADR_InstructionReg                                              : std_logic_vector(23 downto 0) := std_logic_vector(x"00000C" + unsigned(WASMFPGAENGINEDEBUG_ADR_BLK_BASE_EngineDebugBlk));
 
             -- Instruction currently executed by the engine.
 
@@ -264,7 +264,7 @@ package WasmFpgaEngineDebugWshBn_Package is
 
         -- ErrorReg: Error Register 
         constant WASMFPGAENGINEDEBUG_WIDTH_ErrorReg                                                  : integer := 32;
-        constant WASMFPGAENGINEDEBUG_ADR_ErrorReg                                                    : std_logic_vector(23 downto 0) := std_logic_vector(x"000010" + unsigned(WASMFPGAENGINEDEBUG_ADR_BLK_BASE_EngineBlk));
+        constant WASMFPGAENGINEDEBUG_ADR_ErrorReg                                                    : std_logic_vector(23 downto 0) := std_logic_vector(x"000010" + unsigned(WASMFPGAENGINEDEBUG_ADR_BLK_BASE_EngineDebugBlk));
 
             -- Internal error code of the engine.
 
@@ -272,7 +272,7 @@ package WasmFpgaEngineDebugWshBn_Package is
 
         -- Breakpoint0Reg: Breakpoint Register 0 
         constant WASMFPGAENGINEDEBUG_WIDTH_Breakpoint0Reg                                            : integer := 32;
-        constant WASMFPGAENGINEDEBUG_ADR_Breakpoint0Reg                                              : std_logic_vector(23 downto 0) := std_logic_vector(x"000014" + unsigned(WASMFPGAENGINEDEBUG_ADR_BLK_BASE_EngineBlk));
+        constant WASMFPGAENGINEDEBUG_ADR_Breakpoint0Reg                                              : std_logic_vector(23 downto 0) := std_logic_vector(x"000014" + unsigned(WASMFPGAENGINEDEBUG_ADR_BLK_BASE_EngineDebugBlk));
 
             -- 
 

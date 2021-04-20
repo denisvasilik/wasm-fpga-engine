@@ -1,6 +1,6 @@
 
 
--- ========== WebAssembly Engine Block( EngineBlk) ========== 
+-- ========== WebAssembly Engine Block( EngineDebugBlk) ========== 
 
 -- This block describes the WebAssembly engine block.
 -- BUS: 
@@ -13,7 +13,7 @@ use ieee.numeric_std.all;
 library work;
 use work.WasmFpgaEngineDebugWshBn_Package.all;
 
-entity EngineBlk_WasmFpgaEngineDebug is
+entity EngineDebugBlk_WasmFpgaEngineDebug is
     port (
         Clk : in std_logic;
         Rst : in std_logic;
@@ -23,9 +23,9 @@ entity EngineBlk_WasmFpgaEngineDebug is
         We : in std_logic;
         Stb : in std_logic;
         Cyc : in  std_logic_vector(0 downto 0);
-        EngineBlk_DatOut : out std_logic_vector(31 downto 0);
-        EngineBlk_Ack : out std_logic;
-        EngineBlk_Unoccupied_Ack : out std_logic;
+        EngineDebugBlk_DatOut : out std_logic_vector(31 downto 0);
+        EngineDebugBlk_Ack : out std_logic;
+        EngineDebugBlk_Unoccupied_Ack : out std_logic;
         Reset : out std_logic;
         StepOver : out std_logic;
         StepInto : out std_logic;
@@ -43,18 +43,18 @@ entity EngineBlk_WasmFpgaEngineDebug is
         Error : in std_logic_vector(7 downto 0);
         Breakpoint0 : out std_logic_vector(31 downto 0)
      );
-end EngineBlk_WasmFpgaEngineDebug;
+end EngineDebugBlk_WasmFpgaEngineDebug;
 
 
 
-architecture arch_for_synthesys of EngineBlk_WasmFpgaEngineDebug is
+architecture arch_for_synthesys of EngineDebugBlk_WasmFpgaEngineDebug is
 
     -- ---------- block variables ---------- 
     signal PreMuxAck_Unoccupied : std_logic;
     signal UnoccupiedDec : std_logic_vector(1 downto 0);
-    signal EngineBlk_PreDatOut : std_logic_vector(31 downto 0);
-    signal EngineBlk_PreAck : std_logic;
-    signal EngineBlk_Unoccupied_PreAck : std_logic;
+    signal EngineDebugBlk_PreDatOut : std_logic_vector(31 downto 0);
+    signal EngineDebugBlk_PreAck : std_logic;
+    signal EngineDebugBlk_Unoccupied_PreAck : std_logic;
     signal PreMuxDatOut_ControlReg : std_logic_vector(31 downto 0);
     signal PreMuxAck_ControlReg : std_logic;
     signal PreMuxDatOut_StatusReg : std_logic_vector(31 downto 0);
@@ -118,9 +118,9 @@ begin
         end if;
     end process;
 
-    EngineBlk_DatOut <= EngineBlk_PreDatOut;
-    EngineBlk_Ack <=  EngineBlk_PreAck;
-    EngineBlk_Unoccupied_Ack <= EngineBlk_Unoccupied_PreAck;
+    EngineDebugBlk_DatOut <= EngineDebugBlk_PreDatOut;
+    EngineDebugBlk_Ack <=  EngineDebugBlk_PreAck;
+    EngineDebugBlk_Unoccupied_Ack <= EngineDebugBlk_Unoccupied_PreAck;
 
     mux_data_ack_out : process (Cyc, Adr, 
                                 PreMuxDatOut_ControlReg,
@@ -138,34 +138,34 @@ begin
                                 PreMuxAck_Unoccupied
                                 )
     begin 
-        EngineBlk_PreDatOut <= x"0000_0000"; -- default statements
-        EngineBlk_PreAck <= '0'; 
-        EngineBlk_Unoccupied_PreAck <= '0';
+        EngineDebugBlk_PreDatOut <= x"0000_0000"; -- default statements
+        EngineDebugBlk_PreAck <= '0'; 
+        EngineDebugBlk_Unoccupied_PreAck <= '0';
         if ( (Cyc(0) = '1') 
-              and (unsigned(Adr) >= unsigned(WASMFPGAENGINEDEBUG_ADR_BLK_BASE_EngineBlk) )
-              and (unsigned(Adr) <= (unsigned(WASMFPGAENGINEDEBUG_ADR_BLK_BASE_EngineBlk) + unsigned(WASMFPGAENGINEDEBUG_ADR_BLK_SIZE_EngineBlk) - 1)) )
+              and (unsigned(Adr) >= unsigned(WASMFPGAENGINEDEBUG_ADR_BLK_BASE_EngineDebugBlk) )
+              and (unsigned(Adr) <= (unsigned(WASMFPGAENGINEDEBUG_ADR_BLK_BASE_EngineDebugBlk) + unsigned(WASMFPGAENGINEDEBUG_ADR_BLK_SIZE_EngineDebugBlk) - 1)) )
         then 
             if ( (unsigned(Adr)/4)*4  = ( unsigned(WASMFPGAENGINEDEBUG_ADR_ControlReg)) ) then
-                 EngineBlk_PreDatOut <= PreMuxDatOut_ControlReg;
-                EngineBlk_PreAck <= PreMuxAck_ControlReg;
+                 EngineDebugBlk_PreDatOut <= PreMuxDatOut_ControlReg;
+                EngineDebugBlk_PreAck <= PreMuxAck_ControlReg;
             elsif ( (unsigned(Adr)/4)*4  = ( unsigned(WASMFPGAENGINEDEBUG_ADR_StatusReg)) ) then
-                 EngineBlk_PreDatOut <= PreMuxDatOut_StatusReg;
-                EngineBlk_PreAck <= PreMuxAck_StatusReg;
+                 EngineDebugBlk_PreDatOut <= PreMuxDatOut_StatusReg;
+                EngineDebugBlk_PreAck <= PreMuxAck_StatusReg;
             elsif ( (unsigned(Adr)/4)*4  = ( unsigned(WASMFPGAENGINEDEBUG_ADR_AddressReg)) ) then
-                 EngineBlk_PreDatOut <= PreMuxDatOut_AddressReg;
-                EngineBlk_PreAck <= PreMuxAck_AddressReg;
+                 EngineDebugBlk_PreDatOut <= PreMuxDatOut_AddressReg;
+                EngineDebugBlk_PreAck <= PreMuxAck_AddressReg;
             elsif ( (unsigned(Adr)/4)*4  = ( unsigned(WASMFPGAENGINEDEBUG_ADR_InstructionReg)) ) then
-                 EngineBlk_PreDatOut <= PreMuxDatOut_InstructionReg;
-                EngineBlk_PreAck <= PreMuxAck_InstructionReg;
+                 EngineDebugBlk_PreDatOut <= PreMuxDatOut_InstructionReg;
+                EngineDebugBlk_PreAck <= PreMuxAck_InstructionReg;
             elsif ( (unsigned(Adr)/4)*4  = ( unsigned(WASMFPGAENGINEDEBUG_ADR_ErrorReg)) ) then
-                 EngineBlk_PreDatOut <= PreMuxDatOut_ErrorReg;
-                EngineBlk_PreAck <= PreMuxAck_ErrorReg;
+                 EngineDebugBlk_PreDatOut <= PreMuxDatOut_ErrorReg;
+                EngineDebugBlk_PreAck <= PreMuxAck_ErrorReg;
             elsif ( (unsigned(Adr)/4)*4  = ( unsigned(WASMFPGAENGINEDEBUG_ADR_Breakpoint0Reg)) ) then
-                 EngineBlk_PreDatOut <= PreMuxDatOut_Breakpoint0Reg;
-                EngineBlk_PreAck <= PreMuxAck_Breakpoint0Reg;
+                 EngineDebugBlk_PreDatOut <= PreMuxDatOut_Breakpoint0Reg;
+                EngineDebugBlk_PreAck <= PreMuxAck_Breakpoint0Reg;
             else 
-                EngineBlk_PreAck <= PreMuxAck_Unoccupied;
-                EngineBlk_Unoccupied_PreAck <= PreMuxAck_Unoccupied;
+                EngineDebugBlk_PreAck <= PreMuxAck_Unoccupied;
+                EngineDebugBlk_Unoccupied_PreAck <= PreMuxAck_Unoccupied;
             end if;
         end if;
     end process;
@@ -478,8 +478,8 @@ entity WasmFpgaEngineDebugWshBn is
         WasmFpgaEngineDebugWshBnDn : in T_WasmFpgaEngineDebugWshBnDn;
         WasmFpgaEngineDebugWshBnUp : out T_WasmFpgaEngineDebugWshBnUp;
         WasmFpgaEngineDebugWshBn_UnOccpdRcrd : out T_WasmFpgaEngineDebugWshBn_UnOccpdRcrd;
-        WasmFpgaEngineDebugWshBn_EngineBlk : out T_WasmFpgaEngineDebugWshBn_EngineBlk;
-        EngineBlk_WasmFpgaEngineDebugWshBn : in T_EngineBlk_WasmFpgaEngineDebugWshBn
+        WasmFpgaEngineDebugWshBn_EngineDebugBlk : out T_WasmFpgaEngineDebugWshBn_EngineDebugBlk;
+        EngineDebugBlk_WasmFpgaEngineDebugWshBn : in T_EngineDebugBlk_WasmFpgaEngineDebugWshBn
      );
 end WasmFpgaEngineDebugWshBn;
 
@@ -487,7 +487,7 @@ end WasmFpgaEngineDebugWshBn;
 
 architecture arch_for_synthesys of WasmFpgaEngineDebugWshBn is
 
-    component EngineBlk_WasmFpgaEngineDebug is
+    component EngineDebugBlk_WasmFpgaEngineDebug is
         port (
             Clk : in std_logic;
             Rst : in std_logic;
@@ -497,9 +497,9 @@ architecture arch_for_synthesys of WasmFpgaEngineDebugWshBn is
             We : in std_logic;
             Stb : in std_logic;
             Cyc : in  std_logic_vector(0 downto 0);
-            EngineBlk_DatOut : out std_logic_vector(31 downto 0);
-            EngineBlk_Ack : out std_logic;
-            EngineBlk_Unoccupied_Ack : out std_logic;
+            EngineDebugBlk_DatOut : out std_logic_vector(31 downto 0);
+            EngineDebugBlk_Ack : out std_logic;
+            EngineDebugBlk_Unoccupied_Ack : out std_logic;
             Reset : out std_logic;
             StepOver : out std_logic;
             StepInto : out std_logic;
@@ -523,9 +523,9 @@ architecture arch_for_synthesys of WasmFpgaEngineDebugWshBn is
     -- ---------- internal wires ----------
 
     signal Sel : std_logic_vector(3 downto 0);
-    signal EngineBlk_DatOut : std_logic_vector(31 downto 0);
-    signal EngineBlk_Ack : std_logic;
-    signal EngineBlk_Unoccupied_Ack : std_logic;
+    signal EngineDebugBlk_DatOut : std_logic_vector(31 downto 0);
+    signal EngineDebugBlk_Ack : std_logic;
+    signal EngineDebugBlk_Unoccupied_Ack : std_logic;
 
 
 begin 
@@ -533,7 +533,7 @@ begin
 
     -- ---------- Connect register instances ----------
 
-    i_EngineBlk_WasmFpgaEngineDebug :  EngineBlk_WasmFpgaEngineDebug
+    i_EngineDebugBlk_WasmFpgaEngineDebug :  EngineDebugBlk_WasmFpgaEngineDebug
      port map (
         Clk => Clk,
         Rst => Rst,
@@ -543,25 +543,25 @@ begin
         We =>  WasmFpgaEngineDebugWshBnDn.We,
         Stb => WasmFpgaEngineDebugWshBnDn.Stb,
         Cyc => WasmFpgaEngineDebugWshBnDn.Cyc,
-        EngineBlk_DatOut => EngineBlk_DatOut,
-        EngineBlk_Ack => EngineBlk_Ack,
-        EngineBlk_Unoccupied_Ack => EngineBlk_Unoccupied_Ack,
-        Reset => WasmFpgaEngineDebugWshBn_EngineBlk.Reset,
-        StepOver => WasmFpgaEngineDebugWshBn_EngineBlk.StepOver,
-        StepInto => WasmFpgaEngineDebugWshBn_EngineBlk.StepInto,
-        StepOut => WasmFpgaEngineDebugWshBn_EngineBlk.StepOut,
-        Continue => WasmFpgaEngineDebugWshBn_EngineBlk.Continue,
-        StopInMain => WasmFpgaEngineDebugWshBn_EngineBlk.StopInMain,
-        Debug => WasmFpgaEngineDebugWshBn_EngineBlk.Debug,
-        WRegPulse_ControlReg => WasmFpgaEngineDebugWshBn_EngineBlk.WRegPulse_ControlReg,
-        InvocationTrap => EngineBlk_WasmFpgaEngineDebugWshBn.InvocationTrap,
-        InstantiationTrap => EngineBlk_WasmFpgaEngineDebugWshBn.InstantiationTrap,
-        InstantiationRunning => EngineBlk_WasmFpgaEngineDebugWshBn.InstantiationRunning,
-        InvocationRunning => EngineBlk_WasmFpgaEngineDebugWshBn.InvocationRunning,
-        Address => EngineBlk_WasmFpgaEngineDebugWshBn.Address,
-        Instruction => EngineBlk_WasmFpgaEngineDebugWshBn.Instruction,
-        Error => EngineBlk_WasmFpgaEngineDebugWshBn.Error,
-        Breakpoint0 => WasmFpgaEngineDebugWshBn_EngineBlk.Breakpoint0
+        EngineDebugBlk_DatOut => EngineDebugBlk_DatOut,
+        EngineDebugBlk_Ack => EngineDebugBlk_Ack,
+        EngineDebugBlk_Unoccupied_Ack => EngineDebugBlk_Unoccupied_Ack,
+        Reset => WasmFpgaEngineDebugWshBn_EngineDebugBlk.Reset,
+        StepOver => WasmFpgaEngineDebugWshBn_EngineDebugBlk.StepOver,
+        StepInto => WasmFpgaEngineDebugWshBn_EngineDebugBlk.StepInto,
+        StepOut => WasmFpgaEngineDebugWshBn_EngineDebugBlk.StepOut,
+        Continue => WasmFpgaEngineDebugWshBn_EngineDebugBlk.Continue,
+        StopInMain => WasmFpgaEngineDebugWshBn_EngineDebugBlk.StopInMain,
+        Debug => WasmFpgaEngineDebugWshBn_EngineDebugBlk.Debug,
+        WRegPulse_ControlReg => WasmFpgaEngineDebugWshBn_EngineDebugBlk.WRegPulse_ControlReg,
+        InvocationTrap => EngineDebugBlk_WasmFpgaEngineDebugWshBn.InvocationTrap,
+        InstantiationTrap => EngineDebugBlk_WasmFpgaEngineDebugWshBn.InstantiationTrap,
+        InstantiationRunning => EngineDebugBlk_WasmFpgaEngineDebugWshBn.InstantiationRunning,
+        InvocationRunning => EngineDebugBlk_WasmFpgaEngineDebugWshBn.InvocationRunning,
+        Address => EngineDebugBlk_WasmFpgaEngineDebugWshBn.Address,
+        Instruction => EngineDebugBlk_WasmFpgaEngineDebugWshBn.Instruction,
+        Error => EngineDebugBlk_WasmFpgaEngineDebugWshBn.Error,
+        Breakpoint0 => WasmFpgaEngineDebugWshBn_EngineDebugBlk.Breakpoint0
      );
 
 
@@ -575,13 +575,13 @@ begin
     -- ---------- Or all DataOuts and Acks of blocks ----------
 
      WasmFpgaEngineDebugWshBnUp.DatOut <= 
-        EngineBlk_DatOut;
+        EngineDebugBlk_DatOut;
 
      WasmFpgaEngineDebugWshBnUp.Ack <= 
-        EngineBlk_Ack;
+        EngineDebugBlk_Ack;
 
      WasmFpgaEngineDebugWshBn_UnOccpdRcrd.Unoccupied_Ack <= 
-        EngineBlk_Unoccupied_Ack;
+        EngineDebugBlk_Unoccupied_Ack;
 
 
 

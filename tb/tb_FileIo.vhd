@@ -1,17 +1,16 @@
-library STD;
-use STD.textio.all;
+library std;
+  use std.textio.all;
 
-library IEEE;
-library ieee_proposed;
-use IEEE.STD_LOGIC_1164.all;
-use ieee.numeric_std.all;
-use std.textio.all;
+library ieee;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
+  use std.textio.all;
 
 library work;
-use work.tb_STD_LOGIC_1164_additions.all;
-use work.tb_pkg.all;
-use work.tb_pkg_helper.all;
-use work.tb_types.all;
+  use work.tb_std_logic_1164_additions.all;
+  use work.tb_pkg.all;
+  use work.tb_pkg_helper.all;
+  use work.tb_types.all;
 
 entity tb_FileIo is
   generic (
@@ -24,6 +23,8 @@ entity tb_FileIo is
     nRst : out std_logic;
     WasmFpgaEngine_FileIO : in T_WasmFpgaEngine_FileIO;
     FileIO_WasmFpgaEngine : out T_FileIO_WasmFpgaEngine;
+    WasmFpgaEngineDebug_FileIO : in T_WasmFpgaEngineDebug_FileIO;
+    FileIO_WasmFpgaEngineDebug : out T_FileIO_WasmFpgaEngineDebug;
     WasmFpgaBus_FileIO : in T_WasmFpgaBus_FileIO;
     FileIO_WasmFpgaBus : out T_FileIO_WasmFpgaBus;
     ModuleMemory_FileIO : in T_ModuleMemory_FileIO;
@@ -35,7 +36,7 @@ entity tb_FileIo is
     Memory_FileIO : in T_Memory_FileIO;
     FileIO_Memory : out T_FileIO_Memory
   );
-end tb_FileIo;
+end;
 
 architecture Behavioural of tb_FileIo is
 
@@ -44,80 +45,7 @@ architecture Behavioural of tb_FileIo is
     signal tempValue : std_logic_vector(31 downto 0);
     signal tempAddress : std_logic_vector(31 downto 0);
 
-    signal RstNeg : std_logic;
-
-    signal wb_read_start : std_logic := '0';
-    signal wb_write_start : std_logic := '0';
-    signal wb_write_read_end : std_logic := '0';
-    signal wb_address : std_logic_vector(31 downto 0);
-    signal wb_byte_enable : std_logic_vector( 3 downto 0);
-    signal wb_data_read : std_logic_vector(31 downto 0);
-    signal wb_data_write : std_logic_vector(31 downto 0);
-
-    constant tco : time := 0 ns;    -- clock to output delay
-
 begin
-
-    RstNeg <= not Rst;
-
-    -- Read / Write CPU -----------------READ--------------------------READ-----------------------
-    readwriteCpu : process
-    begin
-        wb_write_read_end <= '0';
-        FileIO_WasmFpgaEngine.Adr <= (others => '0');
-        FileIO_WasmFpgaEngine.DatIn <= (others => '0');
-        FileIO_WasmFpgaEngine.Cyc <= (others => '0');
-        FileIO_WasmFpgaEngine.Sel <= "1111";
-        FileIO_WasmFpgaEngine.We  <= '0';
-        FileIO_WasmFpgaEngine.Stb <= '0';
-
-        wait until Rst = '0';
-        wait for 0 ns;
-
-        while (Rst= '0') loop
-        --READ--
-        if wb_read_start= '1' then                 -- rising_edge(read_start) then
-            wait until rising_edge(clk);       -- WishboneREAD CLOCK EDGE 0
-            FileIO_WasmFpgaEngine.Adr <= std_logic_vector(wb_address(23 downto 0)) after tco;
-            FileIO_WasmFpgaEngine.Sel <= wb_byte_enable after tco;
-            FileIO_WasmFpgaEngine.We  <= '0' after tco;
-            FileIO_WasmFpgaEngine.Stb <= '1' after tco;
-            FileIO_WasmFpgaEngine.Cyc <= (others => '1') after tco;
-            -- clk_delay (cRdWaitState);
-            wait on WasmFpgaEngine_FileIO.Ack until WasmFpgaEngine_FileIO.Ack = '1';
-            wait for tco;
-            wait until rising_edge(clk);        --WishboneREAD CLOCK EDGE 1
-            wb_data_read <= WasmFpgaEngine_FileIO.DatOut (31 downto 0);
-            wb_write_read_end       <= '1';
-            wait for 0 ns;
-            wait until wb_read_start= '0';
-        --WRITE--
-        elsif wb_write_start= '1' then
-            wait until rising_edge(clk);           --WishboneWRITE CLOCK EDGE 0
-            FileIO_WasmFpgaEngine.DatIn <= wb_data_write after tco;
-            FileIO_WasmFpgaEngine.Adr <= std_logic_vector(wb_address(23 downto 0)) after tco;
-            FileIO_WasmFpgaEngine.Sel <= wb_byte_enable after tco;
-            FileIO_WasmFpgaEngine.We  <= '1' after tco;
-            FileIO_WasmFpgaEngine.Stb <= '1' after tco;
-            FileIO_WasmFpgaEngine.Cyc <= (others => '1') after tco;
-
-            -- clk_delay (cWrWaitState);
-            wait on WasmFpgaEngine_FileIO.Ack until (WasmFpgaEngine_FileIO.Ack = '1');
-            wait for tco;
-            wait until rising_edge(clk);           --WishboneWRITE CLOCK EDGE 1
-            wb_write_read_end       <= '1';
-            wait until wb_write_start= '0';
-        else
-            wb_write_read_end <= '0';
-            FileIO_WasmFpgaEngine.Adr <= (others => '0') after tco;
-            FileIO_WasmFpgaEngine.Sel <= "1111"       after tco;
-            FileIO_WasmFpgaEngine.We  <= '0'          after tco;
-            FileIO_WasmFpgaEngine.Stb <= '0'          after tco;
-            FileIO_WasmFpgaEngine.Cyc <= (others => '0') after tco;
-            wait until rising_edge(clk);       --neu WishboneREAD/WRITE CLOCK EDGE 2
-        end if;
-        end loop;
-    end process readwriteCpu;
 
     --------------------------------------------------------------------------------
     --! Read_file Process:
@@ -237,8 +165,6 @@ begin
 
     begin  -- process Read_file
 
-        wb_data_write <= (others => '0');
-
         nRst <= '1';
 
         FileIO_ModuleMemory.DatIn <= (others => '0');
@@ -275,6 +201,20 @@ begin
         FileIO_WasmFpgaBus.Cyc <= (others => '0');
         FileIO_WasmFpgaBus.We <= '0';
         FileIO_WasmFpgaBus.Stb <= '0';
+
+        FileIO_WasmFpgaEngine.Adr <= (others => '0');
+        FileIO_WasmFpgaEngine.DatIn <= (others => '0');
+        FileIO_WasmFpgaEngine.Cyc <= (others => '0');
+        FileIO_WasmFpgaEngine.Sel <= (others => '0');
+        FileIO_WasmFpgaEngine.We  <= '0';
+        FileIO_WasmFpgaEngine.Stb <= '0';
+
+        FileIO_WasmFpgaEngineDebug.Adr <= (others => '0');
+        FileIO_WasmFpgaEngineDebug.DatIn <= (others => '0');
+        FileIO_WasmFpgaEngineDebug.Cyc <= (others => '0');
+        FileIO_WasmFpgaEngineDebug.Sel <= (others => '0');
+        FileIO_WasmFpgaEngineDebug.We  <= '0';
+        FileIO_WasmFpgaEngineDebug.Stb <= '0';
 
         tempAddress <= (others => '0');
         tempValue <= (others => '0');
@@ -1169,26 +1109,32 @@ begin
                 wait for 0 ns;
                 wait until Clk'event and Clk = '1';
 
-                if (par1 = 32) then
-                    wb_data_write  <= std_logic_vector(to_unsigned(par3, wb_data_write'LENGTH));
-                    wb_address <= tempAddress;
-                    wb_byte_enable <= "1111";
-                    wb_write_start <= '1';
-                    wait until rising_edge(wb_write_read_end);
-                    wb_write_start <= '0';
+                if (par1 = 0) then
+                    FileIO_WasmFpgaEngine.DatIn <= std_logic_vector(to_unsigned(par3, FileIO_WasmFpgaEngine.DatIn'LENGTH));
+                    FileIO_WasmFpgaEngine.Adr <= std_logic_vector(to_unsigned(par2, FileIO_WasmFpgaEngine.Adr'LENGTH));
+                    FileIO_WasmFpgaEngine.Sel <= x"F";
+                    FileIO_WasmFpgaEngine.Cyc <= "1";
+                    FileIO_WasmFpgaEngine.Stb <= '1';
+                    FileIO_WasmFpgaEngine.We  <= '1';
+                    wait until rising_edge(WasmFpgaEngineDebug_FileIO.Ack);
+                    FileIO_WasmFpgaEngine.Sel <= x"0";
+                    FileIO_WasmFpgaEngine.Cyc <= "0";
+                    FileIO_WasmFpgaEngine.Stb <= '0';
+                    FileIO_WasmFpgaEngine.We <= '0';
                     wait for 0 ns;
                     wait until Clk'event and Clk = '1';
-                elsif (par1 = 16) then
-                    if (tempAddress(1) = '1') then
-                        wb_data_write <= std_logic_vector(to_unsigned(par3, 16) & x"0000");
-                    elsif (tempAddress(1) = '0') then
-                        wb_data_write  <= x"0000" & std_logic_vector(to_unsigned(par3, 16));
-                    end if;
-                    wb_address <= tempAddress;
-                    wb_byte_enable <= "1111";
-                    wb_write_start <= '1';
-                    wait until rising_edge(wb_write_read_end);
-                    wb_write_start <= '0';
+                elsif (par1 = 1) then
+                    FileIO_WasmFpgaEngineDebug.DatIn <= std_logic_vector(to_unsigned(par3, FileIO_WasmFpgaEngineDebug.DatIn'LENGTH));
+                    FileIO_WasmFpgaEngineDebug.Adr <= std_logic_vector(to_unsigned(par2, FileIO_WasmFpgaEngineDebug.Adr'LENGTH));
+                    FileIO_WasmFpgaEngineDebug.Sel <= x"F";
+                    FileIO_WasmFpgaEngineDebug.Cyc <= "1";
+                    FileIO_WasmFpgaEngineDebug.Stb <= '1';
+                    FileIO_WasmFpgaEngineDebug.We  <= '1';
+                    wait until rising_edge(WasmFpgaEngineDebug_FileIO.Ack);
+                    FileIO_WasmFpgaEngineDebug.Sel <= x"0";
+                    FileIO_WasmFpgaEngineDebug.Cyc <= "0";
+                    FileIO_WasmFpgaEngineDebug.Stb <= '0';
+                    FileIO_WasmFpgaEngineDebug.We <= '0';
                     wait for 0 ns;
                     wait until Clk'event and Clk = '1';
                 else
@@ -1203,26 +1149,32 @@ begin
                 wait for 0 ns;
                 wait until Clk'event and Clk = '1';
 
-                if (par1 = 32) then
-                    wb_address <= tempAddress;
-                    wb_byte_enable <= "1111";
-                    wb_read_start <= '1';
-                    wait until rising_edge(wb_write_read_end);
-                    temp_int := to_integer(unsigned(wb_data_read));
-                    wb_read_start <= '0';
+                if (par1 = 0) then
+                    FileIO_WasmFpgaEngine.Adr <= std_logic_vector(to_unsigned(par2, FileIO_WasmFpgaEngine.Adr'LENGTH));
+                    FileIO_WasmFpgaEngine.Sel <= x"F";
+                    FileIO_WasmFpgaEngine.Cyc <= "1";
+                    FileIO_WasmFpgaEngine.Stb <= '1';
+                    FileIO_WasmFpgaEngine.We <= '0';
+                    wait until rising_edge(WasmFpgaEngine_FileIO.Ack);
+                    temp_int := to_integer(unsigned(WasmFpgaEngine_FileIO.DatOut(31 downto 0)));
+                    FileIO_WasmFpgaEngine.Sel <= x"0";
+                    FileIO_WasmFpgaEngine.Cyc <= "0";
+                    FileIO_WasmFpgaEngine.Stb <= '0';
+                    FileIO_WasmFpgaEngine.We <= '0';
                     wait for 0 ns;
                     wait until Clk'event and Clk = '1';
-                elsif (par1 = 16) then
-                    wb_address <= tempAddress;
-                    wb_byte_enable <= "1111";
-                    wb_read_start <= '1';
-                    wait until rising_edge(wb_write_read_end);
-                    if (tempAddress(1) = '1') then
-                        temp_int := to_integer(unsigned(wb_data_read(31 downto 16)));
-                    elsif (tempAddress(1) = '0') then
-                        temp_int := to_integer(unsigned(wb_data_read(15 downto 0)));
-                    end if;
-                    wb_read_start <= '0';
+                elsif (par1 = 1) then
+                    FileIO_WasmFpgaEngineDebug.Adr <= std_logic_vector(to_unsigned(par2, FileIO_WasmFpgaEngineDebug.Adr'LENGTH));
+                    FileIO_WasmFpgaEngineDebug.Sel <= x"F";
+                    FileIO_WasmFpgaEngineDebug.Cyc <= "1";
+                    FileIO_WasmFpgaEngineDebug.Stb <= '1';
+                    FileIO_WasmFpgaEngineDebug.We <= '0';
+                    wait until rising_edge(WasmFpgaEngineDebug_FileIO.Ack);
+                    temp_int := to_integer(unsigned(WasmFpgaEngineDebug_FileIO.DatOut(31 downto 0)));
+                    FileIO_WasmFpgaEngineDebug.Sel <= x"0";
+                    FileIO_WasmFpgaEngineDebug.Cyc <= "0";
+                    FileIO_WasmFpgaEngineDebug.Stb <= '0';
+                    FileIO_WasmFpgaEngineDebug.We <= '0';
                     wait for 0 ns;
                     wait until Clk'event and Clk = '1';
                 else

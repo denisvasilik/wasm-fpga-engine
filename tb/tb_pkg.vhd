@@ -356,11 +356,40 @@ package body tb_pkg is
 function fld_len(s : in text_field) return integer is
     variable i:  integer := 1;
   begin
-    while(s(i) /= nul) loop
+    while(s(i) /= nul and i /= max_field_len) loop
       i := i + 1;
     end loop;
     return (i - 1);
   end fld_len;
+
+
+-------------------------------------------------------------------------------
+-- fld_len  Check text field for equality
+--          inputs :  text field s1 and s2
+--          return :  True if text fields are equal; false otherwise.
+function fld_equal(s1 : in text_field; s2 : in text_field) return boolean is
+    variable i: integer := 1;
+    variable result: boolean := true;
+    variable s1_length: integer := 0;
+    variable s2_length: integer := 0;
+  begin
+    s1_length := fld_len(s1);
+    s2_length := fld_len(s2);
+
+    if (s1_length /= s2_length) then
+      return false;
+    end if;
+
+    while(i /= s1_length) loop
+      i := i + 1;
+      if s1(i) /= s2(i) then
+        return false;
+      end if;
+    end loop;
+    return true;
+  end fld_equal;
+
+
 ------------------------------------------------------------------------------
 -- c2int   convert character to integer
 function c2int(c: in character) return integer is
@@ -859,8 +888,9 @@ function stim_to_integer(field:      in text_field;
     variable l          : integer;
     variable l_2        : integer;
     variable var_ptr    : var_field_ptr;
-    variable temp_field : text_field;
+    variable temp_field : text_field := (others => NUL);
     variable ptr        : integer := 0;  -- 0 is index, 1 is pointer
+    variable inner_valid : boolean := false;
 
 	-- variable cnt:     integer := 1;
     -- variable temp_str   : string(1 to 48);
@@ -878,9 +908,9 @@ function stim_to_integer(field:      in text_field;
      -- temp_str(i) := nul;
     -- end loop;
 
-
     l      := fld_len(var);
     valid  := 0;
+    value  := 0;
     -- if the variable is a special
     if(var(1) = '=') then
           value  := 0;
@@ -911,16 +941,22 @@ function stim_to_integer(field:      in text_field;
         temp_field  :=  var;
       end if;
 
+      assert(var_list /= null)
+        report LF & "Error: No variables are defined." & LF
+      severity failure;
+
       var_ptr := var_list;
       while(var_ptr.next_rec  /= null) loop
         -- if we have a match
-        if(temp_field = var_ptr.var_name) then
+        if(fld_equal(temp_field, var_ptr.var_name)) then
           if(ptr = 1) then
             value  := var_ptr.var_value;
             valid  := 1;
+            inner_valid := true;
           else
             value  := var_ptr.var_index;
             valid  := 1;
+            inner_valid := true;
           end if;
           exit;
         end if;
@@ -928,15 +964,23 @@ function stim_to_integer(field:      in text_field;
       end loop;
 
       -- if we have a match and was the last record
-      if(var_ptr.next_rec  = null and temp_field = var_ptr.var_name) then
-        if(ptr = 1) then
-          value  := var_ptr.var_value;
-          valid  := 1;
-        else
-          value  := var_ptr.var_index;
-          valid  := 1;
+      if(var_ptr.next_rec = null) then
+        if (fld_equal(temp_field, var_ptr.var_name)) then
+          if(ptr = 1) then
+            value  := var_ptr.var_value;
+            valid  := 1;
+            inner_valid := true;
+          else
+            value  := var_ptr.var_index;
+            valid  := 1;
+            inner_valid := true;
+          end if;
         end if;
       end if;
+
+      assert(inner_valid)
+        report LF & "Error: Variable is not defined " & temp_field & LF
+      severity failure;
     end if;
   end access_variable;
 --------------------------------------------------------------------------------
@@ -1285,7 +1329,7 @@ function stim_to_integer(field:      in text_field;
 
 --------------------------------------------------------------------------------
 --  Check for valid instruction in the list of instructions
-procedure check_valid_inst(variable inst     :  in text_field;
+procedure checkinner_valid_inst(variable inst     :  in text_field;
                            variable inst_set :  in inst_def_ptr;
                            variable token_num:  in integer;
                            variable line_num :  in integer;
@@ -1344,7 +1388,7 @@ procedure check_valid_inst(variable inst     :  in text_field;
       report LF & "Error: Undefined Instruction on line " & (integer'image(line_num)) &
                   " found in input file " & name & LF
     severity failure;
-  end check_valid_inst;
+  end checkinner_valid_inst;
 
 --------------------------------------------------------------------------------
 --  add_variable
@@ -1789,7 +1833,7 @@ procedure add_variable(variable var_list  :   inout  var_field_ptr;
 
       -- if there was valid tokens
       elsif(valid /= 0) then
-        check_valid_inst(t1, v_inst_ptr, valid, l_num, name);
+        checkinner_valid_inst(t1, v_inst_ptr, valid, l_num, name);
         add_instruction(v_sequ_ptr,v_var_prt,t1,t2,t3,t4,t5,t6,t7,t_txt,valid,
                         sequ_line,l_num,name,v_new_fn);
       end if;
@@ -1922,11 +1966,11 @@ procedure add_variable(variable var_list  :   inout  var_field_ptr;
       -- if there was valid tokens
       elsif(valid /= 0) then
         -- assert(false)
-        -- report LF & "before check_valid_inst: "
+        -- report LF & "before checkinner_valid_inst: "
         -- severity warning;
-        check_valid_inst(t1, v_inst_ptr, valid, l_num, v_name);
+        checkinner_valid_inst(t1, v_inst_ptr, valid, l_num, v_name);
         -- assert(false)
-        -- report LF & "after check_valid_inst: "
+        -- report LF & "after checkinner_valid_inst: "
         -- severity warning;
 
         add_instruction(v_sequ_ptr,v_var_prt,t1,t2,t3,t4,t5,t6,t7,t_txt,valid,

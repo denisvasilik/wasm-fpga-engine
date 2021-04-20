@@ -400,59 +400,55 @@ begin
           if (InvocationRun = '1') then
             InvocationBusy <= '1';
             WasmFpgaInvocation_WasmFpgaModuleRam.Address <= WasmFpgaInstantiation_WasmFpgaModuleRam.Address;
-            if (Debug = '1' and StopInMain = '1') then
-                if (WRegPulse_DebugControlReg = '1' and StepOver = '1') then
-                    InvocationState <= State0;
-                end if;
-            else
-              InvocationState <= State0;
-            end if;
+            InvocationState <= State0;
           end if;
       elsif(InvocationState = State0) then
-        ReadFromModuleRam(InvocationReadFromModuleRamState,
-                          InvocationCurrentByte,
-                          WasmFpgaModuleRam_WasmFpgaInvocation,
-                          WasmFpgaInvocation_WasmFpgaModuleRam);
-        if (InvocationReadFromModuleRamState = StateEnd) then
-            if (Debug = '1') then
-                if (StopInMain = '1' and IsInMain = '1') then
-                    IsInMain <= '0';
-                    if (WRegPulse_DebugControlReg = '1' and
-                       (StepOver = '1' or StepInto = '1' or StepOut = '1' or Continue = '1'))
-                    then
-                        InvocationState <= State1;
-                    end if;
-                elsif (StepOver = '1' and Continue = '0') then
-                    if (WRegPulse_DebugControlReg = '1' and
-                       (StepOver = '1' or StepInto = '1' or StepOut = '1' or Continue = '1'))
-                    then
-                        InvocationState <= State1;
-                    end if;
-                elsif (WasmFpgaInvocation_WasmFpgaModuleRam.Address = Breakpoint0(23 downto 0)) then
-                    if (WRegPulse_DebugControlReg = '1' and
-                       (StepOver = '1' or StepInto = '1' or StepOut = '1' or Continue = '1'))
-                    then
-                        InvocationState <= State1;
-                    end if;
-                else
+        if (Debug = '1') then
+            if (StopInMain = '1' and IsInMain = '1') then
+                IsInMain <= '0';
+                if (WRegPulse_DebugControlReg = '1' and
+                    (StepOver = '1' or StepInto = '1' or StepOut = '1' or Continue = '1'))
+                then
+                    InvocationState <= State1;
+                end if;
+            elsif (StepOver = '1' and Continue = '0') then
+                if (WRegPulse_DebugControlReg = '1' and
+                    (StepOver = '1' or StepInto = '1' or StepOut = '1' or Continue = '1'))
+                then
+                    InvocationState <= State1;
+                end if;
+            elsif (WasmFpgaInvocation_WasmFpgaModuleRam.Address = Breakpoint0(23 downto 0)) then
+                if (WRegPulse_DebugControlReg = '1' and
+                    (StepOver = '1' or StepInto = '1' or StepOut = '1' or Continue = '1'))
+                then
                     InvocationState <= State1;
                 end if;
             else
                 InvocationState <= State1;
             end if;
+        else
+            InvocationState <= State1;
         end if;
       elsif(InvocationState = State1) then
+        ReadFromModuleRam(InvocationReadFromModuleRamState,
+                          InvocationCurrentByte,
+                          WasmFpgaModuleRam_WasmFpgaInvocation,
+                          WasmFpgaInvocation_WasmFpgaModuleRam);
+        if (InvocationReadFromModuleRamState = StateEnd) then
+            InvocationState <= State2;
+        end if;
+      elsif(InvocationState = State2) then
         -- FIX ME: Assume valid instruction, for now.
         CurrentInstruction <= to_integer(unsigned(InvocationCurrentByte));
-        InvocationState <= State2;
-      elsif(InvocationState = State2) then
-        WasmFpgaInvocation_WasmFpgaInstruction(CurrentInstruction).Address <= WasmFpgaInvocation_WasmFpgaModuleRam.Address;
-        WasmFpgaInvocation_WasmFpgaInstruction(CurrentInstruction).Run <= '1';
         InvocationState <= State3;
       elsif(InvocationState = State3) then
-        WasmFpgaInvocation_WasmFpgaInstruction(CurrentInstruction).Run <= '0';
+        WasmFpgaInvocation_WasmFpgaInstruction(CurrentInstruction).Address <= WasmFpgaInvocation_WasmFpgaModuleRam.Address;
+        WasmFpgaInvocation_WasmFpgaInstruction(CurrentInstruction).Run <= '1';
         InvocationState <= State4;
       elsif(InvocationState = State4) then
+        WasmFpgaInvocation_WasmFpgaInstruction(CurrentInstruction).Run <= '0';
+        InvocationState <= State5;
+      elsif(InvocationState = State5) then
         if (WasmFpgaInstruction_WasmFpgaInvocation(CurrentInstruction).Busy = '0') then
             WasmFpgaInvocation_WasmFpgaModuleRam.Address <=
                 WasmFpgaInstruction_WasmFpgaInvocation(CurrentInstruction).Address;
@@ -652,7 +648,7 @@ begin
       ModuleInstanceUid => ModuleInstanceUid
     );
 
-    EngineBlk_WasmFpgaEngineDebug_i : entity work.EngineBlk_WasmFpgaEngineDebug
+    EngineBlk_WasmFpgaEngineDebug_i : entity work.EngineDebugBlk_WasmFpgaEngineDebug
       port map (
         Clk => Clk,
         Rst => Rst,
@@ -662,9 +658,9 @@ begin
         We => Debug_We,
         Stb => Debug_Stb,
         Cyc => Debug_Cyc,
-        EngineBlk_DatOut => Debug_DatOut,
-        EngineBlk_Ack => Debug_Ack,
-        EngineBlk_Unoccupied_Ack => open,
+        EngineDebugBlk_DatOut => Debug_DatOut,
+        EngineDebugBlk_Ack => Debug_Ack,
+        EngineDebugBlk_Unoccupied_Ack => open,
         Reset => open,
         StepOver => StepOver,
         StepInto => StepInto,
@@ -672,7 +668,7 @@ begin
         Continue => Continue,
         StopInMain => StopInMain,
         Debug => Debug,
-        WRegPulse_ControlReg => open,
+        WRegPulse_ControlReg => WRegPulse_DebugControlReg,
         InvocationTrap => InvocationTrap,
         InstantiationTrap => InstantiationTrap,
         InstantiationRunning => InstantiationBusy,

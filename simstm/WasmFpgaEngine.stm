@@ -14,6 +14,7 @@ BEGIN_SUB
 END_SUB
 
 INCLUDE "../resources/wasm_fpga_engine_indirect.stm"
+INCLUDE "../resources/wasm_fpga_engine_debug_indirect.stm"
 INCLUDE "../../wasm-fpga-stack/hxs_gen/simstm_gen/indirect/wasm_fpga_stack_indirect.stm"
 
 INCLUDE "WasmFpgaEngineDefines.stm"

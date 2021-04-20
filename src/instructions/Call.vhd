@@ -194,12 +194,36 @@ begin
                     State <= State7;
                 end if;
             elsif (State = State7) then
+                -- Read calling function's address from store
                 ReadModuleAddressFromStore(StoreState,
                                            ToWasmFpgaStore,
                                            FromWasmFpgaStore);
                 if (StoreState = StateEnd) then
+                    ToWasmFpgaModuleRam.Address <= FromWasmFpgaStore.Address;
+                    State <= State8;
+                end if;
+            elsif (State = State8) then
+                -- Read function's body size
+                ReadUnsignedLEB128(ReadUnsignedLEB128State,
+                                   ReadFromModuleRamState,
+                                   DecodedValue,
+                                   CurrentByte,
+                                   FromWasmFpgaModuleRam,
+                                   ToWasmFpgaModuleRam);
+                if(ReadUnsignedLEB128State = StateEnd) then
+                    State <= State9;
+                end if;
+            elsif (State = State9) then
+                -- Read function's decl count
+                ReadUnsignedLEB128(ReadUnsignedLEB128State,
+                                   ReadFromModuleRamState,
+                                   DecodedValue,
+                                   CurrentByte,
+                                   FromWasmFpgaModuleRam,
+                                   ToWasmFpgaModuleRam);
+                if(ReadUnsignedLEB128State = StateEnd) then
                     -- Jump to address of called function
-                    ToWasmFpgaInvocation.Address <= FromWasmFpgaStore.Address;
+                    ToWasmFpgaInvocation.Address <= ToWasmFpgaModuleRam.Address;
                     State <= StateIdle;
                 end if;
             end if;

@@ -137,7 +137,7 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   signal SignBits : std_logic_vector(31 downto 0);
 
   signal InstantiationState : std_logic_vector(15 downto 0);
-  signal PushToStackState : std_logic_vector(15 downto 0);
+  signal ActivationFrameState : std_logic_vector(15 downto 0);
   signal Read32UState : std_logic_vector(15 downto 0);
   signal ReadFromModuleRamState : std_logic_vector(15 downto 0);
   signal StoreState : std_logic_vector(15 downto 0);
@@ -244,7 +244,7 @@ begin
       StoreState <= StateIdle;
       ReadFromModuleRamState <= StateIdle;
       Read32UState <= StateIdle;
-      PushToStackState <= StateIdle;
+      ActivationFrameState <= StateIdle;
       InstantiationState <= StateIdle;
     elsif rising_edge(Clk) then
         if (InstantiationState = StateIdle) then
@@ -345,20 +345,21 @@ begin
             end if;
         elsif(InstantiationState = State10) then
             if (DecodedValue = x"00000000") then
-                WasmFpgaInstantiation_WasmFpgaStack.TypeValue <= WASMFPGASTACK_VAL_Activation;
-                WasmFpgaInstantiation_WasmFpgaStack.HighValue <= (others => '0');
-                WasmFpgaInstantiation_WasmFpgaStack.LowValue <= ModuleInstanceUid;
+                WasmFpgaInstantiation_WasmFpgaStack.MaxResults <= (others => '0');
+                WasmFpgaInstantiation_WasmFpgaStack.ModuleInstanceUid <= ModuleInstanceUid;
+                WasmFpgaInstantiation_WasmFpgaStack.MaxLocals <= (others => '0');
+                WasmFpgaInstantiation_WasmFpgaStack.ReturnAddress <= (others => '0');
                 InstantiationState <= State11;
             else
                 -- The start function type must be [] -> []
                 InstantiationTrap <= '1';
             end if;
         elsif (InstantiationState = State11) then
-            -- Push ModuleInstanceUid
-            PushToStack(PushToStackState,
-                        WasmFpgaInstantiation_WasmFpgaStack,
-                        WasmFpgaStack_WasmFpgaInstantiation);
-            if (PushToStackState = StateEnd) then
+            -- Create activation frame
+            CreateActivationFrame(ActivationFrameState,
+                                  WasmFpgaInstantiation_WasmFpgaStack,
+                                  WasmFpgaStack_WasmFpgaInstantiation);
+            if (ActivationFrameState = StateEnd) then
                InstantiationState <= State12;
             end if;
         elsif (InstantiationState = State12) then
@@ -420,7 +421,7 @@ begin
                 end if;
             elsif (WasmFpgaInvocation_WasmFpgaModuleRam.Address = Breakpoint0(23 downto 0)) then
                 if (StopDebugging = '1') then
-                        InvocationState <= StateIdle;
+                   InvocationState <= StateIdle;
                 elsif (WRegPulse_DebugControlReg = '1') then
                     if (StepOver = '1' or StepInto = '1' or StepOut = '1' or Continue = '1') then
                         InvocationState <= State1;

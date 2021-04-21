@@ -22,6 +22,7 @@ entity WasmFpgaEngine_StackBlk is
         Busy : out std_logic;
         Action : in std_logic_vector(2 downto 0);
         SizeValue : out std_logic_vector(31 downto 0);
+        StackAddress : out std_logic_vector(31 downto 0);
         HighValue_ToBeRead : out std_logic_vector(31 downto 0);
         HighValue_Written : in std_logic_vector(31 downto 0);
         LowValue_ToBeRead : out std_logic_vector(31 downto 0);
@@ -30,7 +31,8 @@ entity WasmFpgaEngine_StackBlk is
         Type_Written : in std_logic_vector(2 downto 0);
         MaxLocals : in std_logic_vector(31 downto 0);
         MaxResults : in std_logic_vector(31 downto 0);
-        ReturnAddress : in std_logic_vector(31 downto 0);
+        ReturnAddress_ToBeRead : out std_logic_vector(31 downto 0);
+        ReturnAddress_Written : in std_logic_vector(31 downto 0);
         ModuleInstanceUid : in std_logic_vector(31 downto 0);
         LocalIndex : in std_logic_vector(31 downto 0)
     );
@@ -69,16 +71,20 @@ begin
     constant ReadHighValueReg1 : std_logic_vector(7 downto 0) := x"10";
     constant ReadTypeReg0 : std_logic_vector(7 downto 0) := x"11";
     constant ReadTypeReg1 : std_logic_vector(7 downto 0) := x"12";
-    constant WriteMaxLocalsReg0 : std_logic_vector(7 downto 0) := x"13";
-    constant WriteMaxLocalsReg1 : std_logic_vector(7 downto 0) := x"14";
-    constant WriteMaxResultsReg0 : std_logic_vector(7 downto 0) := x"15";
-    constant WriteMaxResultsReg1 : std_logic_vector(7 downto 0) := x"16";
-    constant WriteReturnAddressReg0 : std_logic_vector(7 downto 0) := x"17";
-    constant WriteReturnAddressReg1 : std_logic_vector(7 downto 0) := x"18";
-    constant WriteModuleInstanceUidReg0 : std_logic_vector(7 downto 0) := x"19";
-    constant WriteModuleInstanceUidReg1 : std_logic_vector(7 downto 0) := x"1A";
-    constant WriteLocalIndexReg0 : std_logic_vector(7 downto 0) := x"1B";
-    constant WriteLocalIndexReg1 : std_logic_vector(7 downto 0) := x"1C";
+    constant ReadStackAddress0 : std_logic_vector(7 downto 0) := x"13";
+    constant ReadStackAddress1 : std_logic_vector(7 downto 0) := x"14";
+    constant WriteMaxLocalsReg0 : std_logic_vector(7 downto 0) := x"15";
+    constant WriteMaxLocalsReg1 : std_logic_vector(7 downto 0) := x"16";
+    constant WriteMaxResultsReg0 : std_logic_vector(7 downto 0) := x"17";
+    constant WriteMaxResultsReg1 : std_logic_vector(7 downto 0) := x"18";
+    constant WriteReturnAddressReg0 : std_logic_vector(7 downto 0) := x"19";
+    constant WriteReturnAddressReg1 : std_logic_vector(7 downto 0) := x"1A";
+    constant WriteModuleInstanceUidReg0 : std_logic_vector(7 downto 0) := x"1B";
+    constant WriteModuleInstanceUidReg1 : std_logic_vector(7 downto 0) := x"1C";
+    constant WriteLocalIndexReg0 : std_logic_vector(7 downto 0) := x"1D";
+    constant WriteLocalIndexReg1 : std_logic_vector(7 downto 0) := x"1E";
+    constant ReadStackReturnAddress0 : std_logic_vector(7 downto 0) := x"1F";
+    constant ReadStackReturnAddress1 : std_logic_vector(7 downto 0) := x"20";
   begin
     if (Rst = '1') then
       Busy <= '0';
@@ -91,6 +97,8 @@ begin
       HighValue_ToBeRead <= (others => '0');
       LowValue_ToBeRead <= (others => '0');
       Type_ToBeRead <= (others => '0');
+      ReturnAddress_ToBeRead <= (others => '0');
+      StackAddress <= (others => '0');
       State <= (others => '0');
     elsif rising_edge(Clk) then
       if( State = Idle ) then
@@ -188,7 +196,7 @@ begin
           We <= '1';
           Adr <= std_logic_vector(unsigned(WASMFPGABUS_ADR_BASE_StackArea) +
                                   unsigned(WASMFPGASTACK_ADR_ReturnAddressReg));
-          DatIn <= ReturnAddress;
+          DatIn <= ReturnAddress_Written;
           State <= WriteReturnAddressReg1;
       elsif( State = WriteReturnAddressReg1 ) then
         if ( Ack = '1' ) then
@@ -326,6 +334,36 @@ begin
           Cyc <= "0";
           Stb <= '0';
           Type_ToBeRead <= DatOut(2 downto 0);
+          State <= ReadStackAddress0;
+        end if;
+      elsif( State = ReadStackAddress0 ) then
+          Cyc <= "1";
+          Stb <= '1';
+          Sel <= (others => '1');
+          We <= '0';
+          Adr <= std_logic_vector(unsigned(WASMFPGABUS_ADR_BASE_StackArea) +
+                                  unsigned(WASMFPGASTACK_ADR_TypeReg));
+          State <= ReadStackAddress1;
+      elsif( State = ReadStackAddress1 ) then
+        if ( Ack = '1' ) then
+          Cyc <= "0";
+          Stb <= '0';
+          StackAddress <= DatOut;
+          State <= ReadStackReturnAddress0;
+        end if;
+      elsif( State = ReadStackReturnAddress0 ) then
+          Cyc <= "1";
+          Stb <= '1';
+          Sel <= (others => '1');
+          We <= '0';
+          Adr <= std_logic_vector(unsigned(WASMFPGABUS_ADR_BASE_StackArea) +
+                                  unsigned(WASMFPGASTACK_ADR_ReturnAddressReg));
+          State <= ReadStackReturnAddress1;
+      elsif( State = ReadStackReturnAddress1 ) then
+        if ( Ack = '1' ) then
+          Cyc <= "0";
+          Stb <= '0';
+          ReturnAddress_ToBeRead <= DatOut;
           State <= Idle;
         end if;
       end if;

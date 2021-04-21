@@ -91,6 +91,7 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
 
   signal StackRun : std_logic;
   signal StackAction : std_logic_vector(2 downto 0);
+  signal StackAddress : std_logic_vector(31 downto 0);
   signal StackBusy : std_logic;
   signal StackHighValue_ToBeRead : std_logic_vector(31 downto 0);
   signal StackHighValue_Written : std_logic_vector(31 downto 0);
@@ -100,7 +101,8 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   signal StackType_Written : std_logic_vector(2 downto 0);
   signal StackMaxLocals : std_logic_vector(31 downto 0);
   signal StackMaxResults : std_logic_vector(31 downto 0);
-  signal StackReturnAddress : std_logic_vector(31 downto 0);
+  signal StackReturnAddress_Written : std_logic_vector(31 downto 0);
+  signal StackReturnAddress_ToBeRead : std_logic_vector(31 downto 0);
   signal StackModuleInstanceUid : std_logic_vector(31 downto 0);
   signal StackLocalIndex : std_logic_vector(31 downto 0);
 
@@ -469,7 +471,7 @@ begin
                 WasmFpgaInstruction_WasmFpgaInvocation(CurrentInstruction).Address;
             if (WasmFpgaInstruction_WasmFpgaInvocation(CurrentInstruction).Trap = '1') then
                 InvocationState <= StateTrapped;
-            elsif (InvocationCurrentByte = WASM_OPCODE_END) then
+            elsif (InvocationCurrentByte = WASM_OPCODE_END and StackAddress = x"00000000") then
                 InvocationState <= StateIdle;
             else
                 InvocationState <= State0;
@@ -501,7 +503,7 @@ begin
         StackType_Written <= (others => '0');
         StackMaxLocals <= (others => '0');
         StackMaxResults <= (others => '0');
-        StackReturnAddress <= (others => '0');
+        StackReturnAddress_Written <= (others => '0');
         StackModuleInstanceUid <= (others => '0');
         StackLocalIndex <= (others => '0');
         for i in WasmFpgaStack_WasmFpgaInstruction'RANGE loop
@@ -531,6 +533,8 @@ begin
         WasmFpgaStack_WasmFpgaInstantiation.Busy <= '0';
         WasmFpgaStack_WasmFpgaInstantiation.HighValue <= (others => '0');
         WasmFpgaStack_WasmFpgaInstantiation.LowValue <= (others => '0');
+        WasmFpgaStack_WasmFpgaInstantiation.TypeValue <= (others => '0');
+        WasmFpgaStack_WasmFpgaInstantiation.ReturnAddress <= (others => '0');
         -- Store
         StoreModuleInstanceUid <= (others => '0');
         StoreSectionUID <= (others => '0');
@@ -543,13 +547,14 @@ begin
             WasmFpgaStack_WasmFpgaInstantiation.HighValue <= StackHighValue_ToBeRead;
             WasmFpgaStack_WasmFpgaInstantiation.LowValue <= StackLowValue_ToBeRead;
             WasmFpgaStack_WasmFpgaInstantiation.TypeValue <= StackType_ToBeRead;
+            WasmFpgaStack_WasmFpgaInstantiation.ReturnAddress <= StackReturnAddress_ToBeRead;
             StackRun <= WasmFpgaInstantiation_WasmFpgaStack.Run;
             StackAction <= WasmFpgaInstantiation_WasmFpgaStack.Action;
             StackLowValue_Written <= WasmFpgaInstantiation_WasmFpgaStack.LowValue;
             StackType_Written <= WasmFpgaInstantiation_WasmFpgaStack.TypeValue;
             StackMaxLocals <= WasmFpgaInstantiation_WasmFpgaStack.MaxLocals;
             StackMaxResults <= WasmFpgaInstantiation_WasmFpgaStack.MaxResults;
-            StackReturnAddress <= WasmFpgaInstantiation_WasmFpgaStack.ReturnAddress;
+            StackReturnAddress_Written <= WasmFpgaInstantiation_WasmFpgaStack.ReturnAddress;
             StackModuleInstanceUid <= WasmFpgaInstantiation_WasmFpgaStack.ModuleInstanceUid;
             StackLocalIndex <= WasmFpgaInstantiation_WasmFpgaStack.LocalIndex;
 
@@ -574,13 +579,14 @@ begin
             WasmFpgaStack_WasmFpgaInstruction(CurrentInstruction).HighValue <= StackHighValue_ToBeRead;
             WasmFpgaStack_WasmFpgaInstruction(CurrentInstruction).LowValue <= StackLowValue_ToBeRead;
             WasmFpgaStack_WasmFpgaInstruction(CurrentInstruction).TypeValue <= StackType_ToBeRead;
+            WasmFpgaStack_WasmFpgaInstruction(CurrentInstruction).ReturnAddress <= StackReturnAddress_ToBeRead;
             StackRun <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).Run;
             StackAction <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).Action;
             StackLowValue_Written <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).LowValue;
             StackType_Written <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).TypeValue;
             StackMaxLocals <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).MaxLocals;
             StackMaxResults <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).MaxResults;
-            StackReturnAddress <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).ReturnAddress;
+            StackReturnAddress_Written <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).ReturnAddress;
             StackModuleInstanceUid <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).ModuleInstanceUid;
             StackLocalIndex <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).LocalIndex;
             -- Memory
@@ -617,56 +623,27 @@ begin
     end if;
   end process;
 
-  WasmFpgaEngine_StackBlk_i : entity work.WasmFpgaEngine_StackBlk
-    port map (
-      Clk => Clk,
-      Rst => Rst,
-      Adr => StackBlk_Bus.Adr,
-      Sel => StackBlk_Bus.Sel,
-      DatIn => StackBlk_Bus.DatIn,
-      We => StackBlk_Bus.We,
-      Stb => StackBlk_Bus.Stb,
-      Cyc => StackBlk_Bus.Cyc,
-      StackBlk_DatOut => Bus_StackBlk.DatOut,
-      StackBlk_Ack => Bus_StackBlk.Ack,
-      Run =>  StackRun,
-      Busy => StackBusy,
-      Action => StackAction,
-      SizeValue => open,
-      HighValue_ToBeRead => StackHighValue_ToBeRead,
-      HighValue_Written => StackHighValue_Written,
-      LowValue_ToBeRead => StackLowValue_ToBeRead,
-      LowValue_Written => StackLowValue_Written,
-      Type_ToBeRead => StackType_ToBeRead,
-      Type_Written => StackType_Written,
-      MaxLocals => StackMaxLocals,
-      MaxResults => StackMaxResults,
-      ReturnAddress => StackReturnAddress,
-      ModuleInstanceUid => StackModuleInstanceUid,
-      LocalIndex => StackLocalIndex
-    );
+    EngineInterface : entity work.EngineBlk_WasmFpgaEngine
+      port map (
+        Clk => Clk,
+        Rst => Rst,
+        Adr => Adr,
+        Sel => Sel,
+        DatIn => DatIn,
+        We => We,
+        Stb => Stb,
+        Cyc => Cyc,
+        EngineBlk_DatOut => EngineBlk_DatOut,
+        EngineBlk_Ack => EngineBlk_Ack,
+        EngineBlk_Unoccupied_Ack => EngineBlk_Unoccupied_Ack,
+        Run => Run,
+        WRegPulse_ControlReg => WRegPulse_ControlReg,
+        Trap => InvocationTrap,
+        Busy => Busy,
+        ModuleInstanceUid => ModuleInstanceUid
+      );
 
-  EngineBlk_WasmFpgaEngine_i : entity work.EngineBlk_WasmFpgaEngine
-    port map (
-      Clk => Clk,
-      Rst => Rst,
-      Adr => Adr,
-      Sel => Sel,
-      DatIn => DatIn,
-      We => We,
-      Stb => Stb,
-      Cyc => Cyc,
-      EngineBlk_DatOut => EngineBlk_DatOut,
-      EngineBlk_Ack => EngineBlk_Ack,
-      EngineBlk_Unoccupied_Ack => EngineBlk_Unoccupied_Ack,
-      Run => Run,
-      WRegPulse_ControlReg => WRegPulse_ControlReg,
-      Trap => InvocationTrap,
-      Busy => Busy,
-      ModuleInstanceUid => ModuleInstanceUid
-    );
-
-    EngineBlk_WasmFpgaEngineDebug_i : entity work.EngineDebugBlk_WasmFpgaEngineDebug
+    DebugInterface : entity work.EngineDebugBlk_WasmFpgaEngineDebug
       port map (
         Clk => Clk,
         Rst => Rst,
@@ -698,7 +675,7 @@ begin
         Breakpoint0 => Breakpoint0
       );
 
-    WasmFpgaEngine_ModuleBlk_i : entity work.WasmFpgaEngine_ModuleBlk
+    Module : entity work.WasmFpgaEngine_ModuleBlk
       port map (
         Clk => Clk,
         Rst => Rst,
@@ -716,7 +693,7 @@ begin
         Data => ModuleRamData
       );
 
-    WasmFpgaEngine_MemoryBlk_i : entity work.WasmFpgaEngine_MemoryBlk
+    Memory : entity work.WasmFpgaEngine_MemoryBlk
       port map (
         Clk => Clk,
         Rst => Rst,
@@ -736,42 +713,73 @@ begin
         WriteData => MemoryWriteData
       );
 
-  WasmFpgaEngine_StoreBlk_i : entity work.WasmFpgaEngine_StoreBlk
-    port map (
-      Clk => Clk,
-      Rst => Rst,
-      Adr => StoreBlk_Bus.Adr,
-      Sel => StoreBlk_Bus.Sel,
-      DatIn => StoreBlk_Bus.DatIn,
-      We => StoreBlk_Bus.We,
-      Stb => StoreBlk_Bus.Stb,
-      Cyc => StoreBlk_Bus.Cyc,
-      StoreBlk_DatOut => Bus_StoreBlk.DatOut,
-      StoreBlk_Ack => Bus_StoreBlk.Ack,
-      Operation => '0',
-      Run => StoreRun,
-      Busy => StoreBusy,
-      ModuleInstanceUid => StoreModuleInstanceUid,
-      SectionUID => StoreSectionUID,
-      Idx => StoreIdx,
-      Address_ToBeRead => StoreAddress,
-      Address_Written => (others => '0')
-    );
+    Stack : entity work.WasmFpgaEngine_StackBlk
+      port map (
+        Clk => Clk,
+        Rst => Rst,
+        Adr => StackBlk_Bus.Adr,
+        Sel => StackBlk_Bus.Sel,
+        DatIn => StackBlk_Bus.DatIn,
+        We => StackBlk_Bus.We,
+        Stb => StackBlk_Bus.Stb,
+        Cyc => StackBlk_Bus.Cyc,
+        StackBlk_DatOut => Bus_StackBlk.DatOut,
+        StackBlk_Ack => Bus_StackBlk.Ack,
+        Run =>  StackRun,
+        Busy => StackBusy,
+        Action => StackAction,
+        SizeValue => open,
+        StackAddress => StackAddress,
+        HighValue_ToBeRead => StackHighValue_ToBeRead,
+        HighValue_Written => StackHighValue_Written,
+        LowValue_ToBeRead => StackLowValue_ToBeRead,
+        LowValue_Written => StackLowValue_Written,
+        Type_ToBeRead => StackType_ToBeRead,
+        Type_Written => StackType_Written,
+        MaxLocals => StackMaxLocals,
+        MaxResults => StackMaxResults,
+        ReturnAddress_Written => StackReturnAddress_Written,
+        ReturnAddress_ToBeRead => StackReturnAddress_ToBeRead,
+        ModuleInstanceUid => StackModuleInstanceUid,
+        LocalIndex => StackLocalIndex
+      );
 
-    WasmFpgaEngineInstructions_i : entity work.WasmFpgaEngineInstructions
-        port map (
-            Clk => Clk,
-            nRst => nRst,
-            WasmFpgaInvocation_WasmFpgaInstruction => WasmFpgaInvocation_WasmFpgaInstruction,
-            WasmFpgaInstruction_WasmFpgaInvocation => WasmFpgaInstruction_WasmFpgaInvocation,
-            WasmFpgaStack_WasmFpgaInstruction => WasmFpgaStack_WasmFpgaInstruction,
-            WasmFpgaInstruction_WasmFpgaStack => WasmFpgaInstruction_WasmFpgaStack,
-            WasmFpgaModuleRam_WasmFpgaInstruction => WasmFpgaModuleRam_WasmFpgaInstruction,
-            WasmFpgaInstruction_WasmFpgaModuleRam => WasmFpgaInstruction_WasmFpgaModuleRam,
-            WasmFpgaMemory_WasmFpgaInstruction => WasmFpgaMemory_WasmFpgaInstruction,
-            WasmFpgaInstruction_WasmFpgaMemory => WasmFpgaInstruction_WasmFpgaMemory,
-            WasmFpgaStore_WasmFpgaInstruction => WasmFpgaStore_WasmFpgaInstruction,
-            WasmFpgaInstruction_WasmFpgaStore => WasmFpgaInstruction_WasmFpgaStore
-        );
+    Store : entity work.WasmFpgaEngine_StoreBlk
+      port map (
+        Clk => Clk,
+        Rst => Rst,
+        Adr => StoreBlk_Bus.Adr,
+        Sel => StoreBlk_Bus.Sel,
+        DatIn => StoreBlk_Bus.DatIn,
+        We => StoreBlk_Bus.We,
+        Stb => StoreBlk_Bus.Stb,
+        Cyc => StoreBlk_Bus.Cyc,
+        StoreBlk_DatOut => Bus_StoreBlk.DatOut,
+        StoreBlk_Ack => Bus_StoreBlk.Ack,
+        Operation => '0',
+        Run => StoreRun,
+        Busy => StoreBusy,
+        ModuleInstanceUid => StoreModuleInstanceUid,
+        SectionUID => StoreSectionUID,
+        Idx => StoreIdx,
+        Address_ToBeRead => StoreAddress,
+        Address_Written => (others => '0')
+      );
+
+    Instructions : entity work.WasmFpgaEngineInstructions
+      port map (
+        Clk => Clk,
+        nRst => nRst,
+        WasmFpgaInvocation_WasmFpgaInstruction => WasmFpgaInvocation_WasmFpgaInstruction,
+        WasmFpgaInstruction_WasmFpgaInvocation => WasmFpgaInstruction_WasmFpgaInvocation,
+        WasmFpgaStack_WasmFpgaInstruction => WasmFpgaStack_WasmFpgaInstruction,
+        WasmFpgaInstruction_WasmFpgaStack => WasmFpgaInstruction_WasmFpgaStack,
+        WasmFpgaModuleRam_WasmFpgaInstruction => WasmFpgaModuleRam_WasmFpgaInstruction,
+        WasmFpgaInstruction_WasmFpgaModuleRam => WasmFpgaInstruction_WasmFpgaModuleRam,
+        WasmFpgaMemory_WasmFpgaInstruction => WasmFpgaMemory_WasmFpgaInstruction,
+        WasmFpgaInstruction_WasmFpgaMemory => WasmFpgaInstruction_WasmFpgaMemory,
+        WasmFpgaStore_WasmFpgaInstruction => WasmFpgaStore_WasmFpgaInstruction,
+        WasmFpgaInstruction_WasmFpgaStore => WasmFpgaInstruction_WasmFpgaStore
+      );
 
 end;

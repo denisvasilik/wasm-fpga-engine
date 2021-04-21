@@ -1,6 +1,6 @@
 library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
 
 library work;
   use work.WasmFpgaStackWshBn_Package.all;
@@ -251,6 +251,7 @@ package WasmFpgaEnginePackage is
         HighValue : std_logic_vector(31 downto 0);
         LowValue : std_logic_vector(31 downto 0);
         TypeValue : std_logic_vector(2 downto 0);
+        ReturnAddress : std_logic_vector(31 downto 0);
     end record;
 
     type T_WasmFpgaInstruction_WasmFpgaStack is
@@ -413,6 +414,10 @@ package WasmFpgaEnginePackage is
                       signal WasmFpgaInstruction_WasmFpgaModuleRam : inout T_WasmFpgaInstruction_WasmFpgaModuleRam);
 
     procedure CreateActivationFrame(signal State : inout std_logic_vector;
+                                    signal WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
+                                    signal WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction);
+
+    procedure RemoveActivationFrame(signal State : inout std_logic_vector;
                                     signal WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
                                     signal WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction);
 
@@ -708,6 +713,36 @@ package body WasmFpgaEnginePackage is
         if (State = StateIdle) then
             WasmFpgaInstruction_WasmFpgaStack.Run <= '1';
             WasmFpgaInstruction_WasmFpgaStack.Action <= WASMFPGASTACK_VAL_CreateActivationFrame;
+            State <= State0;
+        elsif (State = State0) then
+            WasmFpgaInstruction_WasmFpgaStack.Run <= '0';
+            State <= State1;
+        elsif (State = State1) then
+            State <= State2;
+        elsif (State = State2) then
+            State <= State3;
+        elsif (State = State3) then
+            State <= State4;
+        elsif (State = State4) then
+            State <= State5;
+        elsif (State = State5) then
+            if (WasmFpgaStack_WasmFpgaInstruction.Busy = '0') then
+                State <= StateEnd;
+            end if;
+        elsif (State = StateEnd) then
+            State <= StateIdle;
+        else
+            State <= (others => '1');
+        end if;
+    end;
+
+    procedure RemoveActivationFrame(signal State : inout std_logic_vector;
+                                    signal WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
+                                    signal WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction) is
+    begin
+        if (State = StateIdle) then
+            WasmFpgaInstruction_WasmFpgaStack.Run <= '1';
+            WasmFpgaInstruction_WasmFpgaStack.Action <= WASMFPGASTACK_VAL_RemoveActivationFrame;
             State <= State0;
         elsif (State = State0) then
             WasmFpgaInstruction_WasmFpgaStack.Run <= '0';

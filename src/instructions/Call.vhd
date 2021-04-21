@@ -69,7 +69,8 @@ begin
               MaxResults => (others => '0'),
               MaxLocals => (others => '0'),
               ReturnAddress => (others => '0'),
-              ModuleInstanceUid => (others => '0')
+              ModuleInstanceUid => (others => '0'),
+              LocalIndex => (others => '0')
           );
           -- Module
           ToWasmFpgaModuleRam.Run <= '0';

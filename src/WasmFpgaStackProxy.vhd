@@ -31,7 +31,8 @@ entity WasmFpgaEngine_StackBlk is
         MaxLocals : in std_logic_vector(31 downto 0);
         MaxResults : in std_logic_vector(31 downto 0);
         ReturnAddress : in std_logic_vector(31 downto 0);
-        ModuleInstanceUid : in std_logic_vector(31 downto 0)
+        ModuleInstanceUid : in std_logic_vector(31 downto 0);
+        LocalIndex : in std_logic_vector(31 downto 0)
     );
 end;
 
@@ -76,6 +77,8 @@ begin
     constant WriteReturnAddressReg1 : std_logic_vector(7 downto 0) := x"18";
     constant WriteModuleInstanceUidReg0 : std_logic_vector(7 downto 0) := x"19";
     constant WriteModuleInstanceUidReg1 : std_logic_vector(7 downto 0) := x"1A";
+    constant WriteLocalIndexReg0 : std_logic_vector(7 downto 0) := x"1B";
+    constant WriteLocalIndexReg1 : std_logic_vector(7 downto 0) := x"1C";
   begin
     if (Rst = '1') then
       Busy <= '0';
@@ -153,7 +156,7 @@ begin
           We <= '1';
           Adr <= std_logic_vector(unsigned(WASMFPGABUS_ADR_BASE_StackArea) +
                                   unsigned(WASMFPGASTACK_ADR_MaxLocalsReg));
-          DatIn <= (31 downto 3 => '0') & Type_Written;
+          DatIn <= MaxLocals;
           State <= WriteMaxLocalsReg1;
       elsif( State = WriteMaxLocalsReg1 ) then
         if ( Ack = '1' ) then
@@ -169,7 +172,7 @@ begin
           We <= '1';
           Adr <= std_logic_vector(unsigned(WASMFPGABUS_ADR_BASE_StackArea) +
                                   unsigned(WASMFPGASTACK_ADR_MaxResultsReg));
-          DatIn <= (31 downto 3 => '0') & Type_Written;
+          DatIn <= MaxResults;
           State <= WriteMaxResultsReg1;
       elsif( State = WriteMaxResultsReg1 ) then
         if ( Ack = '1' ) then
@@ -185,7 +188,7 @@ begin
           We <= '1';
           Adr <= std_logic_vector(unsigned(WASMFPGABUS_ADR_BASE_StackArea) +
                                   unsigned(WASMFPGASTACK_ADR_ReturnAddressReg));
-          DatIn <= (31 downto 3 => '0') & Type_Written;
+          DatIn <= ReturnAddress;
           State <= WriteReturnAddressReg1;
       elsif( State = WriteReturnAddressReg1 ) then
         if ( Ack = '1' ) then
@@ -201,9 +204,25 @@ begin
           We <= '1';
           Adr <= std_logic_vector(unsigned(WASMFPGABUS_ADR_BASE_StackArea) +
                                   unsigned(WASMFPGASTACK_ADR_ModuleInstanceUidReg));
-          DatIn <= (31 downto 3 => '0') & Type_Written;
+          DatIn <= ModuleInstanceUid;
           State <= WriteModuleInstanceUidReg1;
       elsif( State = WriteModuleInstanceUidReg1 ) then
+        if ( Ack = '1' ) then
+          Cyc <= "0";
+          Stb <= '0';
+          We <= '0';
+          State <= WriteLocalIndexReg0;
+        end if;
+      elsif( State = WriteLocalIndexReg0 ) then
+          Cyc <= "1";
+          Stb <= '1';
+          Sel <= (others => '1');
+          We <= '1';
+          Adr <= std_logic_vector(unsigned(WASMFPGABUS_ADR_BASE_StackArea) +
+                                  unsigned(WASMFPGASTACK_ADR_LocalIndexReg));
+          DatIn <= LocalIndex;
+          State <= WriteLocalIndexReg1;
+      elsif( State = WriteLocalIndexReg1 ) then
         if ( Ack = '1' ) then
           Cyc <= "0";
           Stb <= '0';

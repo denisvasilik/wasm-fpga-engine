@@ -92,7 +92,6 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   signal StackRun : std_logic;
   signal StackAction : std_logic_vector(2 downto 0);
   signal StackBusy : std_logic;
-  signal StackSizeValue : std_logic_vector(31 downto 0);
   signal StackHighValue_ToBeRead : std_logic_vector(31 downto 0);
   signal StackHighValue_Written : std_logic_vector(31 downto 0);
   signal StackLowValue_ToBeRead : std_logic_vector(31 downto 0);
@@ -103,6 +102,7 @@ architecture WasmFpgaEngineArchitecture of WasmFpgaEngine is
   signal StackMaxResults : std_logic_vector(31 downto 0);
   signal StackReturnAddress : std_logic_vector(31 downto 0);
   signal StackModuleInstanceUid : std_logic_vector(31 downto 0);
+  signal StackLocalIndex : std_logic_vector(31 downto 0);
 
   signal Bus_ModuleBlk : T_WshBnUp;
   signal ModuleBlk_Bus : T_WshBnDown;
@@ -232,14 +232,25 @@ begin
       WasmFpgaInstantiation_WasmFpgaModuleRam.Run <= '0';
       WasmFpgaInstantiation_WasmFpgaModuleRam.Address <= (others => '0');
       -- Stack
-      WasmFpgaInstantiation_WasmFpgaStack.TypeValue <= (others => '0');
-      WasmFpgaInstantiation_WasmFpgaStack.HighValue <= (others => '0');
-      WasmFpgaInstantiation_WasmFpgaStack.LowValue <= (others => '0');
+      WasmFpgaInstantiation_WasmFpgaStack <= (
+          Run => '0',
+          Action => (others => '0'),
+          HighValue => (others => '0'),
+          LowValue => (others => '0'),
+          TypeValue => (others => '0'),
+          MaxLocals => (others => '0'),
+          MaxResults => (others => '0'),
+          ReturnAddress => (others => '0'),
+          ModuleInstanceUid => (others => '0'),
+          LocalIndex => (others => '0')
+      );
       -- Store
-      WasmFpgaInstantiation_WasmFpgaStore.ModuleInstanceUid <= (others => '0');
-      WasmFpgaInstantiation_WasmFpgaStore.SectionUID <= (others => '0');
-      WasmFpgaInstantiation_WasmFpgaStore.Idx <= (others => '0');
-      WasmFpgaInstantiation_WasmFpgaStore.Run <= '0';
+      WasmFpgaInstantiation_WasmFpgaStore <= (
+          ModuleInstanceUid => (others => '0'),
+          SectionUID => (others => '0'),
+          Idx => (others => '0'),
+          Run => '0'
+      );
       -- States
       StoreState <= StateIdle;
       ReadFromModuleRamState <= StateIdle;
@@ -492,6 +503,7 @@ begin
         StackMaxResults <= (others => '0');
         StackReturnAddress <= (others => '0');
         StackModuleInstanceUid <= (others => '0');
+        StackLocalIndex <= (others => '0');
         for i in WasmFpgaStack_WasmFpgaInstruction'RANGE loop
             WasmFpgaStack_WasmFpgaInstruction(i).Busy <= '1';
             WasmFpgaStack_WasmFpgaInstruction(i).HighValue <= (others => '0');
@@ -539,6 +551,7 @@ begin
             StackMaxResults <= WasmFpgaInstantiation_WasmFpgaStack.MaxResults;
             StackReturnAddress <= WasmFpgaInstantiation_WasmFpgaStack.ReturnAddress;
             StackModuleInstanceUid <= WasmFpgaInstantiation_WasmFpgaStack.ModuleInstanceUid;
+            StackLocalIndex <= WasmFpgaInstantiation_WasmFpgaStack.LocalIndex;
 
             -- Module
             WasmFpgaModuleRam_WasmFpgaInstantiation.Busy <= ModuleRamBusy;
@@ -569,7 +582,7 @@ begin
             StackMaxResults <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).MaxResults;
             StackReturnAddress <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).ReturnAddress;
             StackModuleInstanceUid <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).ModuleInstanceUid;
-
+            StackLocalIndex <= WasmFpgaInstruction_WasmFpgaStack(CurrentInstruction).LocalIndex;
             -- Memory
             WasmFpgaMemory_WasmFpgaInstruction(CurrentInstruction).Busy <= MemoryBusy;
             WasmFpgaMemory_WasmFpgaInstruction(CurrentInstruction).ReadData <= MemoryReadData;
@@ -619,7 +632,7 @@ begin
       Run =>  StackRun,
       Busy => StackBusy,
       Action => StackAction,
-      SizeValue => StackSizeValue,
+      SizeValue => open,
       HighValue_ToBeRead => StackHighValue_ToBeRead,
       HighValue_Written => StackHighValue_Written,
       LowValue_ToBeRead => StackLowValue_ToBeRead,
@@ -629,7 +642,8 @@ begin
       MaxLocals => StackMaxLocals,
       MaxResults => StackMaxResults,
       ReturnAddress => StackReturnAddress,
-      ModuleInstanceUid => StackModuleInstanceUid
+      ModuleInstanceUid => StackModuleInstanceUid,
+      LocalIndex => StackLocalIndex
     );
 
   EngineBlk_WasmFpgaEngine_i : entity work.EngineBlk_WasmFpgaEngine

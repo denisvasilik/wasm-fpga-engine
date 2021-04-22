@@ -59,6 +59,7 @@ set obj [get_filesets sources_1]
 set files_vhd [list \
  [file normalize "${project_src}/WasmFpgaEngine.vhd" ]\
  [file normalize "${project_src}/WasmFpgaEngineInstructions.vhd" ]\
+ [file normalize "${project_src}/WasmFpgaEngineInstantiation.vhd" ]\
  [file normalize "${project_src}/WasmFpgaEnginePackage.vhd" ]\
  [file normalize "${project_src}/WasmFpgaModuleProxy.vhd" ]\
  [file normalize "${project_src}/WasmFpgaStoreProxy.vhd" ]\

@@ -12,25 +12,25 @@ entity InstructionCall is
     port (
         Clk : in std_logic;
         nRst : in std_logic;
-        FromWasmFpgaInvocation : in T_WasmFpgaInvocation_WasmFpgaInstruction;
-        ToWasmFpgaInvocation : out T_WasmFpgaInstruction_WasmFpgaInvocation;
-        FromWasmFpgaStack : in T_WasmFpgaStack_WasmFpgaInstruction;
-        ToWasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
-        FromWasmFpgaModuleRam : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
-        ToWasmFpgaModuleRam : buffer T_WasmFpgaInstruction_WasmFpgaModuleRam;
-        FromWasmFpgaMemory : in T_WasmFpgaMemory_WasmFpgaInstruction;
-        ToWasmFpgaMemory : out T_WasmFpgaInstruction_WasmFpgaMemory;
+        ToWasmFpgaInstruction : in T_ToWasmFpgaInstruction;
+        FromWasmFpgaInstruction : out T_FromWasmFpgaInstruction;
+        FromWasmFpgaStack : in T_FromWasmFpgaStack;
+        ToWasmFpgaStack : out T_ToWasmFpgaStack;
+        FromWasmFpgaModuleRam : in T_FromWasmFpgaModuleRam;
+        ToWasmFpgaModuleRam : buffer T_ToWasmFpgaModuleRam;
+        FromWasmFpgaMemory : in T_FromWasmFpgaMemory;
+        ToWasmFpgaMemory : out T_ToWasmFpgaMemory;
         FromWasmFpgaStore : in T_FromWasmFpgaStore;
         ToWasmFpgaStore : out T_ToWasmFpgaStore
     );
 end;
 
-architecture InstructionCallArchitecture of InstructionCall is
+architecture Behavioural of InstructionCall is
 
-    signal Rst : std_logic;
     signal State : std_logic_vector(15 downto 0);
     signal ReadUnsignedLEB128State : std_logic_vector(15 downto 0);
     signal ReadFromModuleRamState : std_logic_vector(15 downto 0);
+
     signal ActivationFrameStackState : std_logic_vector(15 downto 0);
     signal StoreState : std_logic_vector(15 downto 0);
     signal CurrentByte : std_logic_vector(7 downto 0);
@@ -42,18 +42,18 @@ architecture InstructionCallArchitecture of InstructionCall is
 
 begin
 
-    Rst <= not nRst;
+    ToWasmFpgaMemory <= (
+        Run => '0',
+        Address => (others => '0'),
+        WriteData => (others => '0'),
+        WriteEnable => '0'
+    );
 
-    ToWasmFpgaMemory.Run <= '0';
-    ToWasmFpgaMemory.Address <= (others => '0');
-    ToWasmFpgaMemory.WriteData <= (others => '0');
-    ToWasmFpgaMemory.WriteEnable <= '0';
+    ModuleInstanceUid <= ToWasmFpgaInstruction.ModuleInstanceUid;
 
-    ModuleInstanceUid <= FromWasmFpgaInvocation.ModuleInstanceUid;
-
-    process (Clk, Rst) is
+    process (Clk, nRst) is
     begin
-        if (Rst = '1') then
+        if (nRst = '0') then
           FuncIdx <= (others => '0');
           CurrentByte <= (others => '0');
           DecodedValue <= (others => '0');
@@ -73,16 +73,23 @@ begin
               LocalIndex => (others => '0')
           );
           -- Module
-          ToWasmFpgaModuleRam.Run <= '0';
-          ToWasmFpgaModuleRam.Address <= (others => '0');
-          ToWasmFpgaInvocation.Address <= (others => '0');
-          ToWasmFpgaInvocation.Trap <= '0';
-          ToWasmFpgaInvocation.Busy <= '1';
+          ToWasmFpgaModuleRam <= (
+              Run => '0',
+              Address => (others => '0')
+          );
+          -- Invocation
+          FromWasmFpgaInstruction <= (
+              Address => (others => '0'),
+              Trap => '0',
+              Busy => '1'
+          );
           -- Store
-          ToWasmFpgaStore.ModuleInstanceUid <= (others => '0');
-          ToWasmFpgaStore.SectionUID <= (others => '0');
-          ToWasmFpgaStore.Idx <= (others => '0');
-          ToWasmFpgaStore.Run <= '0';
+          ToWasmFpgaStore <= (
+              ModuleInstanceUid => (others => '0'),
+              SectionUID => (others => '0'),
+              Idx => (others => '0'),
+              Run => '0'
+          );
           -- States
           ReadUnsignedLEB128State <= StateIdle;
           ReadFromModuleRamState <= StateIdle;
@@ -91,10 +98,10 @@ begin
           State <= StateIdle;
         elsif rising_edge(Clk) then
             if (State = StateIdle) then
-                ToWasmFpgaInvocation.Busy <= '0';
-                if (FromWasmFpgaInvocation.Run = '1') then
-                    ToWasmFpgaInvocation.Busy <= '1';
-                    ToWasmFpgaModuleRam.Address <= FromWasmFpgaInvocation.Address;
+                FromWasmFpgaInstruction.Busy <= '0';
+                if (ToWasmFpgaInstruction.Run = '1') then
+                    FromWasmFpgaInstruction.Busy <= '1';
+                    ToWasmFpgaModuleRam.Address <= ToWasmFpgaInstruction.Address;
                     State <= State0;
                 end if;
             elsif (State = State0) then
@@ -224,7 +231,7 @@ begin
                                    ToWasmFpgaModuleRam);
                 if(ReadUnsignedLEB128State = StateEnd) then
                     -- Jump to address of called function
-                    ToWasmFpgaInvocation.Address <= ToWasmFpgaModuleRam.Address;
+                    FromWasmFpgaInstruction.Address <= ToWasmFpgaModuleRam.Address;
                     State <= StateIdle;
                 end if;
             end if;

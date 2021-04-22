@@ -219,13 +219,13 @@ package WasmFpgaEnginePackage is
           Cyc : std_logic_vector(0 downto 0);
     end record;
 
-    type T_WasmFpgaMemory_WasmFpgaInstruction is
+    type T_FromWasmFpgaMemory is
     record
         Busy : std_logic;
         ReadData : std_logic_vector(31 downto 0);
     end record;
 
-    type T_WasmFpgaInstruction_WasmFpgaMemory is
+    type T_ToWasmFpgaMemory is
     record
         Run : std_logic;
         Address : std_logic_vector(23 downto 0);
@@ -233,19 +233,19 @@ package WasmFpgaEnginePackage is
         WriteEnable : std_logic;
     end record;
 
-    type T_WasmFpgaModuleRam_WasmFpgaInstruction is
+    type T_FromWasmFpgaModuleRam is
     record
         Busy : std_logic;
         ReadData : std_logic_vector(31 downto 0);
     end record;
 
-    type T_WasmFpgaInstruction_WasmFpgaModuleRam is
+    type T_ToWasmFpgaModuleRam is
     record
         Run : std_logic;
         Address : std_logic_vector(23 downto 0);
     end record;
 
-    type T_WasmFpgaStack_WasmFpgaInstruction is
+    type T_FromWasmFpgaStack is
     record
         Busy : std_logic;
         HighValue : std_logic_vector(31 downto 0);
@@ -254,7 +254,7 @@ package WasmFpgaEnginePackage is
         ReturnAddress : std_logic_vector(31 downto 0);
     end record;
 
-    type T_WasmFpgaInstruction_WasmFpgaStack is
+    type T_ToWasmFpgaStack is
     record
         Run : std_logic;
         Action : std_logic_vector(2 downto 0);
@@ -268,14 +268,14 @@ package WasmFpgaEnginePackage is
         LocalIndex : std_logic_vector(31 downto 0);
     end record;
 
-    type T_WasmFpgaInstruction_WasmFpgaInvocation is
+    type T_FromWasmFpgaInstruction is
     record
         Busy : std_logic;
         Trap : std_logic;
         Address : std_logic_vector(23 downto 0);
     end record;
 
-    type T_WasmFpgaInvocation_WasmFpgaInstruction is
+    type T_ToWasmFpgaInstruction is
     record
         Run : std_logic;
         Address : std_logic_vector(23 downto 0);
@@ -296,20 +296,20 @@ package WasmFpgaEnginePackage is
         Idx : std_logic_vector(31 downto 0);
     end record;
 
-    type T_WasmFpgaInvocation_WasmFpgaInstruction_Array is array (127 downto 0) of T_WasmFpgaInvocation_WasmFpgaInstruction;
-    type T_WasmFpgaInstruction_WasmFpgaInvocation_Array is array (127 downto 0) of T_WasmFpgaInstruction_WasmFpgaInvocation;
+    type T_FromWasmFpgaInstruction_Array is array (127 downto 0) of T_FromWasmFpgaInstruction;
+    type T_ToWasmFpgaInstruction_Array is array (127 downto 0) of T_ToWasmFpgaInstruction;
 
-    type T_WasmFpgaStack_WasmFpgaInstruction_Array is array (127 downto 0) of T_WasmFpgaStack_WasmFpgaInstruction;
-    type T_WasmFpgaInstruction_WasmFpgaStack_Array is array (127 downto 0) of T_WasmFpgaInstruction_WasmFpgaStack;
+    type T_FromWasmFpgaStack_Array is array (127 downto 0) of T_FromWasmFpgaStack;
+    type T_ToWasmFpgaStack_Array is array (127 downto 0) of T_ToWasmFpgaStack;
 
-    type T_WasmFpgaModuleRam_WasmFpgaInstruction_Array is array (127 downto 0) of T_WasmFpgaModuleRam_WasmFpgaInstruction;
-    type T_WasmFpgaInstruction_WasmFpgaModuleRam_Array is array (127 downto 0) of T_WasmFpgaInstruction_WasmFpgaModuleRam;
+    type T_FromWasmFpgaModuleRam_Array is array (127 downto 0) of T_FromWasmFpgaModuleRam;
+    type T_ToWasmFpgaModuleRam_Array is array (127 downto 0) of T_ToWasmFpgaModuleRam;
 
-    type T_WasmFpgaMemory_WasmFpgaInstruction_Array is array (127 downto 0) of T_WasmFpgaMemory_WasmFpgaInstruction;
-    type T_WasmFpgaInstruction_WasmFpgaMemory_Array is array (127 downto 0) of T_WasmFpgaInstruction_WasmFpgaMemory;
+    type T_FromWasmFpgaMemory_Array is array (127 downto 0) of T_FromWasmFpgaMemory;
+    type T_ToWasmFpgaMemory_Array is array (127 downto 0) of T_ToWasmFpgaMemory;
 
-    type T_WasmFpgaStore_WasmFpgaInstruction_Array is array (127 downto 0) of T_FromWasmFpgaStore;
-    type T_WasmFpgaInstruction_WasmFpgaStore_Array is array (127 downto 0) of T_ToWasmFpgaStore;
+    type T_FromWasmFpgaStore_Array is array (127 downto 0) of T_FromWasmFpgaStore;
+    type T_ToWasmFpgaStore_Array is array (127 downto 0) of T_ToWasmFpgaStore;
 
     --
     -- States
@@ -390,52 +390,52 @@ package WasmFpgaEnginePackage is
     function i32_sub(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
 
     procedure ReadModuleAddressFromStore(signal State : inout std_logic_vector;
-        signal ToWasmFpgaStore : out T_ToWasmFpgaStore;
-        signal FromWasmFpgaStore : in T_FromWasmFpgaStore);
+                                         signal ToWasmFpgaStore : out T_ToWasmFpgaStore;
+                                         signal FromWasmFpgaStore : in T_FromWasmFpgaStore);
 
     procedure ReadFromModuleRam(signal State : inout std_logic_vector;
-                                 signal CurrentByte : inout std_logic_vector;
-                                 signal WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
-                                 signal WasmFpgaInstruction_WasmFpgaModuleRam : inout T_WasmFpgaInstruction_WasmFpgaModuleRam);
+                                signal CurrentByte : inout std_logic_vector;
+                                signal FromWasmFpgaModuleRam : in T_FromWasmFpgaModuleRam;
+                                signal ToWasmFpgaModuleRam : inout T_ToWasmFpgaModuleRam);
 
     procedure ReadUnsignedLEB128(signal State : inout std_logic_vector;
-                      signal ReadFromModuleRamState : inout std_logic_vector;
-                      signal DecodedValue : inout std_logic_vector;
-                      signal CurrentByte : inout std_logic_vector;
-                      signal WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
-                      signal WasmFpgaInstruction_WasmFpgaModuleRam : inout T_WasmFpgaInstruction_WasmFpgaModuleRam);
+                                 signal ReadFromModuleRamState : inout std_logic_vector;
+                                 signal DecodedValue : inout std_logic_vector;
+                                 signal CurrentByte : inout std_logic_vector;
+                                 signal FromWasmFpgaModuleRam : in T_FromWasmFpgaModuleRam;
+                                 signal ToWasmFpgaModuleRam : inout T_ToWasmFpgaModuleRam);
 
     procedure ReadSignedLEB128(signal State : inout std_logic_vector;
-                      signal ReadFromModuleRamState : inout std_logic_vector;
-                      signal DecodedValue : inout std_logic_vector;
-                      signal CurrentByte : inout std_logic_vector;
-                      signal SignBits : inout std_logic_vector;
-                      signal WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
-                      signal WasmFpgaInstruction_WasmFpgaModuleRam : inout T_WasmFpgaInstruction_WasmFpgaModuleRam);
+                               signal ReadFromModuleRamState : inout std_logic_vector;
+                               signal DecodedValue : inout std_logic_vector;
+                               signal CurrentByte : inout std_logic_vector;
+                               signal SignBits : inout std_logic_vector;
+                               signal FromWasmFpgaModuleRam : in T_FromWasmFpgaModuleRam;
+                               signal ToWasmFpgaModuleRam : inout T_ToWasmFpgaModuleRam);
 
     procedure CreateActivationFrame(signal State : inout std_logic_vector;
-                                    signal WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
-                                    signal WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction);
+                                    signal FromWasmFpgaStack : in T_FromWasmFpgaStack;
+                                    signal ToWasmFpgaStack : out T_ToWasmFpgaStack);
 
     procedure RemoveActivationFrame(signal State : inout std_logic_vector;
-                                    signal WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
-                                    signal WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction);
+                                    signal FromWasmFpgaStack : in T_FromWasmFpgaStack;
+                                    signal ToWasmFpgaStack : out T_ToWasmFpgaStack);
 
     procedure PopFromStack(signal State : inout std_logic_vector;
-                           signal WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
-                           signal WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction);
+                           signal FromWasmFpgaStack : in T_FromWasmFpgaStack;
+                           signal ToWasmFpgaStack : out T_ToWasmFpgaStack);
 
     procedure PushToStack(signal State : inout std_logic_vector;
-                          signal WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
-                          signal WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction);
+                          signal FromWasmFpgaStack : in T_FromWasmFpgaStack;
+                          signal ToWasmFpgaStack : out T_ToWasmFpgaStack);
 
     procedure GetLocalFromStack(signal State : inout std_logic_vector;
-                                signal WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
-                                signal WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction);
+                                signal FromWasmFpgaStack : in T_FromWasmFpgaStack;
+                                signal ToWasmFpgaStack : out T_ToWasmFpgaStack);
 
     procedure SetLocalFromStack(signal State : inout std_logic_vector;
-                                signal WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
-                                signal WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction);
+                                signal FromWasmFpgaStack : in T_FromWasmFpgaStack;
+                                signal ToWasmFpgaStack : out T_ToWasmFpgaStack);
 
     -- UART IO
     constant MAX_STATE_HIGH_IDX : natural  := 7;
@@ -444,18 +444,6 @@ package WasmFpgaEnginePackage is
     constant println_stateIdle : unsigned(MAX_STATE_HIGH_IDX downto 0) := to_unsigned(0,MAX_STATE_HIGH_IDX+1);
     constant println_stateExit : unsigned(MAX_STATE_HIGH_IDX downto 0) := to_unsigned(1,MAX_STATE_HIGH_IDX+1);
     constant println_stateError : unsigned(MAX_STATE_HIGH_IDX downto 0) := to_unsigned(255,MAX_STATE_HIGH_IDX+1);
-
-   procedure println (constant value : in string;
-                      signal state : inout unsigned(MAX_STATE_HIGH_IDX downto 0);
-                      signal count : inout natural range 0 to MAX_STRING_HIGH_IDX;
-                      signal Uart_Adr : out std_logic_vector(23 downto 0);
-                      signal Uart_Sel : out std_logic_vector(3 downto 0);
-                      signal Uart_DatIn: in std_logic_vector(31 downto 0);
-                      signal Uart_We : out std_logic;
-                      signal Uart_Stb : out std_logic;
-                      signal Uart_Cyc : out std_logic_vector(0 downto 0);
-                      signal Uart_DatOut : out std_logic_vector(31 downto 0);
-                      signal Uart_Ack : in std_logic);
 
     constant WASMFPGAUART_ADR_BLK_BASE_UartBlk : std_logic_vector(23 downto 0) := x"000000";
     constant WASMFPGAUART_ADR_TxDataReg : std_logic_vector(23 downto 0) := std_logic_vector(x"000008" + unsigned(WASMFPGAUART_ADR_BLK_BASE_UartBlk));
@@ -474,8 +462,8 @@ package body WasmFpgaEnginePackage is
     -- Read module address from store
     --
     procedure ReadModuleAddressFromStore(signal State : inout std_logic_vector;
-        signal ToWasmFpgaStore : out T_ToWasmFpgaStore;
-        signal FromWasmFpgaStore : in T_FromWasmFpgaStore) is
+                                         signal ToWasmFpgaStore : out T_ToWasmFpgaStore;
+                                         signal FromWasmFpgaStore : in T_FromWasmFpgaStore) is
     begin
         if (State = StateIdle) then
             ToWasmFpgaStore.Run <= '1';
@@ -502,17 +490,17 @@ package body WasmFpgaEnginePackage is
     -- Read u32 (LEB128 encoded)
     --
     procedure ReadUnsignedLEB128(signal State : inout std_logic_vector;
-        signal ReadFromModuleRamState : inout std_logic_vector;
-        signal DecodedValue : inout std_logic_vector;
-        signal CurrentByte : inout std_logic_vector;
-        signal WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
-        signal WasmFpgaInstruction_WasmFpgaModuleRam : inout T_WasmFpgaInstruction_WasmFpgaModuleRam) is
+                                 signal ReadFromModuleRamState : inout std_logic_vector;
+                                 signal DecodedValue : inout std_logic_vector;
+                                 signal CurrentByte : inout std_logic_vector;
+                                 signal FromWasmFpgaModuleRam : in T_FromWasmFpgaModuleRam;
+                                 signal ToWasmFpgaModuleRam : inout T_ToWasmFpgaModuleRam) is
     begin
         if (State = StateIdle) then
             ReadFromModuleRam(ReadFromModuleRamState,
                               CurrentByte,
-                              WasmFpgaModuleRam_WasmFpgaInstruction,
-                              WasmFpgaInstruction_WasmFpgaModuleRam);
+                              FromWasmFpgaModuleRam,
+                              ToWasmFpgaModuleRam);
             if (ReadFromModuleRamState = StateEnd) then
                 DecodedValue <= (31 downto 7 => '0') & CurrentByte(6 downto 0);
                 State <= State0;
@@ -524,8 +512,8 @@ package body WasmFpgaEnginePackage is
             else
                 ReadFromModuleRam(ReadFromModuleRamState,
                                   CurrentByte,
-                                  WasmFpgaModuleRam_WasmFpgaInstruction,
-                                  WasmFpgaInstruction_WasmFpgaModuleRam);
+                                  FromWasmFpgaModuleRam,
+                                  ToWasmFpgaModuleRam);
                 if (ReadFromModuleRamState = StateEnd) then
                     DecodedValue(13 downto 7) <= CurrentByte(6 downto 0);
                     State <= State1;
@@ -538,8 +526,8 @@ package body WasmFpgaEnginePackage is
             else
                 ReadFromModuleRam(ReadFromModuleRamState,
                                   CurrentByte,
-                                  WasmFpgaModuleRam_WasmFpgaInstruction,
-                                  WasmFpgaInstruction_WasmFpgaModuleRam);
+                                  FromWasmFpgaModuleRam,
+                                  ToWasmFpgaModuleRam);
                 if (ReadFromModuleRamState = StateEnd) then
                     DecodedValue(20 downto 14) <= CurrentByte(6 downto 0);
                     State <= State2;
@@ -552,8 +540,8 @@ package body WasmFpgaEnginePackage is
             else
                 ReadFromModuleRam(ReadFromModuleRamState,
                                   CurrentByte,
-                                  WasmFpgaModuleRam_WasmFpgaInstruction,
-                                  WasmFpgaInstruction_WasmFpgaModuleRam);
+                                  FromWasmFpgaModuleRam,
+                                  ToWasmFpgaModuleRam);
                 if (ReadFromModuleRamState = StateEnd) then
                     DecodedValue(27 downto 21) <= CurrentByte(6 downto 0);
                     State <= State3;
@@ -587,18 +575,18 @@ package body WasmFpgaEnginePackage is
     --   * https://www.w3.org/TR/wasm-core-1/#sign-interpretation
     --
     procedure ReadSignedLEB128(signal State : inout std_logic_vector;
-                      signal ReadFromModuleRamState : inout std_logic_vector;
-                      signal DecodedValue : inout std_logic_vector;
-                      signal CurrentByte : inout std_logic_vector;
-                      signal SignBits : inout std_logic_vector;
-                      signal WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
-                      signal WasmFpgaInstruction_WasmFpgaModuleRam : inout T_WasmFpgaInstruction_WasmFpgaModuleRam) is
+                               signal ReadFromModuleRamState : inout std_logic_vector;
+                               signal DecodedValue : inout std_logic_vector;
+                               signal CurrentByte : inout std_logic_vector;
+                               signal SignBits : inout std_logic_vector;
+                               signal FromWasmFpgaModuleRam : in T_FromWasmFpgaModuleRam;
+                               signal ToWasmFpgaModuleRam : inout T_ToWasmFpgaModuleRam) is
     begin
         if (State = StateIdle) then
             ReadFromModuleRam(ReadFromModuleRamState,
                               CurrentByte,
-                              WasmFpgaModuleRam_WasmFpgaInstruction,
-                              WasmFpgaInstruction_WasmFpgaModuleRam);
+                              FromWasmFpgaModuleRam,
+                              ToWasmFpgaModuleRam);
             if (ReadFromModuleRamState = StateEnd) then
                 DecodedValue <= (31 downto 7 => '0') & CurrentByte(6 downto 0);
                 State <= State0;
@@ -611,8 +599,8 @@ package body WasmFpgaEnginePackage is
             else
                 ReadFromModuleRam(ReadFromModuleRamState,
                                   CurrentByte,
-                                  WasmFpgaModuleRam_WasmFpgaInstruction,
-                                  WasmFpgaInstruction_WasmFpgaModuleRam);
+                                  FromWasmFpgaModuleRam,
+                                  ToWasmFpgaModuleRam);
                 if (ReadFromModuleRamState = StateEnd) then
                     DecodedValue(13 downto 7) <= CurrentByte(6 downto 0);
                     State <= State1;
@@ -626,8 +614,8 @@ package body WasmFpgaEnginePackage is
             else
                 ReadFromModuleRam(ReadFromModuleRamState,
                                   CurrentByte,
-                                  WasmFpgaModuleRam_WasmFpgaInstruction,
-                                  WasmFpgaInstruction_WasmFpgaModuleRam);
+                                  FromWasmFpgaModuleRam,
+                                  ToWasmFpgaModuleRam);
                 if (ReadFromModuleRamState = StateEnd) then
                     DecodedValue(20 downto 14) <= CurrentByte(6 downto 0);
                     State <= State2;
@@ -641,8 +629,8 @@ package body WasmFpgaEnginePackage is
             else
                 ReadFromModuleRam(ReadFromModuleRamState,
                                   CurrentByte,
-                                  WasmFpgaModuleRam_WasmFpgaInstruction,
-                                  WasmFpgaInstruction_WasmFpgaModuleRam);
+                                  FromWasmFpgaModuleRam,
+                                  ToWasmFpgaModuleRam);
                 if (ReadFromModuleRamState = StateEnd) then
                     DecodedValue(27 downto 21) <= CurrentByte(6 downto 0);
                     State <= State3;
@@ -672,31 +660,31 @@ package body WasmFpgaEnginePackage is
 
     procedure ReadFromModuleRam(signal State : inout std_logic_vector;
                                 signal CurrentByte : inout std_logic_vector;
-                                signal WasmFpgaModuleRam_WasmFpgaInstruction : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
-                                signal WasmFpgaInstruction_WasmFpgaModuleRam : inout T_WasmFpgaInstruction_WasmFpgaModuleRam) is
+                                signal FromWasmFpgaModuleRam : in T_FromWasmFpgaModuleRam;
+                                signal ToWasmFpgaModuleRam : inout T_ToWasmFpgaModuleRam) is
     begin
         if (State = StateIdle) then
-            WasmFpgaInstruction_WasmFpgaModuleRam.Run <= '1';
+            ToWasmFpgaModuleRam.Run <= '1';
             State <= State0;
         elsif (State = State0) then
-            WasmFpgaInstruction_WasmFpgaModuleRam.Run <= '0';
+            ToWasmFpgaModuleRam.Run <= '0';
             State <= State1;
         elsif (State = State1) then
             State <= State2;
         elsif (State = State2) then
             State <= State3;
         elsif (State = State3) then
-            if (WasmFpgaModuleRam_WasmFpgaInstruction.Busy = '0') then
-                if WasmFpgaInstruction_WasmFpgaModuleRam.Address(1 downto 0) = "00" then
-                    CurrentByte <= WasmFpgaModuleRam_WasmFpgaInstruction.ReadData(7 downto 0);
-                elsif WasmFpgaInstruction_WasmFpgaModuleRam.Address(1 downto 0) = "01" then
-                    CurrentByte <= WasmFpgaModuleRam_WasmFpgaInstruction.ReadData(15 downto 8);
-                elsif WasmFpgaInstruction_WasmFpgaModuleRam.Address(1 downto 0) = "10" then
-                    CurrentByte <= WasmFpgaModuleRam_WasmFpgaInstruction.ReadData(23 downto 16);
+            if (FromWasmFpgaModuleRam.Busy = '0') then
+                if ToWasmFpgaModuleRam.Address(1 downto 0) = "00" then
+                    CurrentByte <= FromWasmFpgaModuleRam.ReadData(7 downto 0);
+                elsif ToWasmFpgaModuleRam.Address(1 downto 0) = "01" then
+                    CurrentByte <= FromWasmFpgaModuleRam.ReadData(15 downto 8);
+                elsif ToWasmFpgaModuleRam.Address(1 downto 0) = "10" then
+                    CurrentByte <= FromWasmFpgaModuleRam.ReadData(23 downto 16);
                 else
-                    CurrentByte <= WasmFpgaModuleRam_WasmFpgaInstruction.ReadData(31 downto 24);
+                    CurrentByte <= FromWasmFpgaModuleRam.ReadData(31 downto 24);
                 end if;
-                WasmFpgaInstruction_WasmFpgaModuleRam.Address <= std_logic_vector(unsigned(WasmFpgaInstruction_WasmFpgaModuleRam.Address) + 1);
+                ToWasmFpgaModuleRam.Address <= std_logic_vector(unsigned(ToWasmFpgaModuleRam.Address) + 1);
                 State <= StateEnd;
             end if;
         elsif (State = StateEnd) then
@@ -707,15 +695,15 @@ package body WasmFpgaEnginePackage is
     end;
 
     procedure CreateActivationFrame(signal State : inout std_logic_vector;
-                                    signal WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
-                                    signal WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction) is
+                                    signal FromWasmFpgaStack : in T_FromWasmFpgaStack;
+                                    signal ToWasmFpgaStack : out T_ToWasmFpgaStack) is
     begin
         if (State = StateIdle) then
-            WasmFpgaInstruction_WasmFpgaStack.Run <= '1';
-            WasmFpgaInstruction_WasmFpgaStack.Action <= WASMFPGASTACK_VAL_CreateActivationFrame;
+            ToWasmFpgaStack.Run <= '1';
+            ToWasmFpgaStack.Action <= WASMFPGASTACK_VAL_CreateActivationFrame;
             State <= State0;
         elsif (State = State0) then
-            WasmFpgaInstruction_WasmFpgaStack.Run <= '0';
+            ToWasmFpgaStack.Run <= '0';
             State <= State1;
         elsif (State = State1) then
             State <= State2;
@@ -726,7 +714,7 @@ package body WasmFpgaEnginePackage is
         elsif (State = State4) then
             State <= State5;
         elsif (State = State5) then
-            if (WasmFpgaStack_WasmFpgaInstruction.Busy = '0') then
+            if (FromWasmFpgaStack.Busy = '0') then
                 State <= StateEnd;
             end if;
         elsif (State = StateEnd) then
@@ -737,15 +725,15 @@ package body WasmFpgaEnginePackage is
     end;
 
     procedure RemoveActivationFrame(signal State : inout std_logic_vector;
-                                    signal WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
-                                    signal WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction) is
+                                    signal FromWasmFpgaStack : in T_FromWasmFpgaStack;
+                                    signal ToWasmFpgaStack : out T_ToWasmFpgaStack) is
     begin
         if (State = StateIdle) then
-            WasmFpgaInstruction_WasmFpgaStack.Run <= '1';
-            WasmFpgaInstruction_WasmFpgaStack.Action <= WASMFPGASTACK_VAL_RemoveActivationFrame;
+            ToWasmFpgaStack.Run <= '1';
+            ToWasmFpgaStack.Action <= WASMFPGASTACK_VAL_RemoveActivationFrame;
             State <= State0;
         elsif (State = State0) then
-            WasmFpgaInstruction_WasmFpgaStack.Run <= '0';
+            ToWasmFpgaStack.Run <= '0';
             State <= State1;
         elsif (State = State1) then
             State <= State2;
@@ -756,7 +744,7 @@ package body WasmFpgaEnginePackage is
         elsif (State = State4) then
             State <= State5;
         elsif (State = State5) then
-            if (WasmFpgaStack_WasmFpgaInstruction.Busy = '0') then
+            if (FromWasmFpgaStack.Busy = '0') then
                 State <= StateEnd;
             end if;
         elsif (State = StateEnd) then
@@ -767,15 +755,15 @@ package body WasmFpgaEnginePackage is
     end;
 
     procedure PopFromStack(signal State : inout std_logic_vector;
-                           signal WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
-                           signal WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction) is
+                           signal FromWasmFpgaStack : in T_FromWasmFpgaStack;
+                           signal ToWasmFpgaStack : out T_ToWasmFpgaStack) is
     begin
         if (State = StateIdle) then
-            WasmFpgaInstruction_WasmFpgaStack.Run <= '1';
-            WasmFpgaInstruction_WasmFpgaStack.Action <= WASMFPGASTACK_VAL_Pop;
+            ToWasmFpgaStack.Run <= '1';
+            ToWasmFpgaStack.Action <= WASMFPGASTACK_VAL_Pop;
             State <= State0;
         elsif (State = State0) then
-            WasmFpgaInstruction_WasmFpgaStack.Run <= '0';
+            ToWasmFpgaStack.Run <= '0';
             State <= State1;
         elsif (State = State1) then
             State <= State2;
@@ -786,7 +774,7 @@ package body WasmFpgaEnginePackage is
         elsif (State = State4) then
             State <= State5;
         elsif (State = State5) then
-            if (WasmFpgaStack_WasmFpgaInstruction.Busy = '0') then
+            if (FromWasmFpgaStack.Busy = '0') then
                 State <= StateEnd;
             end if;
         elsif (State = StateEnd) then
@@ -799,15 +787,15 @@ package body WasmFpgaEnginePackage is
 
 
     procedure PushToStack(signal State : inout std_logic_vector;
-                          signal WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
-                          signal WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction) is
+                          signal FromWasmFpgaStack : in T_FromWasmFpgaStack;
+                          signal ToWasmFpgaStack : out T_ToWasmFpgaStack) is
     begin
         if (State = StateIdle) then
-            WasmFpgaInstruction_WasmFpgaStack.Run <= '1';
-            WasmFpgaInstruction_WasmFpgaStack.Action <= WASMFPGASTACK_VAL_Push;
+            ToWasmFpgaStack.Run <= '1';
+            ToWasmFpgaStack.Action <= WASMFPGASTACK_VAL_Push;
             State <= State0;
         elsif (State = State0) then
-            WasmFpgaInstruction_WasmFpgaStack.Run <= '0';
+            ToWasmFpgaStack.Run <= '0';
             State <= State1;
         elsif (State = State1) then
             State <= State2;
@@ -818,7 +806,7 @@ package body WasmFpgaEnginePackage is
         elsif (State = State4) then
             State <= State5;
         elsif (State = State5) then
-            if (WasmFpgaStack_WasmFpgaInstruction.Busy = '0') then
+            if (FromWasmFpgaStack.Busy = '0') then
                 State <= StateEnd;
             end if;
         elsif (State = StateEnd) then
@@ -830,15 +818,15 @@ package body WasmFpgaEnginePackage is
 
 
     procedure GetLocalFromStack(signal State : inout std_logic_vector;
-                                signal WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
-                                signal WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction) is
+                                signal FromWasmFpgaStack : in T_FromWasmFpgaStack;
+                                signal ToWasmFpgaStack : out T_ToWasmFpgaStack) is
     begin
         if (State = StateIdle) then
-            WasmFpgaInstruction_WasmFpgaStack.Run <= '1';
-            WasmFpgaInstruction_WasmFpgaStack.Action <= WASMFPGASTACK_VAL_LocalGet;
+            ToWasmFpgaStack.Run <= '1';
+            ToWasmFpgaStack.Action <= WASMFPGASTACK_VAL_LocalGet;
             State <= State0;
         elsif (State = State0) then
-            WasmFpgaInstruction_WasmFpgaStack.Run <= '0';
+            ToWasmFpgaStack.Run <= '0';
             State <= State1;
         elsif (State = State1) then
             State <= State2;
@@ -849,7 +837,7 @@ package body WasmFpgaEnginePackage is
         elsif (State = State4) then
             State <= State5;
         elsif (State = State5) then
-            if (WasmFpgaStack_WasmFpgaInstruction.Busy = '0') then
+            if (FromWasmFpgaStack.Busy = '0') then
                 State <= StateEnd;
             end if;
         elsif (State = StateEnd) then
@@ -861,15 +849,15 @@ package body WasmFpgaEnginePackage is
     end;
 
     procedure SetLocalFromStack(signal State : inout std_logic_vector;
-                                signal WasmFpgaInstruction_WasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
-                                signal WasmFpgaStack_WasmFpgaInstruction : in T_WasmFpgaStack_WasmFpgaInstruction) is
+                                signal FromWasmFpgaStack : in T_FromWasmFpgaStack;
+                                signal ToWasmFpgaStack : out T_ToWasmFpgaStack) is
     begin
         if (State = StateIdle) then
-            WasmFpgaInstruction_WasmFpgaStack.Run <= '1';
-            WasmFpgaInstruction_WasmFpgaStack.Action <= WASMFPGASTACK_VAL_LocalSet;
+            ToWasmFpgaStack.Run <= '1';
+            ToWasmFpgaStack.Action <= WASMFPGASTACK_VAL_LocalSet;
             State <= State0;
         elsif (State = State0) then
-            WasmFpgaInstruction_WasmFpgaStack.Run <= '0';
+            ToWasmFpgaStack.Run <= '0';
             State <= State1;
         elsif (State = State1) then
             State <= State2;
@@ -880,7 +868,7 @@ package body WasmFpgaEnginePackage is
         elsif (State = State4) then
             State <= State5;
         elsif (State = State5) then
-            if (WasmFpgaStack_WasmFpgaInstruction.Busy = '0') then
+            if (FromWasmFpgaStack.Busy = '0') then
                 State <= StateEnd;
             end if;
         elsif (State = StateEnd) then
@@ -1123,94 +1111,6 @@ package body WasmFpgaEnginePackage is
         else
             return x"00000000";
         end if;
-    end;
-
-   procedure println (constant value : in string;
-                      signal state : inout unsigned(MAX_STATE_HIGH_IDX downto 0);
-                      signal count : inout integer range 0 to MAX_STRING_HIGH_IDX;
-                      signal Uart_Adr : out std_logic_vector(23 downto 0);
-                      signal Uart_Sel : out std_logic_vector(3 downto 0);
-                      signal Uart_DatIn: in std_logic_vector(31 downto 0);
-                      signal Uart_We : out std_logic;
-                      signal Uart_Stb : out std_logic;
-                      signal Uart_Cyc : out std_logic_vector(0 downto 0);
-                      signal Uart_DatOut : out std_logic_vector(31 downto 0);
-                      signal Uart_Ack : in std_logic) is
-       constant stateTransmit0 : unsigned(MAX_STATE_HIGH_IDX downto 0) := to_unsigned(2,MAX_STATE_HIGH_IDX+1);
-       constant stateTransmit1 : unsigned(MAX_STATE_HIGH_IDX downto 0) := to_unsigned(5,MAX_STATE_HIGH_IDX+1);
-       constant stateTransmit2 : unsigned(MAX_STATE_HIGH_IDX downto 0) := to_unsigned(3,MAX_STATE_HIGH_IDX+1);
-       constant stateTransmit3 : unsigned(MAX_STATE_HIGH_IDX downto 0) := to_unsigned(6,MAX_STATE_HIGH_IDX+1);
-       constant stateTransmit4 : unsigned(MAX_STATE_HIGH_IDX downto 0) := to_unsigned(7,MAX_STATE_HIGH_IDX+1);
-       constant stateTransmit5 : unsigned(MAX_STATE_HIGH_IDX downto 0) := to_unsigned(8,MAX_STATE_HIGH_IDX+1);
-       constant stateTransmit6 : unsigned(MAX_STATE_HIGH_IDX downto 0) := to_unsigned(9,MAX_STATE_HIGH_IDX+1);
-   begin
-       case state is
-           when println_stateIdle =>
-               count <= 1;
-               state <= stateTransmit0;
-           when stateTransmit0 =>
-                Uart_Cyc <= "1";
-                Uart_Stb <= '1';
-                Uart_Sel <= (others => '1');
-                Uart_We <= '1';
-                Uart_Adr <= WASMFPGAUART_ADR_TxDataReg;
-                Uart_DatOut <= std_logic_vector(to_unsigned(character'pos(value(count)), Uart_DatOut'LENGTH));
-                state <= stateTransmit1;
-           when stateTransmit1 =>
-                if ( Uart_Ack = '1' ) then
-                    Uart_Cyc <= (others => '0');
-                    Uart_Stb <= '0';
-                    Uart_Adr <= (others => '0');
-                    Uart_Sel <= (others => '0');
-                    state <= stateTransmit2;
-                end if;
-           when stateTransmit2 =>
-                Uart_Cyc <= "1";
-                Uart_Stb <= '1';
-                Uart_Sel <= (others => '1');
-                Uart_We <= '1';
-                Uart_Adr <= WASMFPGAUART_ADR_ControlReg;
-                Uart_DatOut <= (31 downto 1 => '0') & WASMFPGAUART_VAL_TxDoRun;
-                state <= stateTransmit3;
-           when stateTransmit3 =>
-                if ( Uart_Ack = '1' ) then
-                    Uart_Cyc <= (others => '0');
-                    Uart_Stb <= '0';
-                    Uart_Adr <= (others => '0');
-                    Uart_Sel <= (others => '0');
-                    state <= stateTransmit4;
-                end if;
-           when stateTransmit4 =>
-                Uart_Cyc <= "1";
-                Uart_Stb <= '1';
-                Uart_Sel <= (others => '1');
-                Uart_We <= '1';
-                Uart_Adr <= WASMFPGAUART_ADR_StatusReg;
-                state <= stateTransmit5;
-           when stateTransmit5 =>
-                if ( Uart_Ack = '1' ) then
-                    Uart_Cyc <= "0";
-                    Uart_Stb <= '0';
-                    Uart_Adr <= (others => '0');
-                    Uart_Sel <= (others => '0');
-                    if (Uart_DatIn(0) = WASMFPGAUART_VAL_TxIsNotBusy) then
-                        state <= stateTransmit6;
-                    else
-                        state <= stateTransmit4;
-                    end if;
-                end if;
-           when stateTransmit6 =>
-               if (count = value'LENGTH) then
-                   state <= println_stateExit;
-               else
-                   count <= count + 1;
-                   state <= stateTransmit0;
-               end if;
-           when println_stateExit =>
-                state <= println_stateExit;
-           when others =>
-               state  <= println_stateError;
-       end case;
     end;
 
 end;

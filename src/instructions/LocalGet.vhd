@@ -15,23 +15,21 @@ entity InstructionLocalGet is
     port (
         Clk : in std_logic;
         nRst : in std_logic;
-        FromWasmFpgaInvocation : in T_WasmFpgaInvocation_WasmFpgaInstruction;
-        ToWasmFpgaInvocation : out T_WasmFpgaInstruction_WasmFpgaInvocation;
-        FromWasmFpgaStack : in T_WasmFpgaStack_WasmFpgaInstruction;
-        ToWasmFpgaStack : out T_WasmFpgaInstruction_WasmFpgaStack;
-        FromWasmFpgaModuleRam : in T_WasmFpgaModuleRam_WasmFpgaInstruction;
-        ToWasmFpgaModuleRam : buffer T_WasmFpgaInstruction_WasmFpgaModuleRam;
-        FromWasmFpgaMemory : in T_WasmFpgaMemory_WasmFpgaInstruction;
-        ToWasmFpgaMemory : out T_WasmFpgaInstruction_WasmFpgaMemory
+        ToWasmFpgaInstruction : in T_ToWasmFpgaInstruction;
+        FromWasmFpgaInstruction : out T_FromWasmFpgaInstruction;
+        FromWasmFpgaStack : in T_FromWasmFpgaStack;
+        ToWasmFpgaStack : out T_ToWasmFpgaStack;
+        FromWasmFpgaModuleRam : in T_FromWasmFpgaModuleRam;
+        ToWasmFpgaModuleRam : buffer T_ToWasmFpgaModuleRam;
+        FromWasmFpgaMemory : in T_FromWasmFpgaMemory;
+        ToWasmFpgaMemory : out T_ToWasmFpgaMemory
     );
 end;
 
-architecture InstructionLocalGetArchitecture of InstructionLocalGet is
+architecture Behavioural of InstructionLocalGet is
 
-    signal Rst : std_logic;
     signal State : std_logic_vector(15 downto 0);
     signal GetLocalFromStackState : std_logic_vector(15 downto 0);
-    signal PushToStackState : std_logic_vector(15 downto 0);
     signal ReadUnsignedLEB128State : std_logic_vector(15 downto 0);
     signal ReadFromModuleRamState : std_logic_vector(15 downto 0);
     signal DecodedValue : std_logic_vector(31 downto 0);
@@ -39,26 +37,24 @@ architecture InstructionLocalGetArchitecture of InstructionLocalGet is
 
 begin
 
-    Rst <= not nRst;
+    ToWasmFpgaMemory <= (
+        Run => '0',
+        Address => (others => '0'),
+        WriteData => (others => '0'),
+        WriteEnable => '0'
+    );
 
-    -- Memory
-    ToWasmFpgaMemory.Run <= '0';
-    ToWasmFpgaMemory.Address <= (others => '0');
-    ToWasmFpgaMemory.WriteData <= (others => '0');
-    ToWasmFpgaMemory.WriteEnable <= '0';
+    FromWasmFpgaInstruction <= (
+        Address => (others => '0'),
+        Trap => '0',
+        Busy => '1'
+    );
 
-    process (Clk, Rst) is
+    process (Clk, nRst) is
     begin
-        if (Rst = '1') then
+        if (nRst = '0') then
           DecodedValue <= (others => '0');
           CurrentByte <= (others => '0');
-          -- Invocation
-          ToWasmFpgaInvocation <= (
-              Address => (others => '0'),
-              Trap => '0',
-              Busy => '1'
-          );
-          -- Stack
           ToWasmFpgaStack <= (
               Run => '0',
               Action => (others => '0'),
@@ -71,16 +67,13 @@ begin
               ModuleInstanceUid => (others => '0'),
               LocalIndex => (others => '0')
           );
-          -- Module
           ToWasmFpgaModuleRam <= (
               Run => '0',
               Address => (others => '0')
           );
-          -- FSM States
-          ReadUnsignedLEB128State <= (others => '0');
-          ReadFromModuleRamState <= (others => '0');
-          GetLocalFromStackState <= (others => '0');
-          PushToStackState <= (others => '0');
+          ReadUnsignedLEB128State <= StateIdle;
+          ReadFromModuleRamState <= StateIdle;
+          GetLocalFromStackState <= StateIdle;
           State <= StateIdle;
         elsif rising_edge(Clk) then
             if (State = StateIdle) then
@@ -114,4 +107,4 @@ begin
         end if;
     end process;
 
-end architecture;
+end;

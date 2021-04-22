@@ -527,16 +527,16 @@ begin
       port map (
         Clk => Clk,
         nRst => nRst,
-        WasmFpgaInvocation_WasmFpgaInstruction => WasmFpgaInvocation_WasmFpgaInstruction,
-        WasmFpgaInstruction_WasmFpgaInvocation => WasmFpgaInstruction_WasmFpgaInvocation,
-        WasmFpgaStack_WasmFpgaInstruction => WasmFpgaStack_WasmFpgaInstruction,
-        WasmFpgaInstruction_WasmFpgaStack => WasmFpgaInstruction_WasmFpgaStack,
-        WasmFpgaModuleRam_WasmFpgaInstruction => WasmFpgaModuleRam_WasmFpgaInstruction,
-        WasmFpgaInstruction_WasmFpgaModuleRam => WasmFpgaInstruction_WasmFpgaModuleRam,
-        WasmFpgaMemory_WasmFpgaInstruction => WasmFpgaMemory_WasmFpgaInstruction,
-        WasmFpgaInstruction_WasmFpgaMemory => WasmFpgaInstruction_WasmFpgaMemory,
-        WasmFpgaStore_WasmFpgaInstruction => WasmFpgaStore_WasmFpgaInstruction,
-        WasmFpgaInstruction_WasmFpgaStore => WasmFpgaInstruction_WasmFpgaStore
+        ToWasmFpgaInstruction => WasmFpgaInvocation_WasmFpgaInstruction,
+        FromWasmFpgaInstruction => WasmFpgaInstruction_WasmFpgaInvocation,
+        FromWasmFpgaStack => WasmFpgaStack_WasmFpgaInstruction,
+        ToWasmFpgaStack => WasmFpgaInstruction_WasmFpgaStack,
+        FromWasmFpgaModuleRam => WasmFpgaModuleRam_WasmFpgaInstruction,
+        ToWasmFpgaModuleRam => WasmFpgaInstruction_WasmFpgaModuleRam,
+        FromWasmFpgaMemory => WasmFpgaMemory_WasmFpgaInstruction,
+        ToWasmFpgaMemory => WasmFpgaInstruction_WasmFpgaMemory,
+        FromWasmFpgaStore => WasmFpgaStore_WasmFpgaInstruction,
+        ToWasmFpgaStore => WasmFpgaInstruction_WasmFpgaStore
       );
 
 end;

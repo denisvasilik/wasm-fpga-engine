@@ -59,8 +59,8 @@ begin
         port map (
             Clk => Clk,
             nRst => nRst,
-            FromWasmFpgaInvocation => ToWasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_END))),
-            ToWasmFpgaInvocation => FromWasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_END))),
+            ToWasmFpgaInstruction => ToWasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_END))),
+            FromWasmFpgaInstruction => FromWasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_END))),
             FromWasmFpgaStack => FromWasmFpgaStack(to_integer(unsigned(WASM_OPCODE_END))),
             ToWasmFpgaStack => ToWasmFpgaStack(to_integer(unsigned(WASM_OPCODE_END))),
             FromWasmFpgaModuleRam => FromWasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_END))),
@@ -129,8 +129,8 @@ begin
         port map (
             Clk => Clk,
             nRst => nRst,
-            FromWasmFpgaInvocation => ToWasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_DROP))),
-            ToWasmFpgaInvocation => FromWasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_DROP))),
+            ToWasmFpgaInstruction => ToWasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_DROP))),
+            FromWasmFpgaInstruction => FromWasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_DROP))),
             FromWasmFpgaStack => FromWasmFpgaStack(to_integer(unsigned(WASM_OPCODE_DROP))),
             ToWasmFpgaStack => ToWasmFpgaStack(to_integer(unsigned(WASM_OPCODE_DROP))),
             FromWasmFpgaModuleRam => FromWasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_DROP))),
@@ -577,16 +577,16 @@ begin
         port map (
             Clk => Clk,
             nRst => nRst,
-            FromWasmFpgaInvocation => ToWasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_CALL))),
-            ToWasmFpgaInvocation => FromWasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_CALL))),
+            ToWasmFpgaInstruction => ToWasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_CALL))),
+            FromWasmFpgaInstruction => FromWasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_CALL))),
             FromWasmFpgaStack => FromWasmFpgaStack(to_integer(unsigned(WASM_OPCODE_CALL))),
             ToWasmFpgaStack => ToWasmFpgaStack(to_integer(unsigned(WASM_OPCODE_CALL))),
             FromWasmFpgaModuleRam => FromWasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_CALL))),
             ToWasmFpgaModuleRam => ToWasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_CALL))),
             FromWasmFpgaMemory => FromWasmFpgaMemory(to_integer(unsigned(WASM_OPCODE_CALL))),
             ToWasmFpgaMemory => ToWasmFpgaMemory(to_integer(unsigned(WASM_OPCODE_CALL))),
-            FromWasmFpgaStore => WasmFpgaStore_WasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_CALL))),
-            ToWasmFpgaStore => WasmFpgaInstruction_WasmFpgaStore(to_integer(unsigned(WASM_OPCODE_CALL)))
+            FromWasmFpgaStore => FromWasmFpgaStore(to_integer(unsigned(WASM_OPCODE_CALL))),
+            ToWasmFpgaStore => ToWasmFpgaStore(to_integer(unsigned(WASM_OPCODE_CALL)))
         );
 
 end;

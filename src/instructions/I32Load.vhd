@@ -35,13 +35,17 @@ architecture Behavioural of InstructionI32Load is
     signal PushToStackState : std_logic_vector(15 downto 0);
     signal OperandA : std_logic_vector(31 downto 0);
 
+    signal ToWasmFpgaStackBuf : T_ToWasmFpgaStack;
+
 begin
+
+    ToWasmFpgaStack <= ToWasmFpgaStackBuf;
 
     process (Clk, nRst) is
     begin
         if (nRst = '0') then
           OperandA <= (others => '0');
-          ToWasmFpgaStack <= (
+          ToWasmFpgaStackBuf <= (
               Run => '0',
               Action => (others => '0'),
               TypeValue => (others => '0'),
@@ -83,7 +87,7 @@ begin
             elsif (State = State0) then
                 PopFromStack(PopFromStackState,
                              FromWasmFpgaStack,
-                             ToWasmFpgaStack);
+                             ToWasmFpgaStackBuf);
                 if(PopFromStackState = StateEnd) then
                     OperandA <= FromWasmFpgaStack.LowValue;
                     State <= State1;
@@ -101,13 +105,13 @@ begin
                 State <= State5;
             elsif (State = State5) then
                 if(FromWasmFpgaMemory.Busy = '0') then
-                    ToWasmFpgaStack.LowValue <= FromWasmFpgaMemory.ReadData;
+                    ToWasmFpgaStackBuf.LowValue <= FromWasmFpgaMemory.ReadData;
                     State <= State6;
                 end if;
             elsif (State = State6) then
                 PushToStack(PushToStackState,
                             FromWasmFpgaStack,
-                            ToWasmFpgaStack);
+                            ToWasmFpgaStackBuf);
                 if(PushToStackState = StateEnd) then
                     FromWasmFpgaInstruction.Address <= FromWasmFpgaModuleRam.Address;
                     State <= StateIdle;

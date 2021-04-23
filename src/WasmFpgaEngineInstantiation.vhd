@@ -27,17 +27,24 @@ end;
 
 architecture Behavioural of WasmFpgaEngineInstantiation is
 
-  signal LocalDeclCount : std_logic_vector(31 downto 0);
+    signal LocalDeclCount : std_logic_vector(31 downto 0);
+    signal State : std_logic_vector(15 downto 0);
+    signal ActivationFrameState : std_logic_vector(15 downto 0);
+    signal Read32UState : std_logic_vector(15 downto 0);
+    signal ReadFromModuleRamState : std_logic_vector(15 downto 0);
+    signal StoreState : std_logic_vector(15 downto 0);
+    signal DecodedValue : std_logic_vector(31 downto 0);
+    signal CurrentByte : std_logic_vector(7 downto 0);
 
-  signal State : std_logic_vector(15 downto 0);
-  signal ActivationFrameState : std_logic_vector(15 downto 0);
-  signal Read32UState : std_logic_vector(15 downto 0);
-  signal ReadFromModuleRamState : std_logic_vector(15 downto 0);
-  signal StoreState : std_logic_vector(15 downto 0);
-  signal DecodedValue : std_logic_vector(31 downto 0);
-  signal CurrentByte : std_logic_vector(7 downto 0);
+    signal ToWasmFpgaStackBuf : T_ToWasmFpgaStack;
+    signal ToWasmFpgaStoreBuf : T_ToWasmFpgaStore;
+    signal ToWasmFpgaModuleRamBuf : T_ToWasmFpgaModuleRam;
 
 begin
+
+    ToWasmFpgaStack <= ToWasmFpgaStackBuf;
+    ToWasmFpgaStore <= ToWasmFpgaStoreBuf;
+    ToWasmFpgaModuleRam <= ToWasmFpgaModuleRamBuf;
 
   Instantiation : process (Clk, nRst) is
   begin
@@ -48,12 +55,12 @@ begin
       CurrentByte <= (others => '0');
       EntryPointAddress <= (others => '0');
       -- Module
-      ToWasmFpgaModuleRam <= (
+      ToWasmFpgaModuleRamBuf <= (
           Run => '0',
           Address => (others => '0')
       );
       -- Stack
-      ToWasmFpgaStack <= (
+      ToWasmFpgaStackBuf <= (
           Run => '0',
           Action => (others => '0'),
           HighValue => (others => '0'),
@@ -66,7 +73,7 @@ begin
           LocalIndex => (others => '0')
       );
       -- Store
-      ToWasmFpgaStore <= (
+      ToWasmFpgaStoreBuf <= (
           ModuleInstanceUid => (others => '0'),
           SectionUID => (others => '0'),
           Idx => (others => '0'),
@@ -92,17 +99,17 @@ begin
         -- to retrieve the function Idx of the start function.
         --
         elsif(State = State0) then
-            ToWasmFpgaStore.ModuleInstanceUid <= ModuleInstanceUid;
-            ToWasmFpgaStore.SectionUID <= SECTION_UID_START;
-            ToWasmFpgaStore.Idx <= (others => '0');
+            ToWasmFpgaStoreBuf.ModuleInstanceUid <= ModuleInstanceUid;
+            ToWasmFpgaStoreBuf.SectionUID <= SECTION_UID_START;
+            ToWasmFpgaStoreBuf.Idx <= (others => '0');
             State <= State1;
         elsif(State = State1) then
             ReadModuleAddressFromStore(StoreState,
-                                       ToWasmFpgaStore,
+                                       ToWasmFpgaStoreBuf,
                                        FromWasmFpgaStore);
             if (StoreState = StateEnd) then
                 -- Start section size address
-                ToWasmFpgaModuleRam.Address <= FromWasmFpgaStore.Address;
+                ToWasmFpgaModuleRamBuf.Address <= FromWasmFpgaStore.Address;
                 State <= State2;
             end if;
         elsif(State = State2) then
@@ -112,7 +119,7 @@ begin
                                DecodedValue,
                                CurrentByte,
                                FromWasmFpgaModuleRam,
-                               ToWasmFpgaModuleRam);
+                               ToWasmFpgaModuleRamBuf);
             if (Read32UState = StateEnd) then
                 State <= State4;
             end if;
@@ -123,7 +130,7 @@ begin
                                DecodedValue,
                                CurrentByte,
                                FromWasmFpgaModuleRam,
-                               ToWasmFpgaModuleRam);
+                               ToWasmFpgaModuleRamBuf);
             if (Read32UState = StateEnd) then
                 State <= State5;
             end if;
@@ -134,17 +141,17 @@ begin
         -- start function to get address of start function body.
         --
         elsif(State = State5) then
-            ToWasmFpgaStore.ModuleInstanceUid <= ModuleInstanceUid;
-            ToWasmFpgaStore.SectionUID <= SECTION_UID_CODE;
-            ToWasmFpgaStore.Idx <= DecodedValue; -- Use start function idx
+            ToWasmFpgaStoreBuf.ModuleInstanceUid <= ModuleInstanceUid;
+            ToWasmFpgaStoreBuf.SectionUID <= SECTION_UID_CODE;
+            ToWasmFpgaStoreBuf.Idx <= DecodedValue; -- Use start function idx
             State <= State6;
         elsif(State = State6) then
             ReadModuleAddressFromStore(StoreState,
-                                       ToWasmFpgaStore,
+                                       ToWasmFpgaStoreBuf,
                                        FromWasmFpgaStore);
             if (StoreState = StateEnd) then
                 -- Start section size address
-                ToWasmFpgaModuleRam.Address <= FromWasmFpgaStore.Address;
+                ToWasmFpgaModuleRamBuf.Address <= FromWasmFpgaStore.Address;
                 State <= State8;
             end if;
         elsif(State = State8) then
@@ -154,7 +161,7 @@ begin
                                DecodedValue,
                                CurrentByte,
                                FromWasmFpgaModuleRam,
-                               ToWasmFpgaModuleRam);
+                               ToWasmFpgaModuleRamBuf);
             if (Read32UState = StateEnd) then
                 State <= State9;
             end if;
@@ -169,16 +176,16 @@ begin
                                DecodedValue,
                                CurrentByte,
                                FromWasmFpgaModuleRam,
-                               ToWasmFpgaModuleRam);
+                               ToWasmFpgaModuleRamBuf);
             if (Read32UState = StateEnd) then
                 State <= State10;
             end if;
         elsif(State = State10) then
             if (DecodedValue = x"00000000") then
-                ToWasmFpgaStack.MaxResults <= (others => '0');
-                ToWasmFpgaStack.ModuleInstanceUid <= ModuleInstanceUid;
-                ToWasmFpgaStack.MaxLocals <= (others => '0');
-                ToWasmFpgaStack.ReturnAddress <= (others => '0');
+                ToWasmFpgaStackBuf.MaxResults <= (others => '0');
+                ToWasmFpgaStackBuf.ModuleInstanceUid <= ModuleInstanceUid;
+                ToWasmFpgaStackBuf.MaxLocals <= (others => '0');
+                ToWasmFpgaStackBuf.ReturnAddress <= (others => '0');
                 State <= State11;
             else
                 -- The start function type must be [] -> []
@@ -188,7 +195,7 @@ begin
             -- Create activation frame
             CreateActivationFrame(ActivationFrameState,
                                   FromWasmFpgaStack,
-                                  ToWasmFpgaStack);
+                                  ToWasmFpgaStackBuf);
             if (ActivationFrameState = StateEnd) then
                 EntryPointAddress <= FromWasmFpgaModuleRam.Address;
                 Busy <= '0';

@@ -391,20 +391,20 @@ package WasmFpgaEnginePackage is
     function i32_sub(a: std_logic_vector; b: std_logic_vector) return std_logic_vector;
 
     procedure ReadModuleAddressFromStore(signal State : inout std_logic_vector;
-                                         signal ToWasmFpgaStore : out T_ToWasmFpgaStore;
+                                         signal ToWasmFpgaStore : inout T_ToWasmFpgaStore;
                                          signal FromWasmFpgaStore : in T_FromWasmFpgaStore);
 
     procedure ReadFromModuleRam(signal State : inout std_logic_vector;
                                 signal CurrentByte : inout std_logic_vector;
                                 signal FromWasmFpgaModuleRam : in T_FromWasmFpgaModuleRam;
-                                signal ToWasmFpgaModuleRam : out T_ToWasmFpgaModuleRam);
+                                signal ToWasmFpgaModuleRam : inout T_ToWasmFpgaModuleRam);
 
     procedure ReadUnsignedLEB128(signal State : inout std_logic_vector;
                                  signal ReadFromModuleRamState : inout std_logic_vector;
                                  signal DecodedValue : inout std_logic_vector;
                                  signal CurrentByte : inout std_logic_vector;
                                  signal FromWasmFpgaModuleRam : in T_FromWasmFpgaModuleRam;
-                                 signal ToWasmFpgaModuleRam : out T_ToWasmFpgaModuleRam);
+                                 signal ToWasmFpgaModuleRam : inout T_ToWasmFpgaModuleRam);
 
     procedure ReadSignedLEB128(signal State : inout std_logic_vector;
                                signal ReadFromModuleRamState : inout std_logic_vector;
@@ -416,27 +416,27 @@ package WasmFpgaEnginePackage is
 
     procedure CreateActivationFrame(signal State : inout std_logic_vector;
                                     signal FromWasmFpgaStack : in T_FromWasmFpgaStack;
-                                    signal ToWasmFpgaStack : out T_ToWasmFpgaStack);
+                                    signal ToWasmFpgaStack : inout T_ToWasmFpgaStack);
 
     procedure RemoveActivationFrame(signal State : inout std_logic_vector;
                                     signal FromWasmFpgaStack : in T_FromWasmFpgaStack;
-                                    signal ToWasmFpgaStack : out T_ToWasmFpgaStack);
+                                    signal ToWasmFpgaStack : inout T_ToWasmFpgaStack);
 
     procedure PopFromStack(signal State : inout std_logic_vector;
                            signal FromWasmFpgaStack : in T_FromWasmFpgaStack;
-                           signal ToWasmFpgaStack : out T_ToWasmFpgaStack);
+                           signal ToWasmFpgaStack : inout T_ToWasmFpgaStack);
 
     procedure PushToStack(signal State : inout std_logic_vector;
                           signal FromWasmFpgaStack : in T_FromWasmFpgaStack;
-                          signal ToWasmFpgaStack : out T_ToWasmFpgaStack);
+                          signal ToWasmFpgaStack : inout T_ToWasmFpgaStack);
 
     procedure GetLocalFromStack(signal State : inout std_logic_vector;
                                 signal FromWasmFpgaStack : in T_FromWasmFpgaStack;
-                                signal ToWasmFpgaStack : out T_ToWasmFpgaStack);
+                                signal ToWasmFpgaStack : inout T_ToWasmFpgaStack);
 
     procedure SetLocalFromStack(signal State : inout std_logic_vector;
                                 signal FromWasmFpgaStack : in T_FromWasmFpgaStack;
-                                signal ToWasmFpgaStack : out T_ToWasmFpgaStack);
+                                signal ToWasmFpgaStack : inout T_ToWasmFpgaStack);
 
     -- UART IO
     constant MAX_STATE_HIGH_IDX : natural  := 7;
@@ -463,7 +463,7 @@ package body WasmFpgaEnginePackage is
     -- Read module address from store
     --
     procedure ReadModuleAddressFromStore(signal State : inout std_logic_vector;
-                                         signal ToWasmFpgaStore : out T_ToWasmFpgaStore;
+                                         signal ToWasmFpgaStore : inout T_ToWasmFpgaStore;
                                          signal FromWasmFpgaStore : in T_FromWasmFpgaStore) is
     begin
         if (State = StateIdle) then
@@ -495,7 +495,7 @@ package body WasmFpgaEnginePackage is
                                  signal DecodedValue : inout std_logic_vector;
                                  signal CurrentByte : inout std_logic_vector;
                                  signal FromWasmFpgaModuleRam : in T_FromWasmFpgaModuleRam;
-                                 signal ToWasmFpgaModuleRam : out T_ToWasmFpgaModuleRam) is
+                                 signal ToWasmFpgaModuleRam : inout T_ToWasmFpgaModuleRam) is
     begin
         if (State = StateIdle) then
             ReadFromModuleRam(ReadFromModuleRamState,
@@ -662,7 +662,7 @@ package body WasmFpgaEnginePackage is
     procedure ReadFromModuleRam(signal State : inout std_logic_vector;
                                 signal CurrentByte : inout std_logic_vector;
                                 signal FromWasmFpgaModuleRam : in T_FromWasmFpgaModuleRam;
-                                signal ToWasmFpgaModuleRam : out T_ToWasmFpgaModuleRam) is
+                                signal ToWasmFpgaModuleRam : inout T_ToWasmFpgaModuleRam) is
     begin
         if (State = StateIdle) then
             ToWasmFpgaModuleRam.Run <= '1';
@@ -697,7 +697,7 @@ package body WasmFpgaEnginePackage is
 
     procedure CreateActivationFrame(signal State : inout std_logic_vector;
                                     signal FromWasmFpgaStack : in T_FromWasmFpgaStack;
-                                    signal ToWasmFpgaStack : out T_ToWasmFpgaStack) is
+                                    signal ToWasmFpgaStack : inout T_ToWasmFpgaStack) is
     begin
         if (State = StateIdle) then
             ToWasmFpgaStack.Run <= '1';
@@ -727,7 +727,7 @@ package body WasmFpgaEnginePackage is
 
     procedure RemoveActivationFrame(signal State : inout std_logic_vector;
                                     signal FromWasmFpgaStack : in T_FromWasmFpgaStack;
-                                    signal ToWasmFpgaStack : out T_ToWasmFpgaStack) is
+                                    signal ToWasmFpgaStack : inout T_ToWasmFpgaStack) is
     begin
         if (State = StateIdle) then
             ToWasmFpgaStack.Run <= '1';
@@ -757,7 +757,7 @@ package body WasmFpgaEnginePackage is
 
     procedure PopFromStack(signal State : inout std_logic_vector;
                            signal FromWasmFpgaStack : in T_FromWasmFpgaStack;
-                           signal ToWasmFpgaStack : out T_ToWasmFpgaStack) is
+                           signal ToWasmFpgaStack : inout T_ToWasmFpgaStack) is
     begin
         if (State = StateIdle) then
             ToWasmFpgaStack.Run <= '1';
@@ -789,7 +789,7 @@ package body WasmFpgaEnginePackage is
 
     procedure PushToStack(signal State : inout std_logic_vector;
                           signal FromWasmFpgaStack : in T_FromWasmFpgaStack;
-                          signal ToWasmFpgaStack : out T_ToWasmFpgaStack) is
+                          signal ToWasmFpgaStack : inout T_ToWasmFpgaStack) is
     begin
         if (State = StateIdle) then
             ToWasmFpgaStack.Run <= '1';
@@ -820,7 +820,7 @@ package body WasmFpgaEnginePackage is
 
     procedure GetLocalFromStack(signal State : inout std_logic_vector;
                                 signal FromWasmFpgaStack : in T_FromWasmFpgaStack;
-                                signal ToWasmFpgaStack : out T_ToWasmFpgaStack) is
+                                signal ToWasmFpgaStack : inout T_ToWasmFpgaStack) is
     begin
         if (State = StateIdle) then
             ToWasmFpgaStack.Run <= '1';
@@ -851,7 +851,7 @@ package body WasmFpgaEnginePackage is
 
     procedure SetLocalFromStack(signal State : inout std_logic_vector;
                                 signal FromWasmFpgaStack : in T_FromWasmFpgaStack;
-                                signal ToWasmFpgaStack : out T_ToWasmFpgaStack) is
+                                signal ToWasmFpgaStack : inout T_ToWasmFpgaStack) is
     begin
         if (State = StateIdle) then
             ToWasmFpgaStack.Run <= '1';

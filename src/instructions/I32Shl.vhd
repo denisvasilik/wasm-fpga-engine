@@ -39,7 +39,11 @@ architecture Behavioural of InstructionI32Shl is
     signal OperandA : std_logic_vector(31 downto 0);
     signal OperandB : std_logic_vector(31 downto 0);
 
+    signal ToWasmFpgaStackBuf : T_ToWasmFpgaStack;
+
 begin
+
+    ToWasmFpgaStack <= ToWasmFpgaStackBuf;
 
     ToWasmFpgaMemory <= (
         Run => '0',
@@ -51,7 +55,7 @@ begin
     process (Clk, nRst) is
     begin
         if (nRst = '0') then
-          ToWasmFpgaStack <= (
+          ToWasmFpgaStackBuf <= (
               Run => '0',
               Action => (others => '0'),
               TypeValue => (others => '0'),
@@ -88,7 +92,7 @@ begin
             elsif (State = State0) then
                 PopFromStack(PopFromStackState,
                              FromWasmFpgaStack,
-                             ToWasmFpgaStack);
+                             ToWasmFpgaStackBuf);
                 if(PopFromStackState = StateEnd) then
                     OperandB <= FromWasmFpgaStack.LowValue;
                     State <= State1;
@@ -96,18 +100,18 @@ begin
             elsif (State = State1) then
                 PopFromStack(PopFromStackState,
                              FromWasmFpgaStack,
-                             ToWasmFpgaStack);
+                             ToWasmFpgaStackBuf);
                 if(PopFromStackState = StateEnd) then
                     OperandA <= FromWasmFpgaStack.LowValue;
                     State <= State2;
                 end if;
             elsif (State = State2) then
-                ToWasmFpgaStack.LowValue <= i32_shl(OperandA, OperandB);
+                ToWasmFpgaStackBuf.LowValue <= i32_shl(OperandA, OperandB);
                 State <= State3;
             elsif (State = State3) then
                 PushToStack(PushToStackState,
                             FromWasmFpgaStack,
-                            ToWasmFpgaStack);
+                            ToWasmFpgaStackBuf);
                 if(PushToStackState = StateEnd) then
                     State <= State4;
                 end if;

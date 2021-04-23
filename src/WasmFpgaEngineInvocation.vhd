@@ -44,7 +44,11 @@ architecture Behavioural of WasmFpgaEngineInvocation is
   signal CurrentInstruction : integer range 0 to 256;
   signal InstructionAddress : std_logic_vector(23 downto 0);
 
+    signal ToWasmFpgaModuleRamBuf : T_ToWasmFpgaModuleRam;
+
 begin
+
+  ToWasmFpgaModuleRam <= ToWasmFpgaModuleRamBuf;
 
   Instruction <= CurrentByte;
 
@@ -57,8 +61,8 @@ begin
       CurrentInstruction <= 0;
       InstructionAddress <= (others => '0');
       CurrentByte <= (others => '0');
-      ToWasmFpgaModuleRam.Run <= '0';
-      ToWasmFpgaModuleRam.Address <= (others => '0');
+      ToWasmFpgaModuleRamBuf.Run <= '0';
+      ToWasmFpgaModuleRamBuf.Address <= (others => '0');
       for i in ToWasmFpgaInstruction'RANGE loop
             ToWasmFpgaInstruction(i) <= (
                 Run => '0',
@@ -73,7 +77,7 @@ begin
           Busy <= '0';
           if (Run = '1') then
             Busy <= '1';
-            ToWasmFpgaModuleRam.Address <= EntryPointAddress;
+            ToWasmFpgaModuleRamBuf.Address <= EntryPointAddress;
             InstructionAddress <= EntryPointAddress;
             State <= State0;
           end if;
@@ -110,7 +114,7 @@ begin
         ReadFromModuleRam(ReadFromModuleRamState,
                           CurrentByte,
                           FromWasmFpgaModuleRam,
-                          ToWasmFpgaModuleRam);
+                          ToWasmFpgaModuleRamBuf);
         if (ReadFromModuleRamState = StateEnd) then
             State <= State2;
         end if;
@@ -127,7 +131,7 @@ begin
         State <= State5;
       elsif(State = State5) then
         if (FromWasmFpgaInstruction(CurrentInstruction).Busy = '0') then
-            ToWasmFpgaModuleRam.Address <= FromWasmFpgaInstruction(CurrentInstruction).Address;
+            ToWasmFpgaModuleRamBuf.Address <= FromWasmFpgaInstruction(CurrentInstruction).Address;
             InstructionAddress <= FromWasmFpgaInstruction(CurrentInstruction).Address;
             if (FromWasmFpgaInstruction(CurrentInstruction).Trap = '1') then
                 State <= StateTrapped;

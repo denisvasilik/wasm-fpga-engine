@@ -31,7 +31,11 @@ architecture Behavioural of InstructionEnd is
     signal State : std_logic_vector(15 downto 0);
     signal ActivationFrameStackState : std_logic_vector(15 downto 0);
 
+    signal ToWasmFpgaStackBuf : T_ToWasmFpgaStack;
+
 begin
+
+    ToWasmFpgaStack <= ToWasmFpgaStackBuf;
 
     ToWasmFpgaMemory <= (
         Run => '0',
@@ -48,7 +52,7 @@ begin
     process (Clk, nRst) is
     begin
         if (nRst = '0') then
-          ToWasmFpgaStack <= (
+          ToWasmFpgaStackBuf <= (
               Run => '0',
               Action => (others => '0'),
               TypeValue => (others => '0'),
@@ -78,7 +82,7 @@ begin
             elsif(State = State0) then
                 RemoveActivationFrame(ActivationFrameStackState,
                                       FromWasmFpgaStack,
-                                      ToWasmFpgaStack);
+                                      ToWasmFpgaStackBuf);
                 if(ActivationFrameStackState = StateEnd) then
                     FromWasmFpgaInstruction.Address <= FromWasmFpgaStack.ReturnAddress(23 downto 0);
                     State <= StateIdle;

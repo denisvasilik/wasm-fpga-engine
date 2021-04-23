@@ -32,7 +32,11 @@ architecture Behavioural of InstructionLocalSet is
     signal SetLocalFromStackState : std_logic_vector(15 downto 0);
     signal PopFromStackState : std_logic_vector(15 downto 0);
 
+    signal ToWasmFpgaStackBuf : T_ToWasmFpgaStack;
+
 begin
+
+    ToWasmFpgaStack <= ToWasmFpgaStackBuf;
 
     ToWasmFpgaMemory <= (
         Run => '0',
@@ -44,7 +48,7 @@ begin
     process (Clk, nRst) is
     begin
         if (nRst = '1') then
-          ToWasmFpgaStack <= (
+          ToWasmFpgaStackBuf <= (
               Run => '0',
               Action => (others => '0'),
               TypeValue => (others => '0'),
@@ -79,17 +83,17 @@ begin
             elsif (State = State0) then
                 PopFromStack(PopFromStackState,
                              FromWasmFpgaStack,
-                             ToWasmFpgaStack);
+                             ToWasmFpgaStackBuf);
                 if(PopFromStackState = StateEnd) then
-                    ToWasmFpgaStack.LowValue <= FromWasmFpgaStack.LowValue;
-                    ToWasmFpgaStack.HighValue <= FromWasmFpgaStack.HighValue;
-                    ToWasmFpgaStack.TypeValue <= FromWasmFpgaStack.TypeValue;
+                    ToWasmFpgaStackBuf.LowValue <= FromWasmFpgaStack.LowValue;
+                    ToWasmFpgaStackBuf.HighValue <= FromWasmFpgaStack.HighValue;
+                    ToWasmFpgaStackBuf.TypeValue <= FromWasmFpgaStack.TypeValue;
                     State <= State1;
                 end if;
             elsif (State = State1) then
                 SetLocalFromStack(SetLocalFromStackState,
                                   FromWasmFpgaStack,
-                                  ToWasmFpgaStack);
+                                  ToWasmFpgaStackBuf);
                 if(SetLocalFromStackState = StateEnd) then
                     FromWasmFpgaInstruction.Address <= FromWasmFpgaModuleRam.Address;
                     State <= StateIdle;

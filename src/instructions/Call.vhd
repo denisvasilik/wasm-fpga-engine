@@ -40,7 +40,15 @@ architecture Behavioural of InstructionCall is
     signal ReturnAddress : std_logic_vector(23 downto 0);
     signal ModuleInstanceUid : std_logic_vector(31 downto 0);
 
+    signal ToWasmFpgaModuleRamBuf : T_ToWasmFpgaModuleRam;
+    signal ToWasmFpgaStoreBuf : T_ToWasmFpgaStore;
+    signal ToWasmFpgaStackBuf : T_ToWasmFpgaStack;
+
 begin
+
+    ToWasmFpgaModuleRam <= ToWasmFpgaModuleRamBuf;
+    ToWasmFpgaStore <= ToWasmFpgaStoreBuf;
+    ToWasmFpgaStack <= ToWasmFpgaStackBuf;
 
     ToWasmFpgaMemory <= (
         Run => '0',
@@ -60,7 +68,7 @@ begin
           NumberOfParameters <= (others => '0');
           ReturnAddress <= (others => '0');
           -- Stack
-          ToWasmFpgaStack <= (
+          ToWasmFpgaStackBuf <= (
               Run => '0',
               Action => (others => '0'),
               TypeValue => (others => '0'),
@@ -73,7 +81,7 @@ begin
               LocalIndex => (others => '0')
           );
           -- Module
-          ToWasmFpgaModuleRam <= (
+          ToWasmFpgaModuleRamBuf <= (
               Run => '0',
               Address => (others => '0')
           );
@@ -84,7 +92,7 @@ begin
               Busy => '1'
           );
           -- Store
-          ToWasmFpgaStore <= (
+          ToWasmFpgaStoreBuf <= (
               ModuleInstanceUid => (others => '0'),
               SectionUID => (others => '0'),
               Idx => (others => '0'),
@@ -101,7 +109,7 @@ begin
                 FromWasmFpgaInstruction.Busy <= '0';
                 if (ToWasmFpgaInstruction.Run = '1') then
                     FromWasmFpgaInstruction.Busy <= '1';
-                    ToWasmFpgaModuleRam.Address <= ToWasmFpgaInstruction.Address;
+                    ToWasmFpgaModuleRamBuf.Address <= ToWasmFpgaInstruction.Address;
                     State <= State0;
                 end if;
             elsif (State = State0) then
@@ -111,25 +119,24 @@ begin
                         DecodedValue,
                         CurrentByte,
                         FromWasmFpgaModuleRam,
-                        ToWasmFpgaModuleRam);
+                        ToWasmFpgaModuleRamBuf);
                 if(ReadUnsignedLEB128State = StateEnd) then
                     -- Use function idx to get address of function section's
                     -- index to type section.
-                    ToWasmFpgaStore.ModuleInstanceUid <= ModuleInstanceUid;
-                    ToWasmFpgaStore.SectionUID <= SECTION_UID_FUNCTION;
-                    ToWasmFpgaStore.Idx <= DecodedValue;
+                    ToWasmFpgaStoreBuf.ModuleInstanceUid <= ModuleInstanceUid;
+                    ToWasmFpgaStoreBuf.SectionUID <= SECTION_UID_FUNCTION;
+                    ToWasmFpgaStoreBuf.Idx <= DecodedValue;
                     FuncIdx <= DecodedValue;
                     ReturnAddress <= FromWasmFpgaModuleRam.Address;
                     State <= State1;
                 end if;
             elsif(State = State1) then
                 ReadModuleAddressFromStore(StoreState,
-                                           ToWasmFpgaStore,
+                                           ToWasmFpgaStoreBuf,
                                            FromWasmFpgaStore);
                 if (StoreState = StateEnd) then
                     -- Function section address of function's type idx
-                    ToWasmFpgaModuleRam.Address <= FromWasmFpgaStore.Address;
-
+                    ToWasmFpgaModuleRamBuf.Address <= FromWasmFpgaStore.Address;
                     State <= State2;
                 end if;
             elsif (State = State2) then
@@ -139,22 +146,22 @@ begin
                                    DecodedValue,
                                    CurrentByte,
                                    FromWasmFpgaModuleRam,
-                                   ToWasmFpgaModuleRam);
+                                   ToWasmFpgaModuleRamBuf);
                 if(ReadUnsignedLEB128State = StateEnd) then
                     -- Use function's type idx to get address of type idx from
                     -- type section.
-                    ToWasmFpgaStore.ModuleInstanceUid <= ModuleInstanceUid;
-                    ToWasmFpgaStore.SectionUID <= SECTION_UID_TYPE;
-                    ToWasmFpgaStore.Idx <= DecodedValue;
+                    ToWasmFpgaStoreBuf.ModuleInstanceUid <= ModuleInstanceUid;
+                    ToWasmFpgaStoreBuf.SectionUID <= SECTION_UID_TYPE;
+                    ToWasmFpgaStoreBuf.Idx <= DecodedValue;
                     State <= State3;
                 end if;
             elsif (State = State3) then
                 ReadModuleAddressFromStore(StoreState,
-                                           ToWasmFpgaStore,
+                                           ToWasmFpgaStoreBuf,
                                            FromWasmFpgaStore);
                 if (StoreState = StateEnd) then
                     -- Type section address of function's type idx
-                    ToWasmFpgaModuleRam.Address <= FromWasmFpgaStore.Address;
+                    ToWasmFpgaModuleRamBuf.Address <= FromWasmFpgaStore.Address;
                     State <= State4;
                 end if;
             elsif (State = State4) then
@@ -164,10 +171,10 @@ begin
                         DecodedValue,
                         CurrentByte,
                         FromWasmFpgaModuleRam,
-                        ToWasmFpgaModuleRam);
+                        ToWasmFpgaModuleRamBuf);
                 if(ReadUnsignedLEB128State = StateEnd) then
                     NumberOfParameters <= DecodedValue;
-                    ToWasmFpgaModuleRam.Address <=
+                    ToWasmFpgaModuleRamBuf.Address <=
                         std_logic_vector(unsigned(FromWasmFpgaModuleRam.Address) +
                                          unsigned(DecodedValue(23 downto 0)));
                     State <= State5;
@@ -179,35 +186,35 @@ begin
                         DecodedValue,
                         CurrentByte,
                         FromWasmFpgaModuleRam,
-                        ToWasmFpgaModuleRam);
+                        ToWasmFpgaModuleRamBuf);
                 if(ReadUnsignedLEB128State = StateEnd) then
-                    ToWasmFpgaStack.MaxResults <= DecodedValue;
-                    ToWasmFpgaStack.ModuleInstanceUid <= ModuleInstanceUid;
-                    ToWasmFpgaStack.MaxLocals <= NumberOfParameters;
-                    ToWasmFpgaStack.ReturnAddress <= std_logic_vector(resize(
+                    ToWasmFpgaStackBuf.MaxResults <= DecodedValue;
+                    ToWasmFpgaStackBuf.ModuleInstanceUid <= ModuleInstanceUid;
+                    ToWasmFpgaStackBuf.MaxLocals <= NumberOfParameters;
+                    ToWasmFpgaStackBuf.ReturnAddress <= std_logic_vector(resize(
                         unsigned(ReturnAddress),
-                        ToWasmFpgaStack.ReturnAddress'LENGTH
+                        ToWasmFpgaStackBuf.ReturnAddress'LENGTH
                     ));
                     State <= State6;
                 end if;
             elsif (State = State6) then
                 CreateActivationFrame(ActivationFrameStackState,
                                       FromWasmFpgaStack,
-                                      ToWasmFpgaStack);
+                                      ToWasmFpgaStackBuf);
                 if(ActivationFrameStackState = StateEnd) then
                     -- Use function idx to get code section address
-                    ToWasmFpgaStore.ModuleInstanceUid <= ModuleInstanceUid;
-                    ToWasmFpgaStore.SectionUID <= SECTION_UID_CODE;
-                    ToWasmFpgaStore.Idx <= FuncIdx;
+                    ToWasmFpgaStoreBuf.ModuleInstanceUid <= ModuleInstanceUid;
+                    ToWasmFpgaStoreBuf.SectionUID <= SECTION_UID_CODE;
+                    ToWasmFpgaStoreBuf.Idx <= FuncIdx;
                     State <= State7;
                 end if;
             elsif (State = State7) then
                 -- Read calling function's address from store
                 ReadModuleAddressFromStore(StoreState,
-                                           ToWasmFpgaStore,
+                                           ToWasmFpgaStoreBuf,
                                            FromWasmFpgaStore);
                 if (StoreState = StateEnd) then
-                    ToWasmFpgaModuleRam.Address <= FromWasmFpgaStore.Address;
+                    ToWasmFpgaModuleRamBuf.Address <= FromWasmFpgaStore.Address;
                     State <= State8;
                 end if;
             elsif (State = State8) then
@@ -217,7 +224,7 @@ begin
                                    DecodedValue,
                                    CurrentByte,
                                    FromWasmFpgaModuleRam,
-                                   ToWasmFpgaModuleRam);
+                                   ToWasmFpgaModuleRamBuf);
                 if(ReadUnsignedLEB128State = StateEnd) then
                     State <= State9;
                 end if;
@@ -228,7 +235,7 @@ begin
                                    DecodedValue,
                                    CurrentByte,
                                    FromWasmFpgaModuleRam,
-                                   ToWasmFpgaModuleRam);
+                                   ToWasmFpgaModuleRamBuf);
                 if(ReadUnsignedLEB128State = StateEnd) then
                     -- Jump to address of called function
                     FromWasmFpgaInstruction.Address <= FromWasmFpgaModuleRam.Address;

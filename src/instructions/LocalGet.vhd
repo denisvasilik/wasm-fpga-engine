@@ -35,7 +35,13 @@ architecture Behavioural of InstructionLocalGet is
     signal DecodedValue : std_logic_vector(31 downto 0);
     signal CurrentByte : std_logic_vector(7 downto 0);
 
+    signal ToWasmFpgaStackBuf : T_ToWasmFpgaStack;
+    signal ToWasmFpgaModuleRamBuf : T_ToWasmFpgaModuleRam;
+
 begin
+
+    ToWasmFpgaStack <= ToWasmFpgaStackBuf;
+    ToWasmFpgaModuleRam <= ToWasmFpgaModuleRamBuf;
 
     ToWasmFpgaMemory <= (
         Run => '0',
@@ -49,7 +55,7 @@ begin
         if (nRst = '0') then
           DecodedValue <= (others => '0');
           CurrentByte <= (others => '0');
-          ToWasmFpgaStack <= (
+          ToWasmFpgaStackBuf <= (
               Run => '0',
               Action => (others => '0'),
               TypeValue => (others => '0'),
@@ -66,7 +72,7 @@ begin
               Trap => '0',
               Busy => '1'
           );
-          ToWasmFpgaModuleRam <= (
+          ToWasmFpgaModuleRamBuf <= (
               Run => '0',
               Address => (others => '0')
           );
@@ -79,7 +85,7 @@ begin
                 FromWasmFpgaInstruction.Busy <= '0';
                 if (ToWasmFpgaInstruction.Run = '1') then
                     FromWasmFpgaInstruction.Busy <= '1';
-                    ToWasmFpgaModuleRam.Address <= ToWasmFpgaInstruction.Address;
+                    ToWasmFpgaModuleRamBuf.Address <= ToWasmFpgaInstruction.Address;
                     State <= State0;
                 end if;
             elsif (State = State0) then
@@ -89,15 +95,15 @@ begin
                                    DecodedValue,
                                    CurrentByte,
                                    FromWasmFpgaModuleRam,
-                                   ToWasmFpgaModuleRam);
+                                   ToWasmFpgaModuleRamBuf);
                 if(ReadUnsignedLEB128State = StateEnd) then
-                    ToWasmFpgaStack.LocalIndex <= DecodedValue;
+                    ToWasmFpgaStackBuf.LocalIndex <= DecodedValue;
                     State <= State1;
                 end if;
             elsif (State = State1) then
                 GetLocalFromStack(GetLocalFromStackState,
                                   FromWasmFpgaStack,
-                                  ToWasmFpgaStack);
+                                  ToWasmFpgaStackBuf);
                 if(GetLocalFromStackState = StateEnd) then
                     FromWasmFpgaInstruction.Address <= FromWasmFpgaModuleRam.Address;
                     State <= StateIdle;

@@ -49,7 +49,11 @@ architecture Behavioural of InstructionI32Mul is
         );
     end component;
 
+    signal ToWasmFpgaStackBuf : T_ToWasmFpgaStack;
+
 begin
+
+    ToWasmFpgaStack <= ToWasmFpgaStackBuf;
 
     ToWasmFpgaMemory <= (
         Run => '0',
@@ -65,7 +69,7 @@ begin
           PipelineCount <= (others => '0');
           OperandA <= (others => '0');
           OperandB <= (others => '0');
-          ToWasmFpgaStack <= (
+          ToWasmFpgaStackBuf <= (
               Run => '0',
               Action => (others => '0'),
               TypeValue => (others => '0'),
@@ -101,7 +105,7 @@ begin
             elsif (State = State0) then
                 PopFromStack(PopFromStackState,
                              FromWasmFpgaStack,
-                             ToWasmFpgaStack);
+                             ToWasmFpgaStackBuf);
                 if(PopFromStackState = StateEnd) then
                     OperandB <= FromWasmFpgaStack.LowValue;
                     State <= State1;
@@ -109,14 +113,14 @@ begin
             elsif (State = State1) then
                 PopFromStack(PopFromStackState,
                              FromWasmFpgaStack,
-                             ToWasmFpgaStack);
+                             ToWasmFpgaStackBuf);
                 if(PopFromStackState = StateEnd) then
                     OperandA <= FromWasmFpgaStack.LowValue;
                     State <= State2;
                 end if;
             elsif (State = State2) then
                 if (PipelineCount = PipelineStages) then
-                    ToWasmFpgaStack.LowValue <= Result;
+                    ToWasmFpgaStackBuf.LowValue <= Result;
                     State <= State3;
                 else
                     PipelineCount <= PipelineCount + 1;
@@ -124,7 +128,7 @@ begin
             elsif (State = State3) then
                 PushToStack(PushToStackState,
                             FromWasmFpgaStack,
-                            ToWasmFpgaStack);
+                            ToWasmFpgaStackBuf);
                 if(PushToStackState = StateEnd) then
                     FromWasmFpgaInstruction.Address <= FromWasmFpgaModuleRam.Address;
                     State <= StateIdle;

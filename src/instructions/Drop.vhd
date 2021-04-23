@@ -32,7 +32,11 @@ architecture Behavioural of InstructionDrop is
     signal PopFromStackState : std_logic_vector(15 downto 0);
     signal PushToStackState : std_logic_vector(15 downto 0);
 
+    signal ToWasmFpgaStackBuf : T_ToWasmFpgaStack;
+
 begin
+
+    ToWasmFpgaStack <= ToWasmFpgaStackBuf;
 
     ToWasmFpgaMemory <= (
         Run => '0',
@@ -44,7 +48,7 @@ begin
     process (Clk, nRst) is
     begin
         if (nRst = '0') then
-          ToWasmFpgaStack <= (
+          ToWasmFpgaStackBuf <= (
               Run => '0',
               Action => (others => '0'),
               TypeValue => (others => '0'),
@@ -79,7 +83,7 @@ begin
             elsif (State = State0) then
                 PopFromStack(PopFromStackState,
                              FromWasmFpgaStack,
-                             ToWasmFpgaStack);
+                             ToWasmFpgaStackBuf);
                 if(PopFromStackState = StateEnd) then
                     State <= State1;
                 end if;

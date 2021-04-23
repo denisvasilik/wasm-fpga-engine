@@ -40,7 +40,11 @@ architecture Behavioural of InstructionSelect is
     signal OperandAType : std_logic_vector(2 downto 0);
     signal OperandBType : std_logic_vector(2 downto 0);
 
+    signal ToWasmFpgaStackBuf : T_ToWasmFpgaStack;
+
 begin
+
+    ToWasmFpgaStack <= ToWasmFpgaStackBuf;
 
     ToWasmFpgaMemory <= (
         Run => '0',
@@ -57,7 +61,7 @@ begin
           OperandB <= (others => '0');
           OperandBType <= (others => '0');
           OperandC <= (others => '0');
-          ToWasmFpgaStack <= (
+          ToWasmFpgaStackBuf <= (
               Run => '0',
               Action => (others => '0'),
               TypeValue => (others => '0'),
@@ -92,7 +96,7 @@ begin
             elsif (State = State0) then
                 PopFromStack(PopFromStackState,
                              FromWasmFpgaStack,
-                             ToWasmFpgaStack);
+                             ToWasmFpgaStackBuf);
                 if(PopFromStackState = StateEnd) then
                     OperandC <= FromWasmFpgaStack.LowValue;
                     State <= State1;
@@ -100,7 +104,7 @@ begin
             elsif (State = State1) then
                 PopFromStack(PopFromStackState,
                              FromWasmFpgaStack,
-                             ToWasmFpgaStack);
+                             ToWasmFpgaStackBuf);
                 if(PopFromStackState = StateEnd) then
                     OperandB(31 downto 0) <= FromWasmFpgaStack.LowValue;
                     OperandB(63 downto 32) <= FromWasmFpgaStack.HighValue;
@@ -110,7 +114,7 @@ begin
             elsif (State = State2) then
                 PopFromStack(PopFromStackState,
                              FromWasmFpgaStack,
-                             ToWasmFpgaStack);
+                             ToWasmFpgaStackBuf);
                 if(PopFromStackState = StateEnd) then
                     OperandA(31 downto 0) <= FromWasmFpgaStack.LowValue;
                     OperandA(63 downto 32) <= FromWasmFpgaStack.HighValue;
@@ -119,19 +123,19 @@ begin
                 end if;
             elsif (State = State3) then
                 if (OperandC = x"00000000") then
-                    ToWasmFpgaStack.LowValue <= OperandB(31 downto 0);
-                    ToWasmFpgaStack.HighValue <= OperandB(63 downto 32);
-                    ToWasmFpgaStack.TypeValue <= OperandBType;
+                    ToWasmFpgaStackBuf.LowValue <= OperandB(31 downto 0);
+                    ToWasmFpgaStackBuf.HighValue <= OperandB(63 downto 32);
+                    ToWasmFpgaStackBuf.TypeValue <= OperandBType;
                 else
-                    ToWasmFpgaStack.LowValue <= OperandA(31 downto 0);
-                    ToWasmFpgaStack.HighValue <= OperandA(63 downto 32);
-                    ToWasmFpgaStack.TypeValue <= OperandAType;
+                    ToWasmFpgaStackBuf.LowValue <= OperandA(31 downto 0);
+                    ToWasmFpgaStackBuf.HighValue <= OperandA(63 downto 32);
+                    ToWasmFpgaStackBuf.TypeValue <= OperandAType;
                 end if;
                 State <= State4;
             elsif (State = State4) then
                 PushToStack(PushToStackState,
                             FromWasmFpgaStack,
-                            ToWasmFpgaStack);
+                            ToWasmFpgaStackBuf);
                 if(PushToStackState = StateEnd) then
                     FromWasmFpgaInstruction.Address <= FromWasmFpgaModuleRam.Address;
                     State <= StateIdle;

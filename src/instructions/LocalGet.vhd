@@ -44,12 +44,6 @@ begin
         WriteEnable => '0'
     );
 
-    FromWasmFpgaInstruction <= (
-        Address => (others => '0'),
-        Trap => '0',
-        Busy => '1'
-    );
-
     process (Clk, nRst) is
     begin
         if (nRst = '0') then
@@ -66,6 +60,11 @@ begin
               ReturnAddress => (others => '0'),
               ModuleInstanceUid => (others => '0'),
               LocalIndex => (others => '0')
+          );
+          FromWasmFpgaInstruction <= (
+              Address => (others => '0'),
+              Trap => '0',
+              Busy => '1'
           );
           ToWasmFpgaModuleRam <= (
               Run => '0',

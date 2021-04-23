@@ -42,6 +42,7 @@ architecture Behavioural of WasmFpgaEngineInvocation is
   signal IsInMain : std_logic;
   signal CurrentByte : std_logic_vector(7 downto 0);
   signal CurrentInstruction : integer range 0 to 256;
+  signal InstructionAddress : std_logic_vector(23 downto 0);
 
 begin
 
@@ -54,6 +55,7 @@ begin
       Busy <= '1';
       IsInMain <= '1';
       CurrentInstruction <= 0;
+      InstructionAddress <= (others => '0');
       CurrentByte <= (others => '0');
       ToWasmFpgaModuleRam.Run <= '0';
       ToWasmFpgaModuleRam.Address <= (others => '0');
@@ -72,6 +74,7 @@ begin
           if (Run = '1') then
             Busy <= '1';
             ToWasmFpgaModuleRam.Address <= EntryPointAddress;
+            InstructionAddress <= EntryPointAddress;
             State <= State0;
           end if;
       elsif(State = State0) then
@@ -89,7 +92,7 @@ begin
                 then
                     State <= State1;
                 end if;
-            elsif (FromWasmFpgaModuleRam.Address = Breakpoint0(23 downto 0)) then
+            elsif (InstructionAddress = Breakpoint0(23 downto 0)) then
                 if (StopDebugging = '1') then
                    State <= StateIdle;
                 elsif (WRegPulse_DebugControlReg = '1') then
@@ -124,8 +127,8 @@ begin
         State <= State5;
       elsif(State = State5) then
         if (FromWasmFpgaInstruction(CurrentInstruction).Busy = '0') then
-            ToWasmFpgaModuleRam.Address <=
-                FromWasmFpgaInstruction(CurrentInstruction).Address;
+            ToWasmFpgaModuleRam.Address <= FromWasmFpgaInstruction(CurrentInstruction).Address;
+            InstructionAddress <= FromWasmFpgaInstruction(CurrentInstruction).Address;
             if (FromWasmFpgaInstruction(CurrentInstruction).Trap = '1') then
                 State <= StateTrapped;
             elsif (CurrentByte = WASM_OPCODE_END and StackAddress = x"00000000") then

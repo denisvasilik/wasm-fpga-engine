@@ -18,7 +18,7 @@ entity InstructionUnreachable is
         FromWasmFpgaStack : in T_FromWasmFpgaStack;
         ToWasmFpgaStack : out T_ToWasmFpgaStack;
         FromWasmFpgaModuleRam : in T_FromWasmFpgaModuleRam;
-        ToWasmFpgaModuleRam : buffer T_ToWasmFpgaModuleRam;
+        ToWasmFpgaModuleRam : out T_ToWasmFpgaModuleRam;
         FromWasmFpgaMemory : in T_FromWasmFpgaMemory;
         ToWasmFpgaMemory : out T_ToWasmFpgaMemory
     );
@@ -70,7 +70,7 @@ begin
                 if (ToWasmFpgaInstruction.Run = '1') then
                     FromWasmFpgaInstruction.Busy <= '1';
                     FromWasmFpgaInstruction.Trap <= '1';
-                    FromWasmFpgaInstruction.Address <= ToWasmFpgaInstruction.Address;
+                    FromWasmFpgaInstruction.Address <= FromWasmFpgaModuleRam.Address;
                     State <= StateIdle;
                 end if;
             end if;

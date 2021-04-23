@@ -20,7 +20,7 @@ entity InstructionLocalGet is
         FromWasmFpgaStack : in T_FromWasmFpgaStack;
         ToWasmFpgaStack : out T_ToWasmFpgaStack;
         FromWasmFpgaModuleRam : in T_FromWasmFpgaModuleRam;
-        ToWasmFpgaModuleRam : buffer T_ToWasmFpgaModuleRam;
+        ToWasmFpgaModuleRam : out T_ToWasmFpgaModuleRam;
         FromWasmFpgaMemory : in T_FromWasmFpgaMemory;
         ToWasmFpgaMemory : out T_ToWasmFpgaMemory
     );
@@ -77,10 +77,10 @@ begin
           State <= StateIdle;
         elsif rising_edge(Clk) then
             if (State = StateIdle) then
-                ToWasmFpgaInvocation.Busy <= '0';
-                if (FromWasmFpgaInvocation.Run = '1') then
-                    ToWasmFpgaInvocation.Busy <= '1';
-                    ToWasmFpgaModuleRam.Address <= FromWasmFpgaInvocation.Address;
+                FromWasmFpgaInstruction.Busy <= '0';
+                if (ToWasmFpgaInstruction.Run = '1') then
+                    FromWasmFpgaInstruction.Busy <= '1';
+                    ToWasmFpgaModuleRam.Address <= ToWasmFpgaInstruction.Address;
                     State <= State0;
                 end if;
             elsif (State = State0) then
@@ -97,10 +97,10 @@ begin
                 end if;
             elsif (State = State1) then
                 GetLocalFromStack(GetLocalFromStackState,
-                                  ToWasmFpgaStack,
-                                  FromWasmFpgaStack);
+                                  FromWasmFpgaStack,
+                                  ToWasmFpgaStack);
                 if(GetLocalFromStackState = StateEnd) then
-                    ToWasmFpgaInvocation.Address <= ToWasmFpgaModuleRam.Address;
+                    FromWasmFpgaInstruction.Address <= FromWasmFpgaModuleRam.Address;
                     State <= StateIdle;
                 end if;
             end if;

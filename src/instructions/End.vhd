@@ -20,7 +20,7 @@ entity InstructionEnd is
         FromWasmFpgaStack : in T_FromWasmFpgaStack;
         ToWasmFpgaStack : out T_ToWasmFpgaStack;
         FromWasmFpgaModuleRam : in T_FromWasmFpgaModuleRam;
-        ToWasmFpgaModuleRam : buffer T_ToWasmFpgaModuleRam;
+        ToWasmFpgaModuleRam : out T_ToWasmFpgaModuleRam;
         FromWasmFpgaMemory : in T_FromWasmFpgaMemory;
         ToWasmFpgaMemory : out T_ToWasmFpgaMemory
     );
@@ -45,7 +45,7 @@ begin
         Address => (others => '0')
     );
 
-    process (Clk, Rst) is
+    process (Clk, nRst) is
     begin
         if (nRst = '0') then
           ToWasmFpgaStack <= (
@@ -77,8 +77,8 @@ begin
                 end if;
             elsif(State = State0) then
                 RemoveActivationFrame(ActivationFrameStackState,
-                                      ToWasmFpgaStack,
-                                      FromWasmFpgaStack);
+                                      FromWasmFpgaStack,
+                                      ToWasmFpgaStack);
                 if(ActivationFrameStackState = StateEnd) then
                     FromWasmFpgaInstruction.Address <= FromWasmFpgaStack.ReturnAddress(23 downto 0);
                     State <= StateIdle;

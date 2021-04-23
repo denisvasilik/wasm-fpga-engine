@@ -20,7 +20,7 @@ entity InstructionI32Ctz is
         FromWasmFpgaStack : in T_FromWasmFpgaStack;
         ToWasmFpgaStack : out T_ToWasmFpgaStack;
         FromWasmFpgaModuleRam : in T_FromWasmFpgaModuleRam;
-        ToWasmFpgaModuleRam : buffer T_ToWasmFpgaModuleRam;
+        ToWasmFpgaModuleRam : out T_ToWasmFpgaModuleRam;
         FromWasmFpgaMemory : in T_FromWasmFpgaMemory;
         ToWasmFpgaMemory : out T_ToWasmFpgaMemory
     );
@@ -94,7 +94,7 @@ begin
                     State <= State3;
                 end if;
             elsif (State = State3) then
-                FromWasmFpgaInstruction.Address <= ToWasmFpgaModuleRam.Address;
+                FromWasmFpgaInstruction.Address <= FromWasmFpgaModuleRam.Address;
                 State <= StateIdle;
             end if;
         end if;

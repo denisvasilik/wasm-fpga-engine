@@ -237,6 +237,7 @@ package WasmFpgaEnginePackage is
     record
         Busy : std_logic;
         ReadData : std_logic_vector(31 downto 0);
+        Address : std_logic_vector(23 downto 0);
     end record;
 
     type T_ToWasmFpgaModuleRam is
@@ -396,14 +397,14 @@ package WasmFpgaEnginePackage is
     procedure ReadFromModuleRam(signal State : inout std_logic_vector;
                                 signal CurrentByte : inout std_logic_vector;
                                 signal FromWasmFpgaModuleRam : in T_FromWasmFpgaModuleRam;
-                                signal ToWasmFpgaModuleRam : inout T_ToWasmFpgaModuleRam);
+                                signal ToWasmFpgaModuleRam : out T_ToWasmFpgaModuleRam);
 
     procedure ReadUnsignedLEB128(signal State : inout std_logic_vector;
                                  signal ReadFromModuleRamState : inout std_logic_vector;
                                  signal DecodedValue : inout std_logic_vector;
                                  signal CurrentByte : inout std_logic_vector;
                                  signal FromWasmFpgaModuleRam : in T_FromWasmFpgaModuleRam;
-                                 signal ToWasmFpgaModuleRam : inout T_ToWasmFpgaModuleRam);
+                                 signal ToWasmFpgaModuleRam : out T_ToWasmFpgaModuleRam);
 
     procedure ReadSignedLEB128(signal State : inout std_logic_vector;
                                signal ReadFromModuleRamState : inout std_logic_vector;
@@ -494,7 +495,7 @@ package body WasmFpgaEnginePackage is
                                  signal DecodedValue : inout std_logic_vector;
                                  signal CurrentByte : inout std_logic_vector;
                                  signal FromWasmFpgaModuleRam : in T_FromWasmFpgaModuleRam;
-                                 signal ToWasmFpgaModuleRam : inout T_ToWasmFpgaModuleRam) is
+                                 signal ToWasmFpgaModuleRam : out T_ToWasmFpgaModuleRam) is
     begin
         if (State = StateIdle) then
             ReadFromModuleRam(ReadFromModuleRamState,
@@ -661,7 +662,7 @@ package body WasmFpgaEnginePackage is
     procedure ReadFromModuleRam(signal State : inout std_logic_vector;
                                 signal CurrentByte : inout std_logic_vector;
                                 signal FromWasmFpgaModuleRam : in T_FromWasmFpgaModuleRam;
-                                signal ToWasmFpgaModuleRam : inout T_ToWasmFpgaModuleRam) is
+                                signal ToWasmFpgaModuleRam : out T_ToWasmFpgaModuleRam) is
     begin
         if (State = StateIdle) then
             ToWasmFpgaModuleRam.Run <= '1';
@@ -675,16 +676,16 @@ package body WasmFpgaEnginePackage is
             State <= State3;
         elsif (State = State3) then
             if (FromWasmFpgaModuleRam.Busy = '0') then
-                if ToWasmFpgaModuleRam.Address(1 downto 0) = "00" then
+                if FromWasmFpgaModuleRam.Address(1 downto 0) = "00" then
                     CurrentByte <= FromWasmFpgaModuleRam.ReadData(7 downto 0);
-                elsif ToWasmFpgaModuleRam.Address(1 downto 0) = "01" then
+                elsif FromWasmFpgaModuleRam.Address(1 downto 0) = "01" then
                     CurrentByte <= FromWasmFpgaModuleRam.ReadData(15 downto 8);
-                elsif ToWasmFpgaModuleRam.Address(1 downto 0) = "10" then
+                elsif FromWasmFpgaModuleRam.Address(1 downto 0) = "10" then
                     CurrentByte <= FromWasmFpgaModuleRam.ReadData(23 downto 16);
                 else
                     CurrentByte <= FromWasmFpgaModuleRam.ReadData(31 downto 24);
                 end if;
-                ToWasmFpgaModuleRam.Address <= std_logic_vector(unsigned(ToWasmFpgaModuleRam.Address) + 1);
+                ToWasmFpgaModuleRam.Address <= std_logic_vector(unsigned(FromWasmFpgaModuleRam.Address) + 1);
                 State <= StateEnd;
             end if;
         elsif (State = StateEnd) then

@@ -20,7 +20,7 @@ entity InstructionLocalSet is
         FromWasmFpgaStack : in T_FromWasmFpgaStack;
         ToWasmFpgaStack : out T_ToWasmFpgaStack;
         FromWasmFpgaModuleRam : in T_FromWasmFpgaModuleRam;
-        ToWasmFpgaModuleRam : buffer T_ToWasmFpgaModuleRam;
+        ToWasmFpgaModuleRam : out T_ToWasmFpgaModuleRam;
         FromWasmFpgaMemory : in T_FromWasmFpgaMemory;
         ToWasmFpgaMemory : out T_ToWasmFpgaMemory
     );
@@ -78,8 +78,8 @@ begin
                 end if;
             elsif (State = State0) then
                 PopFromStack(PopFromStackState,
-                             ToWasmFpgaStack,
-                             FromWasmFpgaStack);
+                             FromWasmFpgaStack,
+                             ToWasmFpgaStack);
                 if(PopFromStackState = StateEnd) then
                     ToWasmFpgaStack.LowValue <= FromWasmFpgaStack.LowValue;
                     ToWasmFpgaStack.HighValue <= FromWasmFpgaStack.HighValue;
@@ -88,10 +88,10 @@ begin
                 end if;
             elsif (State = State1) then
                 SetLocalFromStack(SetLocalFromStackState,
-                                  ToWasmFpgaStack,
-                                  FromWasmFpgaStack);
+                                  FromWasmFpgaStack,
+                                  ToWasmFpgaStack);
                 if(SetLocalFromStackState = StateEnd) then
-                    FromWasmFpgaInstruction.Address <= ToWasmFpgaModuleRam.Address;
+                    FromWasmFpgaInstruction.Address <= FromWasmFpgaModuleRam.Address;
                     State <= StateIdle;
                 end if;
             end if;

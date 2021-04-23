@@ -61,8 +61,8 @@ architecture Behavioural of WasmFpgaEngine is
   signal MemoryBlk_Bus : T_WshBnDown;
 
 
-  signal WasmFpgaInvocation_WasmFpgaInstruction : T_FromWasmFpgaInstruction_Array;
-  signal WasmFpgaInstruction_WasmFpgaInvocation : T_ToWasmFpgaInstruction_Array;
+  signal WasmFpgaInstruction_WasmFpgaInvocation : T_FromWasmFpgaInstruction_Array;
+  signal WasmFpgaInvocation_WasmFpgaInstruction : T_ToWasmFpgaInstruction_Array;
 
   signal WasmFpgaStack_WasmFpgaInstruction : T_FromWasmFpgaStack_Array;
   signal WasmFpgaInstruction_WasmFpgaStack : T_ToWasmFpgaStack_Array;
@@ -141,7 +141,6 @@ architecture Behavioural of WasmFpgaEngine is
 
   signal InvocationRun : std_logic;
   signal InvocationBusy : std_logic;
-  signal InvocationCurrentByte : std_logic_vector(7 downto 0);
 
   signal Breakpoint0 : std_logic_vector(31 downto 0);
   signal StopInMain : std_logic;
@@ -151,7 +150,11 @@ architecture Behavioural of WasmFpgaEngine is
   signal Continue : std_logic;
   signal StopDebugging : std_logic;
 
- signal CurrentInstruction : integer range 0 to 256;
+  signal Instruction : std_logic_vector(7 downto 0);
+
+  signal State : std_logic_vector(15 downto 0);
+
+  signal EntryPointAddress : std_logic_vector(23 downto 0);
 
 begin
 
@@ -210,9 +213,45 @@ begin
   Bus_StoreBlk.DatOut <= Bus_DatIn;
   Bus_StoreBlk.Ack <= Bus_Ack;
 
-  Arbiter : process (Clk, Rst) is
+  Engine : process(Clk, nRst) is
   begin
-    if (Rst = '1') then
+    if (nRst = '0') then
+        State <= StateIdle;
+    elsif rising_edge(Clk) then
+        if (State = StateIdle) then
+            if ((WRegPulse_ControlReg = '1' and Run = '1') or
+                (WRegPulse_DebugControlReg = '1' and Debug = '1')) then
+                State <= State0;
+            end if;
+        elsif (State = State0) then
+            InstantiationRun <= '1';
+            State <= State1;
+        elsif (State = State1) then
+            InstantiationRun <= '0';
+            State <= State2;
+        elsif (State = State2) then
+            if (InstantiationBusy = '0') then
+                State <= State3;
+            end if;
+        elsif (State = State3) then
+            InvocationRun <= '1';
+            State <= State4;
+        elsif (State = State4) then
+            InvocationRun <= '0';
+            State <= State5;
+        elsif (State = State5) then
+            if (InvocationBusy = '0') then
+                State <= StateIdle;
+            end if;
+        end if;
+    end if;
+  end process;
+
+  Arbiter : process (Clk, nRst) is
+    variable CurrentInstruction : integer range 0 to 256;
+  begin
+    if (nRst = '0') then
+        CurrentInstruction := 0;
         -- Stack
         StackRun <= '0';
         StackAction <= (others => '0');
@@ -242,17 +281,26 @@ begin
         -- Module
         ModuleRamRun <= '0';
         ModuleRamAddress <= (others => '0');
-        WasmFpgaModuleRam_WasmFpgaInstantiation.Busy <= '0';
-        WasmFpgaModuleRam_WasmFpgaInstantiation.ReadData <= (others => '0');
+        WasmFpgaModuleRam_WasmFpgaInstantiation <= (
+            ReadData => (others => '0'),
+            Busy => '0',
+            Address => (others => '0')
+        );
         for i in WasmFpgaModuleRam_WasmFpgaInstruction'RANGE loop
             WasmFpgaModuleRam_WasmFpgaInstruction(i).Busy <= '1';
             WasmFpgaModuleRam_WasmFpgaInstruction(i).ReadData <= (others => '0');
+            WasmFpgaModuleRam_WasmFpgaInstruction(i).Address <= (others => '0');
         end loop;
         WasmFpgaStack_WasmFpgaInstantiation.Busy <= '0';
         WasmFpgaStack_WasmFpgaInstantiation.HighValue <= (others => '0');
         WasmFpgaStack_WasmFpgaInstantiation.LowValue <= (others => '0');
         WasmFpgaStack_WasmFpgaInstantiation.TypeValue <= (others => '0');
         WasmFpgaStack_WasmFpgaInstantiation.ReturnAddress <= (others => '0');
+        WasmFpgaModuleRam_WasmFpgaInvocation <= (
+            ReadData => (others => '0'),
+            Busy => '0',
+            Address => (others => '0')
+        );
         -- Store
         StoreModuleInstanceUid <= (others => '0');
         StoreSectionUID <= (others => '0');
@@ -279,6 +327,7 @@ begin
             -- Module
             WasmFpgaModuleRam_WasmFpgaInstantiation.Busy <= ModuleRamBusy;
             WasmFpgaModuleRam_WasmFpgaInstantiation.ReadData <= ModuleRamData;
+            WasmFpgaModuleRam_WasmFpgaInstantiation.Address <= ModuleRamAddress;
             ModuleRamRun <= WasmFpgaInstantiation_WasmFpgaModuleRam.Run;
             ModuleRamAddress <= WasmFpgaInstantiation_WasmFpgaModuleRam.Address;
 
@@ -292,6 +341,7 @@ begin
         end if;
 
         if (InvocationBusy = '1') then
+            CurrentInstruction := to_integer(unsigned(Instruction));
             -- Stack
             WasmFpgaStack_WasmFpgaInstruction(CurrentInstruction).Busy <= StackBusy;
             WasmFpgaStack_WasmFpgaInstruction(CurrentInstruction).HighValue <= StackHighValue_ToBeRead;
@@ -328,12 +378,14 @@ begin
                 -- Instruction uses access to Module RAM
                 WasmFpgaModuleRam_WasmFpgaInstruction(CurrentInstruction).Busy <= ModuleRamBusy;
                 WasmFpgaModuleRam_WasmFpgaInstruction(CurrentInstruction).ReadData <= ModuleRamData;
+                WasmFpgaModuleRam_WasmFpgaInstruction(CurrentInstruction).Address <= ModuleRamAddress;
                 ModuleRamRun <= WasmFpgaInstruction_WasmFpgaModuleRam(CurrentInstruction).Run;
                 ModuleRamAddress <= WasmFpgaInstruction_WasmFpgaModuleRam(CurrentInstruction).Address;
             else
                 -- Invocation process accesses Module RAM for next instruction
                 WasmFpgaModuleRam_WasmFpgaInvocation.Busy <= ModuleRamBusy;
                 WasmFpgaModuleRam_WasmFpgaInvocation.ReadData <= ModuleRamData;
+                WasmFpgaModuleRam_WasmFpgaInvocation.Address <= ModuleRamAddress;
                 ModuleRamRun <= WasmFpgaInvocation_WasmFpgaModuleRam.Run;
                 ModuleRamAddress <= WasmFpgaInvocation_WasmFpgaModuleRam.Address;
             end if;
@@ -348,6 +400,7 @@ begin
             Run => InstantiationRun,
             Busy => InstantiationBusy,
             ModuleInstanceUid => ModuleInstanceUid,
+            EntryPointAddress => EntryPointAddress,
             Trap => InstantiationTrap,
             FromWasmFpgaModuleRam => WasmFpgaModuleRam_WasmFpgaInstantiation,
             ToWasmFpgaModuleRam => WasmFpgaInstantiation_WasmFpgaModuleRam,
@@ -372,10 +425,12 @@ begin
             StepOut => StepOut,
             Continue => Continue,
             StopDebugging => StopDebugging,
+            EntryPointAddress => EntryPointAddress,
             StackAddress => StackAddress,
+            Instruction => Instruction,
             Trap => InvocationTrap,
             FromWasmFpgaModuleRam => WasmFpgaModuleRam_WasmFpgaInvocation,
-            ToWasmFpgaModuleRam => WasmFpgaInstruction_WasmFpgaModuleRam,
+            ToWasmFpgaModuleRam => WasmFpgaInvocation_WasmFpgaModuleRam,
             FromWasmFpgaInstruction => WasmFpgaInstruction_WasmFpgaInvocation,
             ToWasmFpgaInstruction => WasmFpgaInvocation_WasmFpgaInstruction
         );
@@ -427,7 +482,7 @@ begin
         InstantiationRunning => InstantiationBusy,
         InvocationRunning => InvocationBusy,
         Address => WasmFpgaInvocation_WasmFpgaModuleRam.Address,
-        Instruction => InvocationCurrentByte,
+        Instruction => Instruction,
         Error => (others => '0'),
         Breakpoint0 => Breakpoint0
       );

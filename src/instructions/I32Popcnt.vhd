@@ -19,7 +19,7 @@ entity InstructionI32Popcnt is
         FromWasmFpgaStack : in T_FromWasmFpgaStack;
         ToWasmFpgaStack : out T_ToWasmFpgaStack;
         FromWasmFpgaModuleRam : in T_FromWasmFpgaModuleRam;
-        ToWasmFpgaModuleRam : buffer T_ToWasmFpgaModuleRam;
+        ToWasmFpgaModuleRam : out T_ToWasmFpgaModuleRam;
         FromWasmFpgaMemory : in T_FromWasmFpgaMemory;
         ToWasmFpgaMemory : out T_ToWasmFpgaMemory
     );
@@ -77,8 +77,8 @@ begin
                 end if;
             elsif (State = State0) then
                 PopFromStack(PopFromStackState,
-                             ToWasmFpgaStack,
-                             FromWasmFpgaStack);
+                             FromWasmFpgaStack,
+                             ToWasmFpgaStack);
                 if(PopFromStackState = StateEnd) then
                     State <= State1;
                 end if;
@@ -87,10 +87,10 @@ begin
                 State <= State2;
             elsif (State = State2) then
                 PushToStack(PushToStackState,
-                            ToWasmFpgaStack,
-                            FromWasmFpgaStack);
+                            FromWasmFpgaStack,
+                            ToWasmFpgaStack);
                 if(PushToStackState = StateEnd) then
-                    FromWasmFpgaInstruction.Address <= ToWasmFpgaModuleRam.Address;
+                    FromWasmFpgaInstruction.Address <= FromWasmFpgaModuleRam.Address;
                     State <= StateIdle;
                 end if;
             end if;

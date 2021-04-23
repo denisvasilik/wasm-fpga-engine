@@ -15,8 +15,9 @@ entity WasmFpgaEngineInstantiation is
         Busy : out std_logic;
         Trap : out std_logic;
         ModuleInstanceUid : in std_logic_vector(31 downto 0);
+        EntryPointAddress : out std_logic_vector(23 downto 0);
         FromWasmFpgaModuleRam : in T_FromWasmFpgaModuleRam;
-        ToWasmFpgaModuleRam : buffer T_ToWasmFpgaModuleRam;
+        ToWasmFpgaModuleRam : out T_ToWasmFpgaModuleRam;
         FromWasmFpgaStore : in T_FromWasmFpgaStore;
         ToWasmFpgaStore : out T_ToWasmFpgaStore;
         FromWasmFpgaStack : in T_FromWasmFpgaStack;
@@ -45,6 +46,7 @@ begin
       LocalDeclCount <= (others => '0');
       DecodedValue <= (others => '0');
       CurrentByte <= (others => '0');
+      EntryPointAddress <= (others => '0');
       -- Module
       ToWasmFpgaModuleRam <= (
           Run => '0',
@@ -185,9 +187,10 @@ begin
         elsif (State = State11) then
             -- Create activation frame
             CreateActivationFrame(ActivationFrameState,
-                                  ToWasmFpgaStack,
-                                  FromWasmFpgaStack);
+                                  FromWasmFpgaStack,
+                                  ToWasmFpgaStack);
             if (ActivationFrameState = StateEnd) then
+                EntryPointAddress <= FromWasmFpgaModuleRam.Address;
                 Busy <= '0';
                 State <= StateIdle;
             end if;

@@ -24,7 +24,7 @@ entity InstructionI32Divu is
         FromWasmFpgaStack : in T_FromWasmFpgaStack;
         ToWasmFpgaStack : out T_ToWasmFpgaStack;
         FromWasmFpgaModuleRam : in T_FromWasmFpgaModuleRam;
-        ToWasmFpgaModuleRam : buffer T_ToWasmFpgaModuleRam;
+        ToWasmFpgaModuleRam : out T_ToWasmFpgaModuleRam;
         FromWasmFpgaMemory : in T_FromWasmFpgaMemory;
         ToWasmFpgaMemory : out T_ToWasmFpgaMemory
     );
@@ -108,8 +108,8 @@ begin
                 end if;
             elsif (State = State0) then
                 PopFromStack(PopFromStackState,
-                             ToWasmFpgaStack,
-                             FromWasmFpgaStack);
+                             FromWasmFpgaStack,
+                             ToWasmFpgaStack);
                 if(PopFromStackState = StateEnd) then
                     OperandB <= FromWasmFpgaStack.LowValue;
                     OperandBValid <= '1';
@@ -117,8 +117,8 @@ begin
                 end if;
             elsif (State = State1) then
                 PopFromStack(PopFromStackState,
-                             ToWasmFpgaStack,
-                             FromWasmFpgaStack);
+                             FromWasmFpgaStack,
+                             ToWasmFpgaStack);
                 if(PopFromStackState = StateEnd) then
                     OperandA <= FromWasmFpgaStack.LowValue;
                     OperandAValid <= '1';
@@ -131,10 +131,10 @@ begin
                 end if;
             elsif (State = State3) then
                 PushToStack(PushToStackState,
-                            ToWasmFpgaStack,
-                            FromWasmFpgaStack);
+                            FromWasmFpgaStack,
+                            ToWasmFpgaStack);
                 if(PushToStackState = StateEnd) then
-                    FromWasmFpgaInstruction.Address <= ToWasmFpgaModuleRam.Address;
+                    FromWasmFpgaInstruction.Address <= FromWasmFpgaModuleRam.Address;
                     State <= StateIdle;
                 end if;
             end if;

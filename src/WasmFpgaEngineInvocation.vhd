@@ -13,6 +13,10 @@ entity WasmFpgaEngineInvocation is
         nRst : in std_logic;
         Run : in std_logic;
         Busy : out std_logic;
+        Trap : out std_logic;
+        EntryPointAddress : in std_logic_vector(23 downto 0);
+        StackAddress : in std_logic_vector(31 downto 0);
+        Instruction : out std_logic_vector(7 downto 0);
         -- Debug Interface
         Debug : in std_logic;
         WRegPulse_DebugControlReg : in std_logic;
@@ -23,9 +27,7 @@ entity WasmFpgaEngineInvocation is
         StepOut : in std_logic;
         Continue : in std_logic;
         StopDebugging : in std_logic;
-        StackAddress : in std_logic_vector(31 downto 0);
-        ---
-        Trap : out std_logic;
+        --
         FromWasmFpgaModuleRam : in T_FromWasmFpgaModuleRam;
         ToWasmFpgaModuleRam : out T_ToWasmFpgaModuleRam;
         FromWasmFpgaInstruction : in T_FromWasmFpgaInstruction_Array;
@@ -38,9 +40,12 @@ architecture Behavioural of WasmFpgaEngineInvocation is
   signal State : std_logic_vector(15 downto 0);
   signal ReadFromModuleRamState : std_logic_vector(15 downto 0);
   signal IsInMain : std_logic;
+  signal CurrentByte : std_logic_vector(7 downto 0);
   signal CurrentInstruction : integer range 0 to 256;
 
 begin
+
+  Instruction <= CurrentByte;
 
   Invocation : process (Clk, nRst) is
   begin
@@ -66,7 +71,7 @@ begin
           Busy <= '0';
           if (Run = '1') then
             Busy <= '1';
-            ToWasmFpgaModuleRam.Address <= FromWasmFpgaModuleRam.Address;
+            ToWasmFpgaModuleRam.Address <= EntryPointAddress;
             State <= State0;
           end if;
       elsif(State = State0) then
@@ -84,7 +89,7 @@ begin
                 then
                     State <= State1;
                 end if;
-            elsif (ToWasmFpgaModuleRam.Address = Breakpoint0(23 downto 0)) then
+            elsif (FromWasmFpgaModuleRam.Address = Breakpoint0(23 downto 0)) then
                 if (StopDebugging = '1') then
                    State <= StateIdle;
                 elsif (WRegPulse_DebugControlReg = '1') then
@@ -111,7 +116,7 @@ begin
         CurrentInstruction <= to_integer(unsigned(CurrentByte));
         State <= State3;
       elsif(State = State3) then
-        ToWasmFpgaInstruction(CurrentInstruction).Address <= ToWasmFpgaModuleRam.Address;
+        ToWasmFpgaInstruction(CurrentInstruction).Address <= FromWasmFpgaModuleRam.Address;
         ToWasmFpgaInstruction(CurrentInstruction).Run <= '1';
         State <= State4;
       elsif(State = State4) then

@@ -21,7 +21,7 @@ entity InstructionI32Const is
         FromWasmFpgaStack : in T_FromWasmFpgaStack;
         ToWasmFpgaStack : out T_ToWasmFpgaStack;
         FromWasmFpgaModuleRam : in T_FromWasmFpgaModuleRam;
-        ToWasmFpgaModuleRam : buffer T_ToWasmFpgaModuleRam;
+        ToWasmFpgaModuleRam : out T_ToWasmFpgaModuleRam;
         FromWasmFpgaMemory : in T_FromWasmFpgaMemory;
         ToWasmFpgaMemory : out T_ToWasmFpgaMemory
     );
@@ -38,6 +38,8 @@ architecture Behavioural of InstructionI32Const is
     signal DecodedValue : std_logic_vector(31 downto 0);
     signal SignBits : std_logic_vector(31 downto 0);
 
+    signal ToWasmFpgaModuleRamBuffered : T_ToWasmFpgaModuleRam;
+
 begin
 
     ToWasmFpgaMemory <= (
@@ -46,6 +48,8 @@ begin
         WriteData => (others => '0'),
         WriteEnable => '0'
     );
+
+    ToWasmFpgaModuleRam <= ToWasmFpgaModuleRamBuffered;
 
     process (Clk, nRst) is
     begin
@@ -65,7 +69,7 @@ begin
               ModuleInstanceUid => (others => '0'),
               LocalIndex => (others => '0')
           );
-          ToWasmFpgaModuleRam <= (
+          ToWasmFpgaModuleRamBuffered <= (
               Run => '0',
               Address => (others => '0')
           );
@@ -83,17 +87,17 @@ begin
                 FromWasmFpgaInstruction.Busy <= '0';
                 if (ToWasmFpgaInstruction.Run = '1') then
                     FromWasmFpgaInstruction.Busy <= '1';
-                    ToWasmFpgaModuleRam.Address <= ToWasmFpgaInstruction.Address;
+                    ToWasmFpgaModuleRamBuffered.Address <= ToWasmFpgaInstruction.Address;
                     State <= State0;
                 end if;
             elsif (State = State0) then
                 ReadSignedLEB128(ReadSignedLEB128State,
-                        ReadFromModuleRamState,
-                        DecodedValue,
-                        CurrentByte,
-                        SignBits,
-                        FromWasmFpgaModuleRam,
-                        ToWasmFpgaModuleRam);
+                                 ReadFromModuleRamState,
+                                 DecodedValue,
+                                 CurrentByte,
+                                 SignBits,
+                                 FromWasmFpgaModuleRam,
+                                 ToWasmFpgaModuleRamBuffered);
                 if(ReadSignedLEB128State = StateEnd) then
                     State <= State1;
                     ToWasmFpgaStack.LowValue <= DecodedValue;
@@ -103,7 +107,7 @@ begin
                             FromWasmFpgaStack,
                             ToWasmFpgaStack);
                 if(PushToStackState = StateEnd) then
-                    FromWasmFpgaInstruction.Address <= ToWasmFpgaModuleRam.Address;
+                    FromWasmFpgaInstruction.Address <= FromWasmFpgaModuleRam.Address;
                     State <= StateIdle;
                 end if;
             end if;

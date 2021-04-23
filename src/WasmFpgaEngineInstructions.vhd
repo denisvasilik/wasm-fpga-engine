@@ -15,7 +15,7 @@ entity WasmFpgaEngineInstructions is
         FromWasmFpgaStack : in T_FromWasmFpgaStack_Array;
         ToWasmFpgaStack : out T_ToWasmFpgaStack_Array;
         FromWasmFpgaModuleRam : in T_FromWasmFpgaModuleRam_Array;
-        ToWasmFpgaModuleRam : buffer T_ToWasmFpgaModuleRam_Array;
+        ToWasmFpgaModuleRam : out T_ToWasmFpgaModuleRam_Array;
         FromWasmFpgaMemory : in T_FromWasmFpgaMemory_Array;
         ToWasmFpgaMemory : out T_ToWasmFpgaMemory_Array;
         FromWasmFpgaStore : in T_FromWasmFpgaStore_Array;

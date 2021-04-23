@@ -17,7 +17,7 @@ entity InstructionCall is
         FromWasmFpgaStack : in T_FromWasmFpgaStack;
         ToWasmFpgaStack : out T_ToWasmFpgaStack;
         FromWasmFpgaModuleRam : in T_FromWasmFpgaModuleRam;
-        ToWasmFpgaModuleRam : buffer T_ToWasmFpgaModuleRam;
+        ToWasmFpgaModuleRam : out T_ToWasmFpgaModuleRam;
         FromWasmFpgaMemory : in T_FromWasmFpgaMemory;
         ToWasmFpgaMemory : out T_ToWasmFpgaMemory;
         FromWasmFpgaStore : in T_FromWasmFpgaStore;
@@ -119,7 +119,7 @@ begin
                     ToWasmFpgaStore.SectionUID <= SECTION_UID_FUNCTION;
                     ToWasmFpgaStore.Idx <= DecodedValue;
                     FuncIdx <= DecodedValue;
-                    ReturnAddress <= ToWasmFpgaModuleRam.Address;
+                    ReturnAddress <= FromWasmFpgaModuleRam.Address;
                     State <= State1;
                 end if;
             elsif(State = State1) then
@@ -168,7 +168,7 @@ begin
                 if(ReadUnsignedLEB128State = StateEnd) then
                     NumberOfParameters <= DecodedValue;
                     ToWasmFpgaModuleRam.Address <=
-                        std_logic_vector(unsigned(ToWasmFpgaModuleRam.Address) +
+                        std_logic_vector(unsigned(FromWasmFpgaModuleRam.Address) +
                                          unsigned(DecodedValue(23 downto 0)));
                     State <= State5;
                 end if;
@@ -192,8 +192,8 @@ begin
                 end if;
             elsif (State = State6) then
                 CreateActivationFrame(ActivationFrameStackState,
-                                      ToWasmFpgaStack,
-                                      FromWasmFpgaStack);
+                                      FromWasmFpgaStack,
+                                      ToWasmFpgaStack);
                 if(ActivationFrameStackState = StateEnd) then
                     -- Use function idx to get code section address
                     ToWasmFpgaStore.ModuleInstanceUid <= ModuleInstanceUid;
@@ -231,7 +231,7 @@ begin
                                    ToWasmFpgaModuleRam);
                 if(ReadUnsignedLEB128State = StateEnd) then
                     -- Jump to address of called function
-                    FromWasmFpgaInstruction.Address <= ToWasmFpgaModuleRam.Address;
+                    FromWasmFpgaInstruction.Address <= FromWasmFpgaModuleRam.Address;
                     State <= StateIdle;
                 end if;
             end if;

@@ -4,3 +4,4 @@ ip/*
 !ip/*.xci
 *.egg-info/
 dist/
+src-gen/

@@ -549,8 +549,8 @@ begin
         port map (
             Clk => Clk,
             nRst => nRst,
-            FromWasmFpgaInvocation => ToWasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_LOCAL_GET))),
-            ToWasmFpgaInvocation => FromWasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_LOCAL_GET))),
+            ToWasmFpgaInstruction => ToWasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_LOCAL_GET))),
+            FromWasmFpgaInstruction => FromWasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_LOCAL_GET))),
             FromWasmFpgaStack => FromWasmFpgaStack(to_integer(unsigned(WASM_OPCODE_LOCAL_GET))),
             ToWasmFpgaStack => ToWasmFpgaStack(to_integer(unsigned(WASM_OPCODE_LOCAL_GET))),
             FromWasmFpgaModuleRam => FromWasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_LOCAL_GET))),

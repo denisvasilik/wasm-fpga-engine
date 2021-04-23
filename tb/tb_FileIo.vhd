@@ -1116,7 +1116,7 @@ begin
                     FileIO_WasmFpgaEngine.Cyc <= "1";
                     FileIO_WasmFpgaEngine.Stb <= '1';
                     FileIO_WasmFpgaEngine.We  <= '1';
-                    wait until rising_edge(WasmFpgaEngineDebug_FileIO.Ack);
+                    wait until rising_edge(WasmFpgaEngine_FileIO.Ack);
                     FileIO_WasmFpgaEngine.Sel <= x"0";
                     FileIO_WasmFpgaEngine.Cyc <= "0";
                     FileIO_WasmFpgaEngine.Stb <= '0';

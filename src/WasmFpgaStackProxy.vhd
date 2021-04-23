@@ -342,7 +342,7 @@ begin
           Sel <= (others => '1');
           We <= '0';
           Adr <= std_logic_vector(unsigned(WASMFPGABUS_ADR_BASE_StackArea) +
-                                  unsigned(WASMFPGASTACK_ADR_TypeReg));
+                                  unsigned(WASMFPGASTACK_ADR_StackAddressReg));
           State <= ReadStackAddress1;
       elsif( State = ReadStackAddress1 ) then
         if ( Ack = '1' ) then

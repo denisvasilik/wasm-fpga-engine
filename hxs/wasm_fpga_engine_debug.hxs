@@ -76,7 +76,7 @@ HwSwIf WasmFpgaEngineDebug {
         BlockAddressSegmentSizes = [ 0x100 ];
     }
 
-    Block EngineDebugBlk ( Base = 0x0 , Size = 0x18 ) {
+    Block EngineDebugBlk ( Base = 0x0 , Size = 0x2C ) {
         BlockName {
             "WebAssembly Engine Block"; }
         BlockDescription { "This block describes the WebAssembly engine block."; }
@@ -253,8 +253,8 @@ HwSwIf WasmFpgaEngineDebug {
             }
         }
         
-        FieldDiscretePositions AddressReg ( Width = 32, Idx->Addr 0 -> 0x8 ) {
-            FieldName { "Address Register"; }
+        FieldDiscretePositions InstructionAddressReg ( Width = 32, Idx->Addr 0 -> 0x8 ) {
+            FieldName { "Instruction Address Register"; }
             FieldDescription { ""; }
             TransferPointOfTime = '-';
             HwConfiguration {
@@ -263,7 +263,7 @@ HwSwIf WasmFpgaEngineDebug {
             }
             Bits {
                 BitFieldReserved ( 31 downto 24 );
-                BitFieldData Address ( 23 downto 0 ) 'R_RTrans' {
+                BitFieldData InstructionAddress ( 23 downto 0 ) 'R_RTrans' {
                     BitFieldDescription { "Address of the current instruction residing in the module ram."; }
                     ResetValueEntry = 0b0;
                     BlockResetsAffecting {
@@ -327,6 +327,25 @@ HwSwIf WasmFpgaEngineDebug {
             Bits {
                 BitFieldData Breakpoint0 ( 31 downto 0 ) 'RW_WReg_RLoopBack' {
                     BitFieldDescription { ""; }
+                    ResetValueEntry = 0b0;
+                    BlockResetsAffecting {
+                        Pwr = 'X' ;
+                    }
+                }
+            }
+        }
+        
+        FieldDiscretePositions StackAddressReg ( Width = 32, Idx->Addr 0 -> 0x18 ) {
+            FieldName { "Instruction Address Register"; }
+            FieldDescription { ""; }
+            TransferPointOfTime = '-';
+            HwConfiguration {
+                HwTypeSync = 'Yes';
+                HwAckImmediate = 'Yes';
+            }
+            Bits {
+                BitFieldData StackAddress ( 31 downto 0 ) 'R_RTrans' {
+                    BitFieldDescription { "Address of the current instruction residing in the module ram."; }
                     ResetValueEntry = 0b0;
                     BlockResetsAffecting {
                         Pwr = 'X' ;

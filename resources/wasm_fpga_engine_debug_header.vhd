@@ -123,9 +123,10 @@ package WasmFpgaEngineDebugWshBn_Package is
         InstantiationTrap :   std_logic;
         InstantiationRunning :   std_logic;
         InvocationRunning :   std_logic;
-        Address :   std_logic_vector(23 downto 0);
+        InstructionAddress :   std_logic_vector(23 downto 0);
         Instruction :   std_logic_vector(7 downto 0);
         Error :   std_logic_vector(7 downto 0);
+        StackAddress :   std_logic_vector(31 downto 0);
     end record;
 
     type array_of_T_EngineDebugBlk_WasmFpgaEngineDebugWshBn is
@@ -138,7 +139,7 @@ package WasmFpgaEngineDebugWshBn_Package is
     -- BUS: 
 
     constant WASMFPGAENGINEDEBUG_ADR_BLK_BASE_EngineDebugBlk                                         : std_logic_vector(23 downto 0) := x"000000";
-    constant WASMFPGAENGINEDEBUG_ADR_BLK_SIZE_EngineDebugBlk                                         : std_logic_vector(23 downto 0) := x"000018";
+    constant WASMFPGAENGINEDEBUG_ADR_BLK_SIZE_EngineDebugBlk                                         : std_logic_vector(23 downto 0) := x"00002C";
 
         -- ControlReg: Debug Control Register 
         constant WASMFPGAENGINEDEBUG_WIDTH_ControlReg                                                : integer := 32;
@@ -256,13 +257,13 @@ package WasmFpgaEngineDebugWshBn_Package is
                 constant WASMFPGAENGINEDEBUG_VAL_IsInvocationRunning                                 : std_logic := '1';
 
 
-        -- AddressReg: Address Register 
-        constant WASMFPGAENGINEDEBUG_WIDTH_AddressReg                                                : integer := 32;
-        constant WASMFPGAENGINEDEBUG_ADR_AddressReg                                                  : std_logic_vector(23 downto 0) := std_logic_vector(x"000008" + unsigned(WASMFPGAENGINEDEBUG_ADR_BLK_BASE_EngineDebugBlk));
+        -- InstructionAddressReg: Instruction Address Register 
+        constant WASMFPGAENGINEDEBUG_WIDTH_InstructionAddressReg                                     : integer := 32;
+        constant WASMFPGAENGINEDEBUG_ADR_InstructionAddressReg                                       : std_logic_vector(23 downto 0) := std_logic_vector(x"000008" + unsigned(WASMFPGAENGINEDEBUG_ADR_BLK_BASE_EngineDebugBlk));
 
             -- Address of the current instruction residing in the module ram.
 
-            constant WASMFPGAENGINEDEBUG_BUS_MASK_Address                                            : std_logic_vector(31 downto 0) := x"00FFFFFF";
+            constant WASMFPGAENGINEDEBUG_BUS_MASK_InstructionAddress                                 : std_logic_vector(31 downto 0) := x"00FFFFFF";
 
         -- InstructionReg: Instruction Register 
         constant WASMFPGAENGINEDEBUG_WIDTH_InstructionReg                                            : integer := 32;
@@ -287,6 +288,14 @@ package WasmFpgaEngineDebugWshBn_Package is
             -- 
 
             constant WASMFPGAENGINEDEBUG_BUS_MASK_Breakpoint0                                        : std_logic_vector(31 downto 0) := x"FFFFFFFF";
+
+        -- StackAddressReg: Instruction Address Register 
+        constant WASMFPGAENGINEDEBUG_WIDTH_StackAddressReg                                           : integer := 32;
+        constant WASMFPGAENGINEDEBUG_ADR_StackAddressReg                                             : std_logic_vector(23 downto 0) := std_logic_vector(x"000018" + unsigned(WASMFPGAENGINEDEBUG_ADR_BLK_BASE_EngineDebugBlk));
+
+            -- Address of the current instruction residing in the module ram.
+
+            constant WASMFPGAENGINEDEBUG_BUS_MASK_StackAddress                                       : std_logic_vector(31 downto 0) := x"FFFFFFFF";
 
 
 

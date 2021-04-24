@@ -39,10 +39,11 @@ entity EngineDebugBlk_WasmFpgaEngineDebug is
         InstantiationTrap : in std_logic;
         InstantiationRunning : in std_logic;
         InvocationRunning : in std_logic;
-        Address : in std_logic_vector(23 downto 0);
+        InstructionAddress : in std_logic_vector(23 downto 0);
         Instruction : in std_logic_vector(7 downto 0);
         Error : in std_logic_vector(7 downto 0);
-        Breakpoint0 : out std_logic_vector(31 downto 0)
+        Breakpoint0 : out std_logic_vector(31 downto 0);
+        StackAddress : in std_logic_vector(31 downto 0)
      );
 end EngineDebugBlk_WasmFpgaEngineDebug;
 
@@ -60,14 +61,16 @@ architecture arch_for_synthesys of EngineDebugBlk_WasmFpgaEngineDebug is
     signal PreMuxAck_ControlReg : std_logic;
     signal PreMuxDatOut_StatusReg : std_logic_vector(31 downto 0);
     signal PreMuxAck_StatusReg : std_logic;
-    signal PreMuxDatOut_AddressReg : std_logic_vector(31 downto 0);
-    signal PreMuxAck_AddressReg : std_logic;
+    signal PreMuxDatOut_InstructionAddressReg : std_logic_vector(31 downto 0);
+    signal PreMuxAck_InstructionAddressReg : std_logic;
     signal PreMuxDatOut_InstructionReg : std_logic_vector(31 downto 0);
     signal PreMuxAck_InstructionReg : std_logic;
     signal PreMuxDatOut_ErrorReg : std_logic_vector(31 downto 0);
     signal PreMuxAck_ErrorReg : std_logic;
     signal PreMuxDatOut_Breakpoint0Reg : std_logic_vector(31 downto 0);
     signal PreMuxAck_Breakpoint0Reg : std_logic;
+    signal PreMuxDatOut_StackAddressReg : std_logic_vector(31 downto 0);
+    signal PreMuxAck_StackAddressReg : std_logic;
 
     signal WriteDiff_ControlReg : std_logic;
     signal ReadDiff_ControlReg : std_logic;
@@ -78,8 +81,8 @@ architecture arch_for_synthesys of EngineDebugBlk_WasmFpgaEngineDebug is
     signal ReadDiff_StatusReg : std_logic;
 
 
-    signal WriteDiff_AddressReg : std_logic;
-    signal ReadDiff_AddressReg : std_logic;
+    signal WriteDiff_InstructionAddressReg : std_logic;
+    signal ReadDiff_InstructionAddressReg : std_logic;
 
 
     signal WriteDiff_InstructionReg : std_logic;
@@ -92,6 +95,10 @@ architecture arch_for_synthesys of EngineDebugBlk_WasmFpgaEngineDebug is
 
     signal WriteDiff_Breakpoint0Reg : std_logic;
     signal ReadDiff_Breakpoint0Reg : std_logic;
+
+
+    signal WriteDiff_StackAddressReg : std_logic;
+    signal ReadDiff_StackAddressReg : std_logic;
 
 
     signal WReg_StopDebugging : std_logic;
@@ -129,14 +136,16 @@ begin
                                 PreMuxAck_ControlReg,
                                 PreMuxDatOut_StatusReg,
                                 PreMuxAck_StatusReg,
-                                PreMuxDatOut_AddressReg,
-                                PreMuxAck_AddressReg,
+                                PreMuxDatOut_InstructionAddressReg,
+                                PreMuxAck_InstructionAddressReg,
                                 PreMuxDatOut_InstructionReg,
                                 PreMuxAck_InstructionReg,
                                 PreMuxDatOut_ErrorReg,
                                 PreMuxAck_ErrorReg,
                                 PreMuxDatOut_Breakpoint0Reg,
                                 PreMuxAck_Breakpoint0Reg,
+                                PreMuxDatOut_StackAddressReg,
+                                PreMuxAck_StackAddressReg,
                                 PreMuxAck_Unoccupied
                                 )
     begin 
@@ -153,9 +162,9 @@ begin
             elsif ( (unsigned(Adr)/4)*4  = ( unsigned(WASMFPGAENGINEDEBUG_ADR_StatusReg)) ) then
                  EngineDebugBlk_PreDatOut <= PreMuxDatOut_StatusReg;
                 EngineDebugBlk_PreAck <= PreMuxAck_StatusReg;
-            elsif ( (unsigned(Adr)/4)*4  = ( unsigned(WASMFPGAENGINEDEBUG_ADR_AddressReg)) ) then
-                 EngineDebugBlk_PreDatOut <= PreMuxDatOut_AddressReg;
-                EngineDebugBlk_PreAck <= PreMuxAck_AddressReg;
+            elsif ( (unsigned(Adr)/4)*4  = ( unsigned(WASMFPGAENGINEDEBUG_ADR_InstructionAddressReg)) ) then
+                 EngineDebugBlk_PreDatOut <= PreMuxDatOut_InstructionAddressReg;
+                EngineDebugBlk_PreAck <= PreMuxAck_InstructionAddressReg;
             elsif ( (unsigned(Adr)/4)*4  = ( unsigned(WASMFPGAENGINEDEBUG_ADR_InstructionReg)) ) then
                  EngineDebugBlk_PreDatOut <= PreMuxDatOut_InstructionReg;
                 EngineDebugBlk_PreAck <= PreMuxAck_InstructionReg;
@@ -165,6 +174,9 @@ begin
             elsif ( (unsigned(Adr)/4)*4  = ( unsigned(WASMFPGAENGINEDEBUG_ADR_Breakpoint0Reg)) ) then
                  EngineDebugBlk_PreDatOut <= PreMuxDatOut_Breakpoint0Reg;
                 EngineDebugBlk_PreAck <= PreMuxAck_Breakpoint0Reg;
+            elsif ( (unsigned(Adr)/4)*4  = ( unsigned(WASMFPGAENGINEDEBUG_ADR_StackAddressReg)) ) then
+                 EngineDebugBlk_PreDatOut <= PreMuxDatOut_StackAddressReg;
+                EngineDebugBlk_PreAck <= PreMuxAck_StackAddressReg;
             else 
                 EngineDebugBlk_PreAck <= PreMuxAck_Unoccupied;
                 EngineDebugBlk_Unoccupied_PreAck <= PreMuxAck_Unoccupied;
@@ -302,38 +314,38 @@ begin
 
 
 
-    -- .......... AddressReg, Width: 32, Type: Synchronous  .......... 
+    -- .......... InstructionAddressReg, Width: 32, Type: Synchronous  .......... 
 
-    ack_imdt_part_AddressReg0 : process (Adr, We, Stb, Cyc, PreMuxAck_AddressReg)
+    ack_imdt_part_InstructionAddressReg0 : process (Adr, We, Stb, Cyc, PreMuxAck_InstructionAddressReg)
     begin 
-        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGAENGINEDEBUG_ADR_AddressReg) ) then 
-            WriteDiff_AddressReg <=  We and Stb and Cyc(0) and not PreMuxAck_AddressReg;
+        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGAENGINEDEBUG_ADR_InstructionAddressReg) ) then 
+            WriteDiff_InstructionAddressReg <=  We and Stb and Cyc(0) and not PreMuxAck_InstructionAddressReg;
         else
-            WriteDiff_AddressReg <= '0';
+            WriteDiff_InstructionAddressReg <= '0';
         end if;
 
-        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGAENGINEDEBUG_ADR_AddressReg) ) then 
-            ReadDiff_AddressReg <= not We and Stb and Cyc(0) and not PreMuxAck_AddressReg;
+        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGAENGINEDEBUG_ADR_InstructionAddressReg) ) then 
+            ReadDiff_InstructionAddressReg <= not We and Stb and Cyc(0) and not PreMuxAck_InstructionAddressReg;
         else
-            ReadDiff_AddressReg <= '0';
+            ReadDiff_InstructionAddressReg <= '0';
         end if;
     end process;
 
-    reg_syn_clk_part_AddressReg0 : process (Clk, Rst)
+    reg_syn_clk_part_InstructionAddressReg0 : process (Clk, Rst)
     begin 
         if (Rst = '1') then 
-            PreMuxAck_AddressReg <= '0';
+            PreMuxAck_InstructionAddressReg <= '0';
         elsif rising_edge(Clk) then
-            PreMuxAck_AddressReg <= WriteDiff_AddressReg or ReadDiff_AddressReg; 
+            PreMuxAck_InstructionAddressReg <= WriteDiff_InstructionAddressReg or ReadDiff_InstructionAddressReg; 
         end if;
     end process;
 
-    mux_premuxdatout_AddressReg0 : process (
-            Address
+    mux_premuxdatout_InstructionAddressReg0 : process (
+            InstructionAddress
             )
     begin 
-         PreMuxDatOut_AddressReg <= x"0000_0000";
-         PreMuxDatOut_AddressReg(23 downto 0) <= Address;
+         PreMuxDatOut_InstructionAddressReg <= x"0000_0000";
+         PreMuxDatOut_InstructionAddressReg(23 downto 0) <= InstructionAddress;
     end process;
 
 
@@ -463,6 +475,44 @@ begin
 
     Breakpoint0 <= WReg_Breakpoint0;
 
+    -- .......... StackAddressReg, Width: 32, Type: Synchronous  .......... 
+
+    ack_imdt_part_StackAddressReg0 : process (Adr, We, Stb, Cyc, PreMuxAck_StackAddressReg)
+    begin 
+        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGAENGINEDEBUG_ADR_StackAddressReg) ) then 
+            WriteDiff_StackAddressReg <=  We and Stb and Cyc(0) and not PreMuxAck_StackAddressReg;
+        else
+            WriteDiff_StackAddressReg <= '0';
+        end if;
+
+        if ( (unsigned(Adr)/4)*4 = unsigned(WASMFPGAENGINEDEBUG_ADR_StackAddressReg) ) then 
+            ReadDiff_StackAddressReg <= not We and Stb and Cyc(0) and not PreMuxAck_StackAddressReg;
+        else
+            ReadDiff_StackAddressReg <= '0';
+        end if;
+    end process;
+
+    reg_syn_clk_part_StackAddressReg0 : process (Clk, Rst)
+    begin 
+        if (Rst = '1') then 
+            PreMuxAck_StackAddressReg <= '0';
+        elsif rising_edge(Clk) then
+            PreMuxAck_StackAddressReg <= WriteDiff_StackAddressReg or ReadDiff_StackAddressReg; 
+        end if;
+    end process;
+
+    mux_premuxdatout_StackAddressReg0 : process (
+            StackAddress
+            )
+    begin 
+         PreMuxDatOut_StackAddressReg <= x"0000_0000";
+         PreMuxDatOut_StackAddressReg(31 downto 0) <= StackAddress;
+    end process;
+
+
+
+
+
 
 end architecture;
 
@@ -520,10 +570,11 @@ architecture arch_for_synthesys of WasmFpgaEngineDebugWshBn is
             InstantiationTrap : in std_logic;
             InstantiationRunning : in std_logic;
             InvocationRunning : in std_logic;
-            Address : in std_logic_vector(23 downto 0);
+            InstructionAddress : in std_logic_vector(23 downto 0);
             Instruction : in std_logic_vector(7 downto 0);
             Error : in std_logic_vector(7 downto 0);
-            Breakpoint0 : out std_logic_vector(31 downto 0)
+            Breakpoint0 : out std_logic_vector(31 downto 0);
+            StackAddress : in std_logic_vector(31 downto 0)
          );
     end component; 
 
@@ -567,10 +618,11 @@ begin
         InstantiationTrap => EngineDebugBlk_WasmFpgaEngineDebugWshBn.InstantiationTrap,
         InstantiationRunning => EngineDebugBlk_WasmFpgaEngineDebugWshBn.InstantiationRunning,
         InvocationRunning => EngineDebugBlk_WasmFpgaEngineDebugWshBn.InvocationRunning,
-        Address => EngineDebugBlk_WasmFpgaEngineDebugWshBn.Address,
+        InstructionAddress => EngineDebugBlk_WasmFpgaEngineDebugWshBn.InstructionAddress,
         Instruction => EngineDebugBlk_WasmFpgaEngineDebugWshBn.Instruction,
         Error => EngineDebugBlk_WasmFpgaEngineDebugWshBn.Error,
-        Breakpoint0 => WasmFpgaEngineDebugWshBn_EngineDebugBlk.Breakpoint0
+        Breakpoint0 => WasmFpgaEngineDebugWshBn_EngineDebugBlk.Breakpoint0,
+        StackAddress => EngineDebugBlk_WasmFpgaEngineDebugWshBn.StackAddress
      );
 
 

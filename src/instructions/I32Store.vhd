@@ -8,8 +8,6 @@ library work;
 --
 -- i32.store
 --
--- Return the result of subtracting i2​ from i1​ modulo 2N.
---
 -- Execution: https://www.w3.org/TR/wasm-core-1/#exec-store
 -- Validation: https://www.w3.org/TR/wasm-core-1/#valid-store
 --

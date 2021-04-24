@@ -481,10 +481,11 @@ begin
         InstantiationTrap => InstantiationTrap,
         InstantiationRunning => InstantiationBusy,
         InvocationRunning => InvocationBusy,
-        Address => WasmFpgaInvocation_WasmFpgaModuleRam.Address,
+        InstructionAddress => WasmFpgaInvocation_WasmFpgaModuleRam.Address,
         Instruction => Instruction,
         Error => (others => '0'),
-        Breakpoint0 => Breakpoint0
+        Breakpoint0 => Breakpoint0,
+        StackAddress => StackAddress
       );
 
     Module : entity work.WasmFpgaEngine_ModuleBlk

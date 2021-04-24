@@ -17,7 +17,7 @@ LABEL
 
     DEFINE_CONST WASMFPGAENGINEDEBUG_ADR_BLK_BASE_ENGINEDEBUGBLK                                      #x00000000
     ADD_CONST WASMFPGAENGINEDEBUG_ADR_BLK_BASE_ENGINEDEBUGBLK                                         $WASMFPGAENGINEDEBUG_ADR_BLK_BASE_SIM_OFFSET_ENGINEDEBUGBLK
-    DEFINE_CONST WASMFPGAENGINEDEBUG_ADR_BLK_SIZE_ENGINEDEBUGBLK                                      #x00000018
+    DEFINE_CONST WASMFPGAENGINEDEBUG_ADR_BLK_SIZE_ENGINEDEBUGBLK                                      #x0000002C
 
         -- ControlReg: Debug Control Register 
         DEFINE_CONST ENGINEDEBUGBLK_WIDTH_ControlReg                                                  32
@@ -125,12 +125,12 @@ LABEL
                 DEFINE_CONST ENGINEDEBUGBLK_VAL_IsInvocationRunning                                   #x00000001
 
 
-        -- AddressReg: Address Register 
-        DEFINE_CONST ENGINEDEBUGBLK_WIDTH_AddressReg                                                  32
-        DEFINE_CONST ENGINEDEBUGBLK_ADR_AddressReg                                                    #x00000008
-        ADD_CONST ENGINEDEBUGBLK_ADR_AddressReg                                                       $WASMFPGAENGINEDEBUG_ADR_BLK_BASE_ENGINEDEBUGBLK
+        -- InstructionAddressReg: Instruction Address Register 
+        DEFINE_CONST ENGINEDEBUGBLK_WIDTH_InstructionAddressReg                                       32
+        DEFINE_CONST ENGINEDEBUGBLK_ADR_InstructionAddressReg                                         #x00000008
+        ADD_CONST ENGINEDEBUGBLK_ADR_InstructionAddressReg                                            $WASMFPGAENGINEDEBUG_ADR_BLK_BASE_ENGINEDEBUGBLK
 
-            DEFINE_CONST ENGINEDEBUGBLK_BUS_MASK_Address                                              #x00FFFFFF
+            DEFINE_CONST ENGINEDEBUGBLK_BUS_MASK_InstructionAddress                                   #x00FFFFFF
 
         -- InstructionReg: Instruction Register 
         DEFINE_CONST ENGINEDEBUGBLK_WIDTH_InstructionReg                                              32
@@ -152,6 +152,13 @@ LABEL
         ADD_CONST ENGINEDEBUGBLK_ADR_Breakpoint0Reg                                                   $WASMFPGAENGINEDEBUG_ADR_BLK_BASE_ENGINEDEBUGBLK
 
             DEFINE_CONST ENGINEDEBUGBLK_BUS_MASK_Breakpoint0                                          #xFFFFFFFF
+
+        -- StackAddressReg: Instruction Address Register 
+        DEFINE_CONST ENGINEDEBUGBLK_WIDTH_StackAddressReg                                             32
+        DEFINE_CONST ENGINEDEBUGBLK_ADR_StackAddressReg                                               #x00000018
+        ADD_CONST ENGINEDEBUGBLK_ADR_StackAddressReg                                                  $WASMFPGAENGINEDEBUG_ADR_BLK_BASE_ENGINEDEBUGBLK
+
+            DEFINE_CONST ENGINEDEBUGBLK_BUS_MASK_StackAddress                                         #xFFFFFFFF
 
 
 
@@ -214,8 +221,8 @@ VERIFY_FPGA 32 $ENGINEDEBUGBLK_ADR_ControlReg WasmFpgaEngineDebugvalRstRead #x00
 --     InstantiationRunning
 -- R : StatusReg
 --     InvocationRunning
--- R : AddressReg
---     Address
+-- R : InstructionAddressReg
+--     InstructionAddress
 -- R : InstructionReg
 --     Instruction
 -- R : ErrorReg
@@ -223,6 +230,8 @@ VERIFY_FPGA 32 $ENGINEDEBUGBLK_ADR_ControlReg WasmFpgaEngineDebugvalRstRead #x00
 -- RW : Breakpoint0Reg
 VERIFY_FPGA 32 $ENGINEDEBUGBLK_ADR_Breakpoint0Reg WasmFpgaEngineDebugvalRstRead #x00000000 #xFFFFFFFF -- Breakpoint0
 
+-- R : StackAddressReg
+--     StackAddress
 
 RETURN_CALL
 END_SUB
@@ -309,8 +318,8 @@ VERIFY_FPGA 32 $ENGINEDEBUGBLK_ADR_ControlReg WasmFpgaEngineDebugvalRdBkRead #x0
 --     InstantiationRunning
 -- R : StatusReg
 --     InvocationRunning
--- R : AddressReg
---     Address
+-- R : InstructionAddressReg
+--     InstructionAddress
 -- R : InstructionReg
 --     Instruction
 -- R : ErrorReg
@@ -321,6 +330,8 @@ VERIFY_FPGA 32 $ENGINEDEBUGBLK_ADR_Breakpoint0Reg WasmFpgaEngineDebugvalRdBkRead
 WRITE_FPGA  32 $ENGINEDEBUGBLK_ADR_Breakpoint0Reg #xAAAAAAAA          -- Breakpoint0
 VERIFY_FPGA 32 $ENGINEDEBUGBLK_ADR_Breakpoint0Reg WasmFpgaEngineDebugvalRdBkRead #xAAAAAAAA #xFFFFFFFF -- Breakpoint0
 
+-- R : StackAddressReg
+--     StackAddress
 
 RETURN_CALL
 END_SUB

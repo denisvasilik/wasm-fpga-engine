@@ -488,7 +488,7 @@ begin
         StackAddress => StackAddress
       );
 
-    Module : entity work.WasmFpgaEngine_ModuleBlk
+    Module : entity work.WasmFpgaModuleProxy
       port map (
         Clk => Clk,
         Rst => Rst,
@@ -506,7 +506,7 @@ begin
         Data => ModuleRamData
       );
 
-    Memory : entity work.WasmFpgaEngine_MemoryBlk
+    Memory : entity work.WasmFpgaMemoryProxy
       port map (
         Clk => Clk,
         Rst => Rst,
@@ -526,7 +526,7 @@ begin
         WriteData => MemoryWriteData
       );
 
-    Stack : entity work.WasmFpgaEngine_StackBlk
+    Stack : entity work.WasmFpgaStackProxy
       port map (
         Clk => Clk,
         Rst => Rst,
@@ -557,7 +557,7 @@ begin
         LocalIndex => StackLocalIndex
       );
 
-    Store : entity work.WasmFpgaEngine_StoreBlk
+    Store : entity work.WasmFpgaStoreProxy
       port map (
         Clk => Clk,
         Rst => Rst,

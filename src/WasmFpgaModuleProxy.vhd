@@ -2,7 +2,7 @@ library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
 
-entity WasmFpgaEngine_ModuleBlk is
+entity WasmFpgaModuleProxy is
     port (
         Clk : in std_logic;
         Rst : in std_logic;
@@ -21,7 +21,7 @@ entity WasmFpgaEngine_ModuleBlk is
     );
 end entity;
 
-architecture Behavioural of WasmFpgaEngine_ModuleBlk is
+architecture Behavioural of WasmFpgaModuleProxy is
 
   signal State : std_logic_vector(3 downto 0);
 

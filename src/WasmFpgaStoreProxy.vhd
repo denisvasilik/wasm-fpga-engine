@@ -6,7 +6,7 @@ library work;
   use work.WasmFpgaStoreWshBn_Package.all;
   use work.WasmFpgaBusWshBn_Package.all;
 
-entity WasmFpgaEngine_StoreBlk is
+entity WasmFpgaStoreProxy is
     port (
         Clk : in std_logic;
         Rst : in std_logic;
@@ -29,7 +29,7 @@ entity WasmFpgaEngine_StoreBlk is
     );
 end entity;
 
-architecture Behavioural of WasmFpgaEngine_StoreBlk is
+architecture Behavioural of WasmFpgaStoreProxy is
 
   signal Ack : std_logic;
   signal DatOut : std_logic_vector(31 downto 0);

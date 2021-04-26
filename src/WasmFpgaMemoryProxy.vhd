@@ -2,7 +2,7 @@ library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
 
-entity WasmFpgaEngine_MemoryBlk is
+entity WasmFpgaMemoryProxy is
     port (
         Clk : in std_logic;
         Rst : in std_logic;
@@ -21,9 +21,9 @@ entity WasmFpgaEngine_MemoryBlk is
         ReadData : out std_logic_vector(31 downto 0);
         WriteData : in std_logic_vector(31 downto 0)
     );
-end entity;
+end;
 
-architecture Behavioural of WasmFpgaEngine_MemoryBlk is
+architecture Behavioural of WasmFpgaMemoryProxy is
 
   signal State : std_logic_vector(3 downto 0);
 
@@ -66,10 +66,10 @@ begin
       elsif( State = StateAck ) then
         if ( MemoryBlk_Ack = '1' ) then
           ReadData <= MemoryBlk_DatOut;
-          State <= StateIdle; 
+          State <= StateIdle;
         end if;
       end if;
     end if;
   end process;
 
-end architecture;
+end;

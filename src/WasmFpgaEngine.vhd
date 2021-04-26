@@ -141,6 +141,7 @@ architecture Behavioural of WasmFpgaEngine is
 
   signal InvocationRun : std_logic;
   signal InvocationBusy : std_logic;
+  signal InvocationStopped : std_logic;
 
   signal Breakpoint0 : std_logic_vector(31 downto 0);
   signal StopInMain : std_logic;
@@ -416,7 +417,12 @@ begin
             nRst => nRst,
             Run => InvocationRun,
             Busy => InvocationBusy,
+            Trap => InvocationTrap,
+            Instruction => Instruction,
             Debug => Debug,
+            Stopped => InvocationStopped,
+            EntryPointAddress => EntryPointAddress,
+            StackAddress => StackAddress,
             WRegPulse_DebugControlReg => WRegPulse_DebugControlReg,
             Breakpoint0 => Breakpoint0,
             StopInMain => StopInMain,
@@ -425,10 +431,6 @@ begin
             StepOut => StepOut,
             Continue => Continue,
             StopDebugging => StopDebugging,
-            EntryPointAddress => EntryPointAddress,
-            StackAddress => StackAddress,
-            Instruction => Instruction,
-            Trap => InvocationTrap,
             FromWasmFpgaModuleRam => WasmFpgaModuleRam_WasmFpgaInvocation,
             ToWasmFpgaModuleRam => WasmFpgaInvocation_WasmFpgaModuleRam,
             FromWasmFpgaInstruction => WasmFpgaInstruction_WasmFpgaInvocation,
@@ -477,6 +479,7 @@ begin
         StopInMain => StopInMain,
         Debug => Debug,
         WRegPulse_ControlReg => WRegPulse_DebugControlReg,
+        InvocationStopped => InvocationStopped,
         InvocationTrap => InvocationTrap,
         InstantiationTrap => InstantiationTrap,
         InstantiationRunning => InstantiationBusy,

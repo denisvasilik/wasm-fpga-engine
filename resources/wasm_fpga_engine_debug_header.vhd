@@ -119,6 +119,7 @@ package WasmFpgaEngineDebugWshBn_Package is
 
     type T_EngineDebugBlk_WasmFpgaEngineDebugWshBn is
     record
+        InvocationStopped :   std_logic;
         InvocationTrap :   std_logic;
         InstantiationTrap :   std_logic;
         InstantiationRunning :   std_logic;
@@ -220,6 +221,15 @@ package WasmFpgaEngineDebugWshBn_Package is
         -- StatusReg: Status Register 
         constant WASMFPGAENGINEDEBUG_WIDTH_StatusReg                                                 : integer := 32;
         constant WASMFPGAENGINEDEBUG_ADR_StatusReg                                                   : std_logic_vector(23 downto 0) := std_logic_vector(x"000004" + unsigned(WASMFPGAENGINEDEBUG_ADR_BLK_BASE_EngineDebugBlk));
+
+            -- 
+            constant WASMFPGAENGINEDEBUG_BUS_MASK_InvocationStopped                                  : std_logic_vector(31 downto 0) := x"00000010";
+
+                -- Invocation has not been stopped.
+                constant WASMFPGAENGINEDEBUG_VAL_IsNotStopped                                        : std_logic := '0';
+                -- Invocation has been stopped.
+                constant WASMFPGAENGINEDEBUG_VAL_IsStopped                                           : std_logic := '1';
+
 
             -- 
             constant WASMFPGAENGINEDEBUG_BUS_MASK_InvocationTrap                                     : std_logic_vector(31 downto 0) := x"00000008";

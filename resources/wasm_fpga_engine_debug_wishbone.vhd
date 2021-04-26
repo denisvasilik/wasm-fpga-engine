@@ -35,6 +35,7 @@ entity EngineDebugBlk_WasmFpgaEngineDebug is
         StopInMain : out std_logic;
         Debug : out std_logic;
         WRegPulse_ControlReg : out std_logic;
+        InvocationStopped : in std_logic;
         InvocationTrap : in std_logic;
         InstantiationTrap : in std_logic;
         InstantiationRunning : in std_logic;
@@ -297,6 +298,7 @@ begin
     end process;
 
     mux_premuxdatout_StatusReg0 : process (
+            InvocationStopped,
             InvocationTrap,
             InstantiationTrap,
             InstantiationRunning,
@@ -304,6 +306,7 @@ begin
             )
     begin 
          PreMuxDatOut_StatusReg <= x"0000_0000";
+         PreMuxDatOut_StatusReg(4) <= InvocationStopped;
          PreMuxDatOut_StatusReg(3) <= InvocationTrap;
          PreMuxDatOut_StatusReg(2) <= InstantiationTrap;
          PreMuxDatOut_StatusReg(1) <= InstantiationRunning;
@@ -566,6 +569,7 @@ architecture arch_for_synthesys of WasmFpgaEngineDebugWshBn is
             StopInMain : out std_logic;
             Debug : out std_logic;
             WRegPulse_ControlReg : out std_logic;
+            InvocationStopped : in std_logic;
             InvocationTrap : in std_logic;
             InstantiationTrap : in std_logic;
             InstantiationRunning : in std_logic;
@@ -614,6 +618,7 @@ begin
         StopInMain => WasmFpgaEngineDebugWshBn_EngineDebugBlk.StopInMain,
         Debug => WasmFpgaEngineDebugWshBn_EngineDebugBlk.Debug,
         WRegPulse_ControlReg => WasmFpgaEngineDebugWshBn_EngineDebugBlk.WRegPulse_ControlReg,
+        InvocationStopped => EngineDebugBlk_WasmFpgaEngineDebugWshBn.InvocationStopped,
         InvocationTrap => EngineDebugBlk_WasmFpgaEngineDebugWshBn.InvocationTrap,
         InstantiationTrap => EngineDebugBlk_WasmFpgaEngineDebugWshBn.InstantiationTrap,
         InstantiationRunning => EngineDebugBlk_WasmFpgaEngineDebugWshBn.InstantiationRunning,

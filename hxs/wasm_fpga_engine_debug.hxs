@@ -197,7 +197,20 @@ HwSwIf WasmFpgaEngineDebug {
                 HwAckImmediate = 'Yes';
             }
             Bits {
-                BitFieldReserved ( 31 downto 4 );
+                BitFieldReserved ( 31 downto 5 );
+                BitFieldEnum InvocationStopped ( 4 ) 'R_RTrans' {
+                    BitFieldDescription {
+                        "";
+                    }
+                    ValueEntries {
+                        Value { 0b0 = IsNotStopped ValueDescription { "Invocation has not been stopped."; } }
+                        Value { 0b1 = IsStopped ValueDescription { "Invocation has been stopped."; } }
+                    }
+                    ResetValueEntry = 0b0;
+                    BlockResetsAffecting {
+                        Pwr = 'X' ;
+                    }
+                }
                 BitFieldEnum InvocationTrap ( 3 ) 'R_RTrans' {
                     BitFieldDescription {
                         "";

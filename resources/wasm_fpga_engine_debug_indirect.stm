@@ -93,6 +93,14 @@ LABEL
         DEFINE_CONST ENGINEDEBUGBLK_ADR_StatusReg                                                     #x00000004
         ADD_CONST ENGINEDEBUGBLK_ADR_StatusReg                                                        $WASMFPGAENGINEDEBUG_ADR_BLK_BASE_ENGINEDEBUGBLK
 
+            DEFINE_CONST ENGINEDEBUGBLK_BUS_MASK_InvocationStopped                                    #x00000010
+
+
+                DEFINE_CONST ENGINEDEBUGBLK_VAL_IsNotStopped                                          #x00000000
+
+                DEFINE_CONST ENGINEDEBUGBLK_VAL_IsStopped                                             #x00000010
+
+
             DEFINE_CONST ENGINEDEBUGBLK_BUS_MASK_InvocationTrap                                       #x00000008
 
 
@@ -214,6 +222,8 @@ VERIFY_FPGA 32 $ENGINEDEBUGBLK_ADR_ControlReg WasmFpgaEngineDebugvalRstRead #x00
 VERIFY_FPGA 32 $ENGINEDEBUGBLK_ADR_ControlReg WasmFpgaEngineDebugvalRstRead #x00000000 #x00000001 -- Debug
 
 -- R : StatusReg
+--     InvocationStopped
+-- R : StatusReg
 --     InvocationTrap
 -- R : StatusReg
 --     InstantiationTrap
@@ -310,6 +320,8 @@ VERIFY_FPGA 32 $ENGINEDEBUGBLK_ADR_ControlReg WasmFpgaEngineDebugvalRdBkRead #x0
 WRITE_FPGA  32 $ENGINEDEBUGBLK_ADR_ControlReg #x00000000          -- Debug
 VERIFY_FPGA 32 $ENGINEDEBUGBLK_ADR_ControlReg WasmFpgaEngineDebugvalRdBkRead #x00000000 #x00000001 -- Debug
 
+-- R : StatusReg
+--     InvocationStopped
 -- R : StatusReg
 --     InvocationTrap
 -- R : StatusReg

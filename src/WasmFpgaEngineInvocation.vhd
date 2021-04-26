@@ -14,6 +14,7 @@ entity WasmFpgaEngineInvocation is
         Run : in std_logic;
         Busy : out std_logic;
         Trap : out std_logic;
+        Stopped : out std_logic;
         EntryPointAddress : in std_logic_vector(23 downto 0);
         StackAddress : in std_logic_vector(31 downto 0);
         Instruction : out std_logic_vector(7 downto 0);
@@ -85,18 +86,21 @@ begin
         if (Debug = '1') then
             if (StopInMain = '1' and IsInMain = '1') then
                 IsInMain <= '0';
+                Stopped <= '1';
                 if (WRegPulse_DebugControlReg = '1' and
                     (StepOver = '1' or StepInto = '1' or StepOut = '1' or Continue = '1'))
                 then
                     State <= State1;
                 end if;
             elsif (StepOver = '1' and Continue = '0') then
+                Stopped <= '1';
                 if (WRegPulse_DebugControlReg = '1' and
                     (StepOver = '1' or StepInto = '1' or StepOut = '1' or Continue = '1'))
                 then
                     State <= State1;
                 end if;
             elsif (InstructionAddress = Breakpoint0(23 downto 0)) then
+                Stopped <= '1';
                 if (StopDebugging = '1') then
                    State <= StateIdle;
                 elsif (WRegPulse_DebugControlReg = '1') then

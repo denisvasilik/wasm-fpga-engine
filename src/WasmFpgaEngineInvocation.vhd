@@ -59,6 +59,7 @@ begin
       Trap <= '0';
       Busy <= '1';
       IsInMain <= '1';
+      Stopped <= '0';
       CurrentInstruction <= 0;
       InstructionAddress <= (others => '0');
       CurrentByte <= (others => '0');

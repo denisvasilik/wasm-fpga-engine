@@ -5,11 +5,16 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Binalyzer Unit Test",
+            "name": "Bin2Stm",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/tools/bin2simstm.py",
-            "args": [],
+            "args": [
+                "--input",
+                "resources/call_app.wasm",
+                "--output",
+                "resources/call_app.stm",
+            ],
             "env": {
                 "PYTHONPATH": "binalyzer"
             },
@@ -17,5 +22,23 @@
             "cwd": "${workspaceFolder}",
             "python": "${workspaceFolder}/../.venv/bin/python3"
         },
+        {
+            "name": "Bin2Coe",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/tools/bin2coe.py",
+            "args": [
+                "--input",
+                "resources/call_app.wasm",
+                "--output",
+                "resources/call_app.coe",
+            ],
+            "env": {
+                "PYTHONPATH": "binalyzer"
+            },
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "python": "${workspaceFolder}/../.venv/bin/python3"
+        }
     ]
 }

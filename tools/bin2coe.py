@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import os
 import click
@@ -10,7 +10,7 @@ def main(input, output):
     convert_binary_to_coe(input, output)
 
 def convert_binary_to_coe(binary_file_path, coe_file_path):
-    with open(binary_file_path, 'r') as bin_file:
+    with open(binary_file_path, 'rb') as bin_file:
         with open(coe_file_path, 'w') as coe_file:
             coe_file.write('memory_initialization_radix=16;')
             coe_file.write(os.linesep)

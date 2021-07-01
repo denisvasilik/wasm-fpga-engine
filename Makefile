@@ -8,6 +8,7 @@ convert:
 	wat2wasm resources/${WASM_APP_NAME}.wat -o resources/${WASM_APP_NAME}.wasm
 	wat2wasm resources/${WASM_APP_NAME}.wat -v 2> resources/${WASM_APP_NAME}.txt
 	tools/bin2coe.py --input resources/${WASM_APP_NAME}.wasm --output resources/${WASM_APP_NAME}.coe
+	tools/bin2simstm.py --input resources/${WASM_APP_NAME}.wasm --output resources/${WASM_APP_NAME}.stm
 	rm ${WASM_APP_NAME}.wasm
 
 prepare:

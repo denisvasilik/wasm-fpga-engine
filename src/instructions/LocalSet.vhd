@@ -30,13 +30,18 @@ architecture Behavioural of InstructionLocalSet is
 
     signal State : std_logic_vector(15 downto 0);
     signal SetLocalFromStackState : std_logic_vector(15 downto 0);
-    signal PopFromStackState : std_logic_vector(15 downto 0);
-
+    signal ReadUnsignedLEB128State : std_logic_vector(15 downto 0);
+    signal ReadFromModuleRamState : std_logic_vector(15 downto 0);
+    signal DecodedValue : std_logic_vector(31 downto 0);
+    signal CurrentByte : std_logic_vector(7 downto 0);
+    
     signal ToWasmFpgaStackBuf : T_ToWasmFpgaStack;
+    signal ToWasmFpgaModuleRamBuf : T_ToWasmFpgaModuleRam;
 
 begin
 
     ToWasmFpgaStack <= ToWasmFpgaStackBuf;
+    ToWasmFpgaModuleRam <= ToWasmFpgaModuleRamBuf;
 
     ToWasmFpgaMemory <= (
         Run => '0',
@@ -47,7 +52,9 @@ begin
 
     process (Clk, nRst) is
     begin
-        if (nRst = '1') then
+        if (nRst = '0') then
+          DecodedValue <= (others => '0');
+          CurrentByte <= (others => '0');
           ToWasmFpgaStackBuf <= (
               Run => '0',
               Action => (others => '0'),
@@ -60,34 +67,37 @@ begin
               ModuleInstanceUid => (others => '0'),
               LocalIndex => (others => '0')
           );
-          ToWasmFpgaModuleRam <= (
-              Run => '0',
-              Address => (others => '0')
-          );
           FromWasmFpgaInstruction <= (
               Address => (others => '0'),
               Trap => '0',
               Busy => '1'
           );
+          ToWasmFpgaModuleRamBuf <= (
+              Run => '0',
+              Address => (others => '0')
+          );
+          ReadUnsignedLEB128State <= StateIdle;
+          ReadFromModuleRamState <= StateIdle;
           SetLocalFromStackState <= StateIdle;
-          PopFromStackState <= StateIdle;
           State <= StateIdle;
         elsif rising_edge(Clk) then
             if (State = StateIdle) then
                 FromWasmFpgaInstruction.Busy <= '0';
                 if (ToWasmFpgaInstruction.Run = '1') then
                     FromWasmFpgaInstruction.Busy <= '1';
-                    ToWasmFpgaModuleRam.Address <= ToWasmFpgaInstruction.Address;
+                    ToWasmFpgaModuleRamBuf.Address <= ToWasmFpgaInstruction.Address;
                     State <= State0;
                 end if;
             elsif (State = State0) then
-                PopFromStack(PopFromStackState,
-                             FromWasmFpgaStack,
-                             ToWasmFpgaStackBuf);
-                if(PopFromStackState = StateEnd) then
-                    ToWasmFpgaStackBuf.LowValue <= FromWasmFpgaStack.LowValue;
-                    ToWasmFpgaStackBuf.HighValue <= FromWasmFpgaStack.HighValue;
-                    ToWasmFpgaStackBuf.TypeValue <= FromWasmFpgaStack.TypeValue;
+                -- Read local idx parameter from module RAM
+                ReadUnsignedLEB128(ReadUnsignedLEB128State,
+                                   ReadFromModuleRamState,
+                                   DecodedValue,
+                                   CurrentByte,
+                                   FromWasmFpgaModuleRam,
+                                   ToWasmFpgaModuleRamBuf);
+                if(ReadUnsignedLEB128State = StateEnd) then
+                    ToWasmFpgaStackBuf.LocalIndex <= DecodedValue;
                     State <= State1;
                 end if;
             elsif (State = State1) then

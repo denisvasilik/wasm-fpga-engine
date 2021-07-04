@@ -115,6 +115,7 @@ set files_vhd [list \
  [file normalize "${project_src}/instructions/I32Leu.vhd" ]\
  [file normalize "${project_src}/instructions/LocalGet.vhd" ]\
  [file normalize "${project_src}/instructions/LocalSet.vhd" ]\
+ [file normalize "${project_src}/instructions/LocalTee.vhd" ]\
  [file normalize "${project_src}/instructions/Call.vhd" ]\
  [file normalize "${project_package}/component.xml" ]\
 ]

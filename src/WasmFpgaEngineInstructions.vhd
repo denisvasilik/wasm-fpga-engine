@@ -573,6 +573,20 @@ begin
             ToWasmFpgaMemory => ToWasmFpgaMemory(to_integer(unsigned(WASM_OPCODE_LOCAL_SET)))
         );
 
+    InstructionLocalTee_i : entity work.InstructionLocalTee
+        port map (
+            Clk => Clk,
+            nRst => nRst,
+            ToWasmFpgaInstruction => ToWasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_LOCAL_TEE))),
+            FromWasmFpgaInstruction => FromWasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_LOCAL_TEE))),
+            FromWasmFpgaStack => FromWasmFpgaStack(to_integer(unsigned(WASM_OPCODE_LOCAL_TEE))),
+            ToWasmFpgaStack => ToWasmFpgaStack(to_integer(unsigned(WASM_OPCODE_LOCAL_TEE))),
+            FromWasmFpgaModuleRam => FromWasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_LOCAL_TEE))),
+            ToWasmFpgaModuleRam => ToWasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_LOCAL_TEE))),
+            FromWasmFpgaMemory => FromWasmFpgaMemory(to_integer(unsigned(WASM_OPCODE_LOCAL_TEE))),
+            ToWasmFpgaMemory => ToWasmFpgaMemory(to_integer(unsigned(WASM_OPCODE_LOCAL_TEE)))
+        );
+
     InstructionCall_i : entity work.InstructionCall
         port map (
             Clk => Clk,

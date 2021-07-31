@@ -12,11 +12,11 @@ Executes the WebAssembly [instructions](https://www.w3.org/TR/wasm-core-1/#a7-in
 | loop                  | 0x03          |             |
 | if                    | 0x04          |             |
 | else                  | 0x05          |             |
-| (reserved)            | 0x06          |             |
-| (reserved)            | 0x07          |             |
-| (reserved)            | 0x08          |             |
-| (reserved)            | 0x09          |             |
-| (reserved)            | 0x0A          |             |
+| (reserved)            | 0x06          | ❌           |
+| (reserved)            | 0x07          | ❌           |
+| (reserved)            | 0x08          | ❌           |
+| (reserved)            | 0x09          | ❌           |
+| (reserved)            | 0x0A          | ❌           |
 | end                   | 0x0B          | ✔           |
 | br                    | 0x0C          |             |
 | br_if                 | 0x0D          |             |
@@ -24,14 +24,14 @@ Executes the WebAssembly [instructions](https://www.w3.org/TR/wasm-core-1/#a7-in
 | return                | 0x0F          |             |
 | call                  | 0x10          | ✔           |
 | call_indirect         | 0x11          |             |
-| (reserved)            | 0x12          |             |
-| (reserved)            | 0x13          |             |
-| (reserved)            | 0x14          |             |
-| (reserved)            | 0x15          |             |
-| (reserved)            | 0x16          |             |
-| (reserved)            | 0x17          |             |
-| (reserved)            | 0x18          |             |
-| (reserved)            | 0x19          |             |
+| (reserved)            | 0x12          | ❌           |
+| (reserved)            | 0x13          | ❌           |
+| (reserved)            | 0x14          | ❌           |
+| (reserved)            | 0x15          | ❌           |
+| (reserved)            | 0x16          | ❌           |
+| (reserved)            | 0x17          | ❌           |
+| (reserved)            | 0x18          | ❌           |
+| (reserved)            | 0x19          | ❌           |
 | drop                  | 0x1A          | ✔           |
 | select                | 0x1B          | ✔           |
 | (reserved)            | 0x1C          |             |

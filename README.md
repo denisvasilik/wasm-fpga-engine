@@ -17,12 +17,12 @@ Executes the WebAssembly [instructions](https://www.w3.org/TR/wasm-core-1/#a7-in
 | (reserved)            | 0x08          |             |
 | (reserved)            | 0x09          |             |
 | (reserved)            | 0x0A          |             |
-| end                   | 0x0B          |             |
+| end                   | 0x0B          | ✔           |
 | br                    | 0x0C          |             |
 | br_if                 | 0x0D          |             |
 | br_table              | 0x0E          |             |
 | return                | 0x0F          |             |
-| call                  | 0x10          |             |
+| call                  | 0x10          | ✔           |
 | call_indirect         | 0x11          |             |
 | (reserved)            | 0x12          |             |
 | (reserved)            | 0x13          |             |
@@ -32,21 +32,21 @@ Executes the WebAssembly [instructions](https://www.w3.org/TR/wasm-core-1/#a7-in
 | (reserved)            | 0x17          |             |
 | (reserved)            | 0x18          |             |
 | (reserved)            | 0x19          |             |
-| drop                  | 0x1A          |             |
-| select                | 0x1B          |             |
+| drop                  | 0x1A          | ✔           |
+| select                | 0x1B          | ✔           |
 | (reserved)            | 0x1C          |             |
 | (reserved)            | 0x1D          |             |
 | (reserved)            | 0x1E          |             |
 | (reserved)            | 0x1F          |             |
-| local.get             | 0x20          |             |
-| local.set             | 0x21          |             |
-| local.tee             | 0x22          |             |
+| local.get             | 0x20          | ✔           |
+| local.set             | 0x21          | ✔           |
+| local.tee             | 0x22          | ✔           |
 | global.get            | 0x23          |             |
 | global.set            | 0x24          |             |
 | (reserved)            | 0x25          |             |
 | (reserved)            | 0x26          |             |
 | (reserved)            | 0x27          |             |
-| i32.load              | 0x28          |             |
+| i32.load              | 0x28          | ✔           |
 | i64.load              | 0x29          |             |
 | f32.load              | 0x2A          |             |
 | f64.load              | 0x2B          |             |
@@ -60,7 +60,7 @@ Executes the WebAssembly [instructions](https://www.w3.org/TR/wasm-core-1/#a7-in
 | i64.load16_u          | 0x33          |             |
 | i64.load32_s          | 0x34          |             |
 | i64.load32_u          | 0x35          |             |
-| i32.store             | 0x36          |             |
+| i32.store             | 0x36          | ✔           |
 | i64.store             | 0x37          |             |
 | f32.store             | 0x38          |             |
 | f64.store             | 0x39          |             |
@@ -71,21 +71,21 @@ Executes the WebAssembly [instructions](https://www.w3.org/TR/wasm-core-1/#a7-in
 | i64.store32           | 0x3E          |             |
 | memory.size           | 0x3F          |             |
 | memory.grow           | 0x40          |             |
-| i32.const             | 0x41          |             |
+| i32.const             | 0x41          | ✔           |
 | i64.const             | 0x42          |             |
 | f32.const             | 0x43          |             |
 | f64.const             | 0x44          |             |
-| i32.eqz               | 0x45          |             |
-| i32.eq                | 0x46          |             |
-| i32.ne                | 0x47          |             |
-| i32.lt_s              | 0x48          |             |
-| i32.lt_u              | 0x49          |             |
-| i32.gt_s              | 0x4A          |             |
-| i32.gt_u              | 0x4B          |             |
-| i32.le_s              | 0x4C          |             |
-| i32.le_u              | 0x4D          |             |
-| i32.ge_s              | 0x4E          |             |
-| i32.ge_u              | 0x4F          |             |
+| i32.eqz               | 0x45          | ✔           |
+| i32.eq                | 0x46          | ✔           |
+| i32.ne                | 0x47          | ✔           |
+| i32.lt_s              | 0x48          | ✔           |
+| i32.lt_u              | 0x49          | ✔           |
+| i32.gt_s              | 0x4A          | ✔           |
+| i32.gt_u              | 0x4B          | ✔           |
+| i32.le_s              | 0x4C          | ✔           |
+| i32.le_u              | 0x4D          | ✔           |
+| i32.ge_s              | 0x4E          | ✔           |
+| i32.ge_u              | 0x4F          | ✔           |
 | i64.eqz               | 0x50          |             |
 | i64.eq                | 0x51          |             |
 | i64.ne                | 0x52          |             |
@@ -109,24 +109,24 @@ Executes the WebAssembly [instructions](https://www.w3.org/TR/wasm-core-1/#a7-in
 | f64.gt                | 0x64          |             |
 | f64.le                | 0x65          |             |
 | f64.ge                | 0x66          |             |
-| i32.clz               | 0x67          |             |
-| i32.ctz               | 0x68          |             |
-| i32.popcnt            | 0x69          |             |
-| i32.add               | 0x6A          |             |
-| i32.sub               | 0x6B          |             |
-| i32.mul               | 0x6C          |             |
-| i32.div_s             | 0x6D          |             |
-| i32.div_u             | 0x6E          |             |
-| i32.rem_s             | 0x6F          |             |
-| i32.rem_u             | 0x70          |             |
-| i32.and               | 0x71          |             |
-| i32.or                | 0x72          |             |
-| i32.xor               | 0x73          |             |
-| i32.shl               | 0x74          |             |
-| i32.shr_s             | 0x75          |             |
-| i32.shr_u             | 0x76          |             |
-| i32.rotl              | 0x77          |             |
-| i32.rotr              | 0x78          |             |
+| i32.clz               | 0x67          | ✔           |
+| i32.ctz               | 0x68          | ✔           |
+| i32.popcnt            | 0x69          | ✔           |
+| i32.add               | 0x6A          | ✔           |
+| i32.sub               | 0x6B          | ✔           |
+| i32.mul               | 0x6C          | ✔           |
+| i32.div_s             | 0x6D          | ✔           |
+| i32.div_u             | 0x6E          | ✔           |
+| i32.rem_s             | 0x6F          | ✔           |
+| i32.rem_u             | 0x70          | ✔           |
+| i32.and               | 0x71          | ✔           |
+| i32.or                | 0x72          | ✔           |
+| i32.xor               | 0x73          | ✔           |
+| i32.shl               | 0x74          | ✔           |
+| i32.shr_s             | 0x75          | ✔           |
+| i32.shr_u             | 0x76          | ✔           |
+| i32.rotl              | 0x77          | ✔           |
+| i32.rotr              | 0x78          | ✔           |
 | i64.clz               | 0x79          |             |
 | i64.ctz               | 0x7A          |             |
 | i64.popcnt            | 0x7B          |             |

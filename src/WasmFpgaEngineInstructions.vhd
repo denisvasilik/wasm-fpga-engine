@@ -603,4 +603,20 @@ begin
             ToWasmFpgaStore => ToWasmFpgaStore(to_integer(unsigned(WASM_OPCODE_CALL)))
         );
 
+    InstructionReturn_i : entity work.InstructionReturn
+        port map (
+            Clk => Clk,
+            nRst => nRst,
+            ToWasmFpgaInstruction => ToWasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_RETURN))),
+            FromWasmFpgaInstruction => FromWasmFpgaInstruction(to_integer(unsigned(WASM_OPCODE_RETURN))),
+            FromWasmFpgaStack => FromWasmFpgaStack(to_integer(unsigned(WASM_OPCODE_RETURN))),
+            ToWasmFpgaStack => ToWasmFpgaStack(to_integer(unsigned(WASM_OPCODE_RETURN))),
+            FromWasmFpgaModuleRam => FromWasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_RETURN))),
+            ToWasmFpgaModuleRam => ToWasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_RETURN))),
+            FromWasmFpgaMemory => FromWasmFpgaMemory(to_integer(unsigned(WASM_OPCODE_RETURN))),
+            ToWasmFpgaMemory => ToWasmFpgaMemory(to_integer(unsigned(WASM_OPCODE_RETURN))),
+            FromWasmFpgaStore => FromWasmFpgaStore(to_integer(unsigned(WASM_OPCODE_RETURN))),
+            ToWasmFpgaStore => ToWasmFpgaStore(to_integer(unsigned(WASM_OPCODE_RETURN)))
+        );
+
 end;

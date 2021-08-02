@@ -65,17 +65,13 @@ def generate_start_section_of_store(wasm_module, offset, output_file):
     return 4
 
 
-def generate_code_section_of_store(wasm_module, offset, output_file):
-    start_funcidx = int.from_bytes(
-        wasm_module.start_section.start_funcidx.value, "little"
-    )
-    
+def generate_code_section_of_store(wasm_module, offset, output_file):   
     output_file.write("    -- Code section\n")
     
-    for body in wasm_module.code_section.code.function:
+    for i, body in enumerate(wasm_module.code_section.code.function):
         output_file.write(f"    WRITE_RAM $WASM_STORE #x{offset:02X} $WASM_MODULE_INSTANCE_UID\n")
-        output_file.write(f"    WRITE_RAM $WASM_STORE #x{offset + 1:02X} $WASM_START_SECTION_UID\n")
-        output_file.write(f"    WRITE_RAM $WASM_STORE #x{offset + 2:02X} #x{start_funcidx:02X} -- Idx\n")
+        output_file.write(f"    WRITE_RAM $WASM_STORE #x{offset + 1:02X} $WASM_CODE_SECTION_UID\n")
+        output_file.write(f"    WRITE_RAM $WASM_STORE #x{offset + 2:02X} #x{i:02X} -- Idx\n")
         output_file.write(
             f"    WRITE_RAM $WASM_STORE #x{offset + 3:02X} #x{body.absolute_address:02X} -- Function Body Address\n\n"
         )

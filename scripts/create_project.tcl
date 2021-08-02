@@ -117,6 +117,7 @@ set files_vhd [list \
  [file normalize "${project_src}/instructions/LocalSet.vhd" ]\
  [file normalize "${project_src}/instructions/LocalTee.vhd" ]\
  [file normalize "${project_src}/instructions/Call.vhd" ]\
+ [file normalize "${project_src}/instructions/Return.vhd" ]\
  [file normalize "${project_package}/component.xml" ]\
 ]
 add_files -norecurse -fileset $obj $files_vhd

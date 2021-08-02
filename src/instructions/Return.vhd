@@ -7,11 +7,18 @@ library work;
   use work.WasmFpgaStackWshBn_Package.all;
 
 --
--- nop
+-- return
 --
--- The nop instruction does nothing.
+-- The return instruction is a shortcut for an unconditional branch to the 
+-- outermost block, which implicitly is the body of the current function.
 --
-entity InstructionNop is
+-- Implementation Hint: Note that the end instruction does the actual handling 
+-- of returning elements outermost block.
+--
+-- Execution: https://www.w3.org/TR/wasm-core-1/#exec-return
+-- Validation: https://www.w3.org/TR/wasm-core-1/#valid-return
+--
+entity InstructionReturn is
     port (
         Clk : in std_logic;
         nRst : in std_logic;
@@ -28,7 +35,7 @@ entity InstructionNop is
     );
 end;
 
-architecture Behavioural of InstructionNop is
+architecture Behavioural of InstructionReturn is
 
     signal State : std_logic_vector(15 downto 0);
 
@@ -69,12 +76,12 @@ begin
     process (Clk, nRst) is
     begin
         if (nRst = '0') then
-            FromWasmFpgaInstruction <= (
-                Address => (others => '0'),
-                Trap => '0',
-                Busy => '1'
-            );
-            State <= StateIdle;
+          FromWasmFpgaInstruction <= (
+              Address => (others => '0'),
+              Trap => '0',
+              Busy => '1'
+          );
+          State <= StateIdle;
         elsif rising_edge(Clk) then
             if (State = StateIdle) then
                 FromWasmFpgaInstruction.Busy <= '0';

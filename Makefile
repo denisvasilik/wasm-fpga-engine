@@ -1,5 +1,5 @@
 PWD=$(shell pwd)
-WASM_APP_NAME=call_app
+WASM_APP_NAME=return_app
 
 
 all: package
@@ -10,6 +10,9 @@ convert:
 	tools/bin2coe.py --input resources/${WASM_APP_NAME}.wasm --output resources/${WASM_APP_NAME}.coe
 	tools/bin2simstm.py --input resources/${WASM_APP_NAME}.wasm --output resources/${WASM_APP_NAME}.stm
 	rm ${WASM_APP_NAME}.wasm
+
+simstm:
+	tools/bin2simstm.py --input resources/${WASM_APP_NAME}.wasm --output resources/${WASM_APP_NAME}.stm
 
 prepare:
 	@mkdir -p work
@@ -69,4 +72,4 @@ upload-to-test-pypi: package
 upload-to-pypi: package
 	python3 -m twine upload --repository pypi dist/*
 
-.PHONY: all prepare project package hxs clean clean-ip
+.PHONY: all prepare project package hxs clean clean-ip simstm

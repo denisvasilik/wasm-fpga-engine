@@ -22,7 +22,9 @@ entity InstructionNop is
         FromWasmFpgaModuleRam : in T_FromWasmFpgaModuleRam;
         ToWasmFpgaModuleRam : out T_ToWasmFpgaModuleRam;
         FromWasmFpgaMemory : in T_FromWasmFpgaMemory;
-        ToWasmFpgaMemory : out T_ToWasmFpgaMemory
+        ToWasmFpgaMemory : out T_ToWasmFpgaMemory;
+        FromWasmFpgaStore : in T_FromWasmFpgaStore;
+        ToWasmFpgaStore : out T_ToWasmFpgaStore
     );
 end;
 
@@ -31,13 +33,6 @@ architecture Behavioural of InstructionNop is
     signal State : std_logic_vector(15 downto 0);
 
 begin
-
-    ToWasmFpgaMemory <= (
-        Run => '0',
-        Address => (others => '0'),
-        WriteData => (others => '0'),
-        WriteEnable => '0'
-    );
 
     ToWasmFpgaStack <= (
         Run => '0',
@@ -57,22 +52,35 @@ begin
         Address => (others => '0')
     );
 
-    FromWasmFpgaInstruction <= (
+    ToWasmFpgaMemory <= (
+        Run => '0',
         Address => (others => '0'),
-        Trap => '0',
-        Busy => '1'
+        WriteData => (others => '0'),
+        WriteEnable => '0'
+    );
+    
+    ToWasmFpgaStore <= (
+        Run => '0',
+        ModuleInstanceUid => (others => '0'),
+        SectionUID => (others => '0'),
+        Idx => (others => '0')
     );
 
     process (Clk, nRst) is
     begin
         if (nRst = '0') then
-          State <= StateIdle;
+            FromWasmFpgaInstruction <= (
+                Address => (others => '0'),
+                Trap => '0',
+                Busy => '1'
+            );
+            State <= StateIdle;
         elsif rising_edge(Clk) then
             if (State = StateIdle) then
                 FromWasmFpgaInstruction.Busy <= '0';
                 if (ToWasmFpgaInstruction.Run = '1') then
                     FromWasmFpgaInstruction.Busy <= '1';
-                    FromWasmFpgaInstruction.Address <= FromWasmFpgaModuleRam.Address;
+                    FromWasmFpgaInstruction.Address <= ToWasmFpgaInstruction.Address;
                     State <= StateIdle;
                 end if;
             end if;

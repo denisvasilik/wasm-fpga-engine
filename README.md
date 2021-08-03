@@ -21,7 +21,7 @@ Executes the WebAssembly [instructions](https://www.w3.org/TR/wasm-core-1/#a7-in
 | br                    | 0x0C          |             |
 | br_if                 | 0x0D          |             |
 | br_table              | 0x0E          |             |
-| return                | 0x0F          |             |
+| return                | 0x0F          | ✔           |
 | call                  | 0x10          | ✔           |
 | call_indirect         | 0x11          |             |
 | (reserved)            | 0x12          | ❌           |

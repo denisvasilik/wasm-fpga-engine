@@ -80,7 +80,9 @@ begin
             FromWasmFpgaModuleRam => FromWasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_NOP))),
             ToWasmFpgaModuleRam => ToWasmFpgaModuleRam(to_integer(unsigned(WASM_OPCODE_NOP))),
             FromWasmFpgaMemory => FromWasmFpgaMemory(to_integer(unsigned(WASM_OPCODE_NOP))),
-            ToWasmFpgaMemory => ToWasmFpgaMemory(to_integer(unsigned(WASM_OPCODE_NOP)))
+            ToWasmFpgaMemory => ToWasmFpgaMemory(to_integer(unsigned(WASM_OPCODE_NOP))),
+            FromWasmFpgaStore => FromWasmFpgaStore(to_integer(unsigned(WASM_OPCODE_NOP))),
+            ToWasmFpgaStore => ToWasmFpgaStore(to_integer(unsigned(WASM_OPCODE_NOP)))
         );
 
     InstructionI32And_i : entity work.InstructionI32And

@@ -75,6 +75,14 @@ begin
       ReadFromModuleRamState <= StateIdle;
       State <= StateIdle;
     elsif rising_edge(Clk) then
+      -- Avoid implicit latch inference
+      for i in ToWasmFpgaInstruction'RANGE loop
+            ToWasmFpgaInstruction(i) <= (
+                Run => '0',
+                Address => (others => '0'),
+                ModuleInstanceUid => (others => '0')
+            );
+      end loop;
       if (State = StateIdle) then
           Busy <= '0';
           if (Run = '1') then

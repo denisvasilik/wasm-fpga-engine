@@ -20,12 +20,13 @@ prepare:
 project: prepare fetch-definitions hxs
 	@vivado -mode batch -source scripts/create_project.tcl -notrace -nojournal -tempDir work -log work/vivado.log
 
-package:
+package: hxs
 	python3 setup.py sdist bdist_wheel
 
 clean: clean-ip
 	@rm -rf .Xil vivado*.log vivado*.str vivado*.jou
 	@rm -rf work \
+		dist \
 		src-gen \
 		hxs_gen
 
